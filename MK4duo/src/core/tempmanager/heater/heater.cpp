@@ -46,7 +46,6 @@ void Heater::init() {
   // Reset valor
   pwm_value             = 0;
   pwm_soft_pos          = 0;
-  pwm_soft_count        = 0xFF;
   consecutive_low_temp  = 0;
   target_temperature    = 0;
   idle_temperature      = 0;
@@ -262,18 +261,25 @@ void Heater::get_output() {
 
 void Heater::set_output_pwm() {
 
-  if (isHWpwm())
-    HAL::analogWrite(data.pin, isHWinvert() ? (255 - pwm_value) : pwm_value, data.freq);
-  else {
-    // Now set the pin high (if not 0)
-    if (pwm_soft_count == 0 && data.pin > NoPin && ((pwm_soft_pos = (pwm_value & SOFT_PWM_MASK)) > 0))
-      HAL::digitalWrite(data.pin, HIGH);
+  const uint8_t new_pwm = isHWinvert() ? 255 - pwm_value : pwm_value;
 
-    // If it's a valid pin turn off the channel
-    if (data.pin > NoPin && pwm_soft_pos == pwm_soft_count && pwm_soft_pos != SOFT_PWM_MASK)
-      HAL::digitalWrite(data.pin, LOW);
-
-    pwm_soft_count += SOFT_PWM_STEP;
+  if (data.pin > NoPin) {
+    if (isHWpwm())
+      HAL::analogWrite(data.pin, new_pwm, data.freq);
+    else {
+      #if ENABLED(SOFTWARE_PDM)
+        const uint8_t carry = pwm_soft_pos + new_pwm;
+        HAL::digitalWrite(data.pin, (carry < pwm_soft_pos));
+        pwm_soft_pos = carry;
+      #else // SOFTWARE PWM
+        // Turn HIGH Software PWM
+        if (tempManager.pwm_soft_count == 0 && ((pwm_soft_pos = (new_pwm & SOFT_PWM_MASK)) > 0))
+          HAL::digitalWrite(data.pin, HIGH);
+        // Turn LOW Software PWM
+        if (pwm_soft_pos == tempManager.pwm_soft_count && pwm_soft_pos != SOFT_PWM_MASK)
+          HAL::digitalWrite(data.pin, LOW);
+      #endif
+    }
   }
 
 }

@@ -1208,12 +1208,12 @@ void LcdUI::set_status(const char* const message, const bool persist/*=false*/) 
 
 void LcdUI::status_printf_P(const uint8_t level, PGM_P const message, ...) {
   if (level < alert_level) return;
-  host_action.action_notify(message);
   alert_level = level;
   va_list args;
   va_start(args, message);
   vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, message, args);
   va_end(args);
+  host_action.action_notify(status_message);
   finish_status(level > 0);
 }
 
@@ -1222,7 +1222,7 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   if (level < alert_level) return;
   alert_level = level;
 
-  host_action.action_notify(message);
+  host_action.action_notify_P(message);
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure

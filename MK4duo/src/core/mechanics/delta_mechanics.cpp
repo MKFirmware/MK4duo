@@ -160,7 +160,8 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
     // The number of segments-per-second times the duration
     // gives the number of segments we should produce
-    const uint16_t segments = MAX(1U, data.segments_per_second * seconds);
+    const uint16_t sps = difference.e ? data.segments_per_second : DELTA_SEGMENTS_PER_SECOND_MOVE;
+    const uint16_t segments = MAX(1U, sps * seconds);
 
     // Now compute the number of lines needed
     uint16_t numLines = (segments + data.segments_per_line - 1) / data.segments_per_line;

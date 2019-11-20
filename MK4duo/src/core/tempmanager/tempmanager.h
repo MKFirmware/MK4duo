@@ -49,6 +49,10 @@ class TempManager {
 
     static temp_data_t heater;
 
+    #if DISABLED(SOFTWARE_PDM)
+      static uint8_t pwm_soft_count;
+    #endif
+
     #if HAS_MCU_TEMPERATURE
       static float    mcu_current_temperature,
                       mcu_highest_temperature,
@@ -96,6 +100,11 @@ class TempManager {
      * Change number heater
      */
     static void change_number_heater(const HeatertypeEnum type, const uint8_t h);
+
+    /**
+     * Set Heaters pwm output
+     */
+    static void set_output_pwm();
 
     /**
      * Call periodically to HAL isr

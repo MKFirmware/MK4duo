@@ -40,7 +40,6 @@ void Fan::init() {
   scaled_speed        = 128;
   kickstart           = 0;
   pwm_soft_pos        = 0;
-  pwm_soft_count      = 0xFF;
 
   setIdle(false);
 
@@ -79,20 +78,25 @@ void Fan::set_auto_monitor(const int8_t h) {
 
 void Fan::set_output_pwm() {
 
-  const uint8_t new_Speed = isHWinvert() ? 255 - actual_speed() : actual_speed();
+  const uint8_t new_speed = isHWinvert() ? 255 - actual_speed() : actual_speed();
 
-  if (USEABLE_HARDWARE_PWM(data.pin))
-    HAL::analogWrite(data.pin, new_Speed, fanManager.data.frequency);
-  else {
-    // Now set the pin high (if not 0)
-    if (pwm_soft_count == 0 && data.pin > NoPin && ((pwm_soft_pos = (new_Speed & SOFT_PWM_MASK)) > 0))
-        HAL::digitalWrite(data.pin, HIGH);
-
-    // If it's a valid pin turn off the channel
-    if (data.pin > NoPin && pwm_soft_pos == pwm_soft_count && pwm_soft_pos != SOFT_PWM_MASK)
-      HAL::digitalWrite(data.pin, LOW);
-
-    pwm_soft_count += SOFT_PWM_STEP;
+  if (data.pin > NoPin) {
+    if (USEABLE_HARDWARE_PWM(data.pin) && false)
+      HAL::analogWrite(data.pin, new_speed, fanManager.data.frequency);
+    else {
+      #if ENABLED(SOFTWARE_PDM)
+        const uint8_t carry = pwm_soft_pos + new_speed;
+        HAL::digitalWrite(data.pin, (carry < pwm_soft_pos));
+        pwm_soft_pos = carry;
+      #else // SOFTWARE PWM
+        // Turn HIGH Software PWM
+        if (fanManager.pwm_soft_count == 0 && ((pwm_soft_pos = (new_speed & SOFT_PWM_MASK)) > 0))
+            HAL::digitalWrite(data.pin, HIGH);
+        // Turn LOW Software PWM
+        if (pwm_soft_pos == fanManager.pwm_soft_count && pwm_soft_pos != SOFT_PWM_MASK)
+          HAL::digitalWrite(data.pin, LOW);
+      #endif
+    }
   }
 
 }

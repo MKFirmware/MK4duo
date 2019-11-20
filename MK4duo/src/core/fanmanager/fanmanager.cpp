@@ -34,6 +34,10 @@ FanManager fanManager;
 /** Public Parameters */
 fans_data_t FanManager::data;
 
+#if DISABLED(SOFTWARE_PDM)
+  uint8_t FanManager::pwm_soft_count = 0;
+#endif
+
 /** Public Function */
 void FanManager::init() { LOOP_FAN() if (fans[f]) fans[f]->init(); }
 
@@ -63,9 +67,8 @@ void FanManager::change_number_fan(const uint8_t f) {
   }
   else if (data.fans > f) {
     for (uint8_t ff = f; ff < MAX_FAN; ff++) {
-      Fan * tmpfan = nullptr;
-      swap(tmpfan, fans[ff]);
-      delete(tmpfan);
+      delete (fans[ff]);
+      fans[ff] = nullptr;
     }
     data.fans = f;
   }
@@ -78,6 +81,10 @@ void FanManager::set_output_pwm() {
       fans[f]->set_output_pwm();
     }
   }
+
+  #if DISABLED(SOFTWARE_PDM)
+    pwm_soft_count += SOFT_PWM_STEP;
+  #endif
 }
 
 void FanManager::print_parameters() { LOOP_FAN() if (fans[f]) print_M106(f); }

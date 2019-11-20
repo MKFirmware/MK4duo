@@ -27,12 +27,6 @@
 #define MINUSOR(n, alt) (n >= 0 ? (alt) : (n = -n, '-'))
 
 //
-// Swap object
-//
-template <class T>
-void swap(T& a, T& b) { T c(a); a = b; b = c; }
-
-//
 // Utility functions to create and print hex strings as nybble, byte, and word.
 //
 FORCE_INLINE char hex_nybble(const uint8_t n) {

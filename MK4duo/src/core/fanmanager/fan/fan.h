@@ -77,8 +77,7 @@ class Fan {
 
   public: /** Private Parameters */
 
-    uint8_t     pwm_soft_pos,
-                pwm_soft_count;
+    uint8_t     pwm_soft_pos;
 
   public: /** Public Function */
 

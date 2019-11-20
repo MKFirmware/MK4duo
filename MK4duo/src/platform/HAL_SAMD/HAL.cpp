@@ -323,35 +323,22 @@ void HAL::analogWrite(pin_t pin, uint32_t value, const uint16_t freq/*=1000U*/) 
  */
 void HAL::Tick() {
 
-  static short_timer_t cycle_check_temp_timer(true);
+  static short_timer_t  cycle_1s_timer(true),
+                        cycle_100_timer(true);
 
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if MAX_HOTEND > 0
-    LOOP_HOTEND() hotends[h]->set_output_pwm();
-  #endif
-  #if MAX_BED > 0
-    LOOP_BED() beds[h]->set_output_pwm();
-  #endif
-  #if MAX_CHAMBER > 0
-    LOOP_CHAMBER() chambers[h]->set_output_pwm();
-  #endif
+  tempManager.set_output_pwm();
 
-  #if MAX_FAN > 0
-    LOOP_FAN() fans[f]->set_output_pwm();
-  #endif
+  // Fans set output PWM
+  fanManager.set_output_pwm();
 
-  // Calculation cycle temp a 100ms
-  if (cycle_check_temp_timer.expired(100)) {
-    // Temperature Spin
-    tempManager.spin();
-    #if ENABLED(FAN_KICKSTART_TIME) && MAX_FAN > 0
-      LOOP_FAN() {
-        if (fans[f]->kickstart) fans[f]->kickstart--;
-      }
-    #endif
-  }
+  // Event 100 ms
+  if (cycle_100_timer.expired(100)) tempManager.spin();
+
+  // Event 1.0 Second
+  if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
 
   // read analog values
   #if ANALOG_INPUTS > 0

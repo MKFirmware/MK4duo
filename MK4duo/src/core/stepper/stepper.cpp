@@ -278,9 +278,8 @@ void Stepper::change_number_driver(const uint8_t drv) {
   else if (data.drivers_e > drv) {
     for (uint8_t dd = drv; dd < MAX_DRIVER_E; dd++) {
       SERIAL_LMT(ECHO, "Delete driver ", driver.e[dd]->axis_letter);
-      Driver * tmpdriver = nullptr;
-      swap(tmpdriver, driver.e[dd]);
-      delete(tmpdriver);
+      delete (driver.e[dd]);
+      driver.e[dd] = nullptr;
     }
     data.drivers_e = drv;
   }
