@@ -277,12 +277,12 @@ void NextionLCD::init() {
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   #if ENABLED(NEXTION_CONNECT_DEBUG)
-    SERIAL_EM(" NEXTION connected at 115200 baud, ready");
+    SERIAL_EM(" NEXTION connected at 57600 baud, ready");
   #endif
 
   for (uint8_t i = 0; i < 10; i++) {
     ZERO(cmd);
-    nexSerial.begin(115200);
+    nexSerial.begin(57600);
     NextionON = getConnect(cmd);
     if (NextionON) break;
     HAL::delayMilliseconds(1000);
