@@ -45,7 +45,7 @@
 
 #include "nextion_gfx.h"
 
-#define NEXTION_LCD_FIRMWARE_VERSION  120
+#define NEXTION_LCD_FIRMWARE_VERSION  130
 
 NextionLCD nexlcd;
 
@@ -266,12 +266,12 @@ void NextionLCD::init() {
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   #if ENABLED(NEXTION_CONNECT_DEBUG)
-    SERIAL_EM(" NEXTION connected at 115200 baud, ready");
+    SERIAL_EM(" NEXTION connected at 57600 baud, ready");
   #endif
 
   for (uint8_t i = 0; i < 10; i++) {
     ZERO(cmd);
-    nexSerial.begin(115200);
+    nexSerial.begin(57600);
     NextionON = getConnect(cmd);
     if (NextionON) break;
     HAL::delayMilliseconds(1000);
@@ -283,8 +283,11 @@ void NextionLCD::init() {
   }
   else {
 
+    // Set connect page
+    sendCommandPGM(PSTR("page pg0"));
+
     // Read Version Firmware Nextion
-    sendCommandPGM(PSTR("get pg0.version.val"));
+    sendCommandPGM(PSTR("get version.val"));
     const uint16_t nextion_version = recvRetNumber();
 
     // Write Version Firmware MK4duo
@@ -320,7 +323,7 @@ void NextionLCD::init() {
         gfx.set_position(8, 28, 235, 140);
       #endif
     }
-    else if (strstr_P(cmd, PSTR("8048"))) {  // Model 7" Normal or Enhanced
+    else if (strstr_P(cmd, PSTR("8048"))) {  // Model 7" Normal, Enhanced or Intelligent
       SERIAL_MSG(" 7");
       #if ENABLED(NEXTION_GFX)
         gfx.set_position(274, 213, 250, 155);
@@ -1363,7 +1366,7 @@ void LcdUI::status_printf_P(const uint8_t level, PGM_P const message, ...) {
   vsnprintf(status_message, NEXTION_MAX_MESSAGE_LENGTH, message, args);
   va_end(args);
   nexlcd.setText(LcdStatus, status_message);
-  host_action.action_notify(message);
+  host_action.action_notify(status_message);
 }
 
 PGM_P print_paused = GET_TEXT(MSG_PRINT_PAUSED);

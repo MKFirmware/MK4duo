@@ -182,7 +182,7 @@ inline void gcode_G29() {
   #if ABL_GRID
 
     #if HAS_PROBE_MANUALLY
-      ABL_VAR xy_uint8_t meshCount;
+      ABL_VAR xy_int8_t meshCount;
     #endif
 
     ABL_VAR xy_float_t  probe_position_lf,

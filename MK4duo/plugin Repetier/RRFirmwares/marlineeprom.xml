@@ -2070,9 +2070,14 @@
     <detect>M666.*D(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[1/s]">Delta segments per second</description>
+    <description unit="[1/s]">Delta segments per second print</description>
     <set>M666 S@</set>
     <detect>M666.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[1/s]">Delta segments per second move</description>
+    <set>M666 F@</set>
+    <detect>M666.*F(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="int" min="10" max="255">
     <description unit="">Delta segments per line</description>

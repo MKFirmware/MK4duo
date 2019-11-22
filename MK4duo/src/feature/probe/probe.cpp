@@ -155,10 +155,16 @@ bool Probe::set_deployed(const bool deploy) {
 
       xyz_pos_t npos = { rx, ry };
       if (probe_relative) {
-        if (!mechanics.position_is_reachable_by_probe(npos)) return NAN;
+        if (!mechanics.position_is_reachable_by_probe(npos)) {
+          print_error();
+          return NAN;
+        }
         npos -= data.offset;
       }
-      else if (!mechanics.position_is_reachable(npos)) return NAN;
+      else if (!mechanics.position_is_reachable(npos)) {
+        print_error();
+        return NAN;
+      }
 
       npos.z =
         #if MECH(DELTA)
@@ -367,7 +373,10 @@ void Probe::servo_test() {
 } // servo_probe_test
 
 /** Private Function */
-// returns false for ok and true for failure
+
+/**
+ * returns false for ok and true for failure
+ */
 void Probe::specific_action(const bool deploy) {
 
   #if ENABLED(PAUSE_BEFORE_DEPLOY_STOW)
@@ -545,6 +554,14 @@ float Probe::run_probing() {
   }
 
   return probe_z / (float)data.repetitions;
+}
+
+void Probe::print_error() {
+  #if MECH(DELTA)
+    SERIAL_LM(ER, "Delta probeable radius not reachable!");
+  #else
+    SERIAL_LM(ER, "Probe range not reachable!");
+  #endif
 }
 
 #if HAS_ALLEN_KEY
