@@ -434,7 +434,7 @@ class MenuItem_bool : MenuEditItemBase {
 }while(0)
 
 #define STATIC_ITEM(LABEL,        V...)       STATIC_ITEM_P(  GET_TEXT(LABEL),  ##V)
-#define STATIC_ITEM_N_P(LABEL, N, V...)       STATIC_ITEM_N_P(GET_TEXT(LABEL),  ##V)
+#define STATIC_ITEM_N(LABEL, N, V...)         STATIC_ITEM_N_P(GET_TEXT(LABEL),  ##V)
 
 #define MENU_ITEM_P(TYPE, PLABEL, V...)       _MENU_ITEM_P(TYPE,        false,  PLABEL,           ##V)
 #define MENU_ITEM(TYPE, LABEL, V...)           MENU_ITEM_P(TYPE,                GET_TEXT(LABEL),  ##V)

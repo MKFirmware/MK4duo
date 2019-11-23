@@ -394,6 +394,7 @@
     #define TOOLCHANGE_ZRAISE 0
   #endif
 #else
+  #undef  DRIVER_EXTRUDERS
   #define DRIVER_EXTRUDERS  EXTRUDERS
   #define E_MANUAL          EXTRUDERS
 #endif
