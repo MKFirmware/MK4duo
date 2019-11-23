@@ -241,6 +241,8 @@ class NextionLCD {
 
     FORCE_INLINE static void sendCommand_end() { nexSerial.write(end, 3); }
 
+    FORCE_INLINE static void clear_rx() { while (nexSerial.available()) (void)nexSerial.read(); }
+
 };
 
 extern NextionLCD nexlcd;

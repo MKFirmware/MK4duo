@@ -285,6 +285,8 @@ void NextionLCD::init() {
 
     // Set connect page
     sendCommandPGM(PSTR("page pg0"));
+    HAL::delayMilliseconds(500);
+    clear_rx();
 
     // Read Version Firmware Nextion
     sendCommandPGM(PSTR("get version.val"));
