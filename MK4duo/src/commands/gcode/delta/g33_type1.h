@@ -30,10 +30,6 @@
 
 #define CODE_G33
 
-#if HOTENDS > 1
-  const uint8_t old_tool_index = toolManager.extruder.active;
-#endif
-
 static void ac_home() {
   endstops.setEnabled(true);
   mechanics.home(false);
@@ -41,9 +37,8 @@ static void ac_home() {
 }
 
 static void ac_setup() {
-  #if HOTENDS > 1
-    toolManager.change(0, true);
-  #endif
+
+  if (toolManager.extruder.total > 1) toolManager.change(0, true);
 
   planner.synchronize();
   mechanics.setup_for_endstop_or_probe_move();
@@ -61,9 +56,8 @@ static void ac_cleanup() {
   STOW_PROBE();
   mechanics.clean_up_after_endstop_or_probe_move();
 
-  #if HOTENDS > 1
-    toolManager.change(old_tool_index, true);
-  #endif
+  if (toolManager.extruder.total > 1) toolManager.change(toolManager.extruder.previous, true);
+
 }
 
 // Homed height

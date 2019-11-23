@@ -1,8 +1,12 @@
 ### Version 4.4.0
 *
-* Revision 20-11-2019
+* Revision 22-11-2019
 *
 * Version EEPROM MKV77
+*
+* Version Nextion 1_3_0
+*
+* Add Nextion 7" Intelligent
 *
 * Start development for STM32 on board Rumba32
 *   Hardware Timer for stepper  OK
@@ -34,6 +38,9 @@
 *   H[bool]   - Set Hotend for tool
 *
 * Add multiple Language, max 5, for lcd..
+*
+* Rename DELTA_SEGMENTS_PER_SECOND in DELTA_SEGMENTS_PER_SECOND_PRINT for delta print
+* Add DELTA_SEGMENTS_PER_SECOND_MOVE for delta move
 *
 * Fix JUNCTION_DEVIATION
 *

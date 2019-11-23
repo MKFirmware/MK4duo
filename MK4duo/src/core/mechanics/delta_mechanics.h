@@ -42,7 +42,8 @@ typedef struct : public generic_data_t {
               tower_angle_adj,
               tower_radius_adj;
 
-  uint16_t    segments_per_second;
+  uint16_t    segments_per_second_print,
+              segments_per_second_move;
 
   uint8_t     segments_per_line;
 

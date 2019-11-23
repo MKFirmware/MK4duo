@@ -270,8 +270,8 @@
       }
 
       #if AXIS_HAS_TMC(Z)
-        const uint16_t Z_current_1 = driver[driver.z]->tmc->rms_current();
-        driver[driver.z]->tmc->rms_current(_rms);
+        const uint16_t Z_current_1 = driver.z->tmc->rms_current();
+        driver.z->tmc->rms_current(_rms);
       #endif
       #if AXIS_HAS_TMC(Z2)
         const uint16_t Z2_current_1 = driver.z2->tmc->rms_current();
@@ -289,13 +289,13 @@
       mechanics.do_blocking_move_to_z(Z_MAX_BED + _z);
 
       #if AXIS_HAS_TMC(Z)
-        driver[driver.z]->tmc->rms_current(Z_current_1);
+        driver.z->tmc->rms_current(Z_current_1);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        driver[driver.z]->tmc->rms_current(Z2_current_1);
+        driver.z->tmc->rms_current(Z2_current_1);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        driver[driver.z]->tmc->rms_current(Z3_current_1);
+        driver.z->tmc->rms_current(Z3_current_1);
       #endif
 
       mechanics.do_blocking_move_to_z(Z_MAX_BED);

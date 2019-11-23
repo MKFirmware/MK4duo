@@ -76,6 +76,7 @@
 
   #if DISABLED(BABYSTEP_ZPROBE_OFFSET)
     void _lcd_babystep_z()  { _lcd_babystep(Z_AXIS, GET_TEXT(MSG_BABYSTEP_Z)); }
+    void lcd_babystep_z()   { _lcd_babystep_go(_lcd_babystep_z); }
   #endif
 
 #endif // BABYSTEPPING

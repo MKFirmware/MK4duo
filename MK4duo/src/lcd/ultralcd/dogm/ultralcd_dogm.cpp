@@ -145,7 +145,7 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
 
   // Draw the static MK4duo bootscreen from a u8g loop
   // or the animated boot screen within its own u8g loop
-  void LcdUI::draw_mk4duo_bootscreen(const bool line2=false) {
+  void LcdUI::draw_mk4duo_bootscreen(const bool line2/*=false*/) {
 
     // Determine text space needed
     constexpr u8g_uint_t  text_width_1 = u8g_uint_t((sizeof(SHORT_BUILD_VERSION) - 1) * (MENU_FONT_WIDTH)),

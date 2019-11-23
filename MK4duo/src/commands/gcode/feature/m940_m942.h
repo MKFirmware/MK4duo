@@ -81,10 +81,12 @@ inline void gcode_M940() {
         #endif
         break;
       case E_AXIS:
-        LOOP_DRV_EXT() {
-          Driver* drv = driver.e[d];
-          if (drv && drv->tmc) tmc_set_stealthChop(drv, value);
-        }
+        #if AXIS_HAS_STEALTHCHOP(E0)
+          LOOP_DRV_EXT() {
+            Driver* drv = driver.e[d];
+            if (drv && drv->tmc) tmc_set_stealthChop(drv, value);
+          }
+        #endif
         break;
     }
   }

@@ -75,7 +75,8 @@
 // Make delta curves from many straight lines (linear interpolation).
 // This is a trade-off between visible corners (not enough segments)
 // and processor overload (too many expensive sqrt calls).
-#define DELTA_SEGMENTS_PER_SECOND 200
+#define DELTA_SEGMENTS_PER_SECOND_PRINT 200
+#define DELTA_SEGMENTS_PER_SECOND_MOVE   50
 
 // Subsegment per line 10 - xxx
 #define DELTA_SEGMENTS_PER_LINE 20

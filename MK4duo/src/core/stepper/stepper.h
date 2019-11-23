@@ -41,9 +41,7 @@
  * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "l6470/l6470.h"
 #include "tmc/tmc.h"
-#include "tmc26x/tmc26x.h"
 #include "driver/driver.h"
 
 // Struct Stepper data

@@ -79,7 +79,7 @@
   #endif
 
   // Set the rectangle in which to probe
-  #define DELTA_PROBEABLE_RADIUS    (DELTA_PRINTABLE_RADIUS - HYPOT(probe.data.offset.x, probe.data.offset.y))
+  #define DELTA_PROBEABLE_RADIUS    (DELTA_PRINTABLE_RADIUS - HYPOT(X_PROBE_OFFSET_FROM_NOZZLE, Y_PROBE_OFFSET_FROM_NOZZLE))
   #define LEFT_PROBE_BED_POSITION   (-mechanics.data.probe_radius)
   #define RIGHT_PROBE_BED_POSITION  ( mechanics.data.probe_radius)
   #define FRONT_PROBE_BED_POSITION  (-mechanics.data.probe_radius)

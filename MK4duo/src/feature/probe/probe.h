@@ -155,6 +155,8 @@ class Probe {
 
     static float run_probing();
 
+    static void print_error();
+
     #if HAS_ALLEN_KEY
       static void run_deploy_moves_script();
       static void run_stow_moves_script();

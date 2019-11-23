@@ -87,14 +87,15 @@ void Delta_Mechanics::factory_parameters() {
 
   data.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
 
-  data.diagonal_rod         = DELTA_DIAGONAL_ROD;
-  data.radius               = DELTA_RADIUS;
-  data.segments_per_second  = DELTA_SEGMENTS_PER_SECOND;
-  data.segments_per_line    = DELTA_SEGMENTS_PER_LINE;
-  data.print_radius         = DELTA_PRINTABLE_RADIUS;
-  data.probe_radius         = DELTA_PROBEABLE_RADIUS;
-  data.height               = DELTA_HEIGHT;
-  delta_clip_start_height   = DELTA_HEIGHT;
+  data.diagonal_rod               = DELTA_DIAGONAL_ROD;
+  data.radius                     = DELTA_RADIUS;
+  data.segments_per_second_print  = DELTA_SEGMENTS_PER_SECOND_PRINT;
+  data.segments_per_second_move   = DELTA_SEGMENTS_PER_SECOND_MOVE;
+  data.segments_per_line          = DELTA_SEGMENTS_PER_LINE;
+  data.print_radius               = DELTA_PRINTABLE_RADIUS;
+  data.probe_radius               = DELTA_PROBEABLE_RADIUS;
+  data.height                     = DELTA_HEIGHT;
+  delta_clip_start_height         = DELTA_HEIGHT;
 
   data.endstop_adj.set(TOWER_A_ENDSTOP_ADJ, TOWER_B_ENDSTOP_ADJ, TOWER_C_ENDSTOP_ADJ);
   data.tower_angle_adj.set(TOWER_A_ANGLE_ADJ, TOWER_B_ANGLE_ADJ, TOWER_C_ANGLE_ADJ);
@@ -160,7 +161,8 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
     // The number of segments-per-second times the duration
     // gives the number of segments we should produce
-    const uint16_t segments = MAX(1U, data.segments_per_second * seconds);
+    const uint16_t sps = difference.e ? data.segments_per_second_print : data.segments_per_second_move;
+    const uint16_t segments = MAX(1U, sps * seconds);
 
     // Now compute the number of lines needed
     uint16_t numLines = (segments + data.segments_per_line - 1) / data.segments_per_line;
@@ -977,9 +979,10 @@ void Delta_Mechanics::report_current_position_detail() {
     SERIAL_MV(" R", LINEAR_UNIT(data.radius));
     SERIAL_MV(" D", LINEAR_UNIT(data.diagonal_rod));
     SERIAL_EOL();
-    SERIAL_LM(CFG, "Delta Geometry adjustment: S<DELTA_SEGMENTS_PER_SECOND> L<DELTA_SEGMENTS_PER_LINE>");
+    SERIAL_LM(CFG, "Delta Geometry adjustment: S<DELTA_SEGMENTS_PER_SECOND_PRINT> F<DELTA_SEGMENTS_PER_SECOND_MOVE> L<DELTA_SEGMENTS_PER_LINE>");
     SERIAL_SM(CFG, "  M666");
-    SERIAL_MV(" S", data.segments_per_second);
+    SERIAL_MV(" S", data.segments_per_second_print);
+    SERIAL_MV(" F", data.segments_per_second_move);
     SERIAL_MV(" L", data.segments_per_line);
     SERIAL_EOL();
     SERIAL_LM(CFG, "Delta Geometry adjustment: O<DELTA_PRINTABLE_RADIUS> P<DELTA_PROBEABLE_RADIUS> H<DELTA_HEIGHT>");
