@@ -32,7 +32,6 @@ hal_timer_t HAL_min_pulse_cycle     = 0,
             HAL_min_pulse_tick      = 0,
             HAL_add_pulse_ticks     = 0,
             HAL_frequency_limit[8]  = { 0 };
-bool        HAL_timer_is_active     = false;
 
 // ------------------------
 // Hardware Timer
@@ -74,21 +73,19 @@ void HAL_timer_start() {
     MK_step_timer->setOverflow(HAL_TIMER_TYPE_MAX, TICK_FORMAT);
     MK_step_timer->attachInterrupt(Step_Handler);
     MK_step_timer->resume();
-    HAL_timer_is_active = true;
+    MK_step_timer->setInterruptPriority(NvicPriorityStepper, 0);
   }
 }
 
 void HAL_timer_enable_interrupt() {
-  if (HAL_timer_initialized() && !HAL_timer_is_active) {
+  if (HAL_timer_initialized() && !MK_step_timer->hasInterrupt()) {
     MK_step_timer->attachInterrupt(Step_Handler);
-    HAL_timer_is_active = true;
   }
 }
 
 void HAL_timer_disable_interrupt() {
-  if (HAL_timer_initialized() && HAL_timer_is_active) {
+  if (HAL_timer_initialized() && MK_step_timer->hasInterrupt()) {
     MK_step_timer->detachInterrupt();
-    HAL_timer_is_active = false;
   }
 }
 

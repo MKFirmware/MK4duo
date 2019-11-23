@@ -282,7 +282,7 @@ void TMC_Stepper::create_tmc() {
       config(driver.e[5]);
     #endif
 
-  #elif HAS_TMCX1X0
+  #elif HAS_TMCX1XX
 
     #if ENABLED(TMC_USE_SW_SPI)
       #define TMC_MODEL_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
@@ -293,55 +293,55 @@ void TMC_Stepper::create_tmc() {
     #endif
 
     // Stepper objects of TMC2130 steppers used
-    #if X_HAS_DRV(TMC2130) || X_HAS_DRV(TMC2160) || X_HAS_DRV(TMC5130) || X_HAS_DRV(TMC5160)
+    #if X_HAS_DRV(TMC2130) || X_HAS_DRV(TMC2160) || X_HAS_DRV(TMC5130) || X_HAS_DRV(TMC5160) || X_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE(X,X);
       config(driver.x, X_STEALTHCHOP);
     #endif
-    #if X2_HAS_DRV(TMC2130) || X2_HAS_DRV(TMC2160) || X2_HAS_DRV(TMC5130) || X2_HAS_DRV(TMC5160)
+    #if X2_HAS_DRV(TMC2130) || X2_HAS_DRV(TMC2160) || X2_HAS_DRV(TMC5130) || X2_HAS_DRV(TMC5160) || X2_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE(X2,X);
       config(driver.x2, X_STEALTHCHOP);
     #endif
-    #if Y_HAS_DRV(TMC2130) || Y_HAS_DRV(TMC2160) || Y_HAS_DRV(TMC5130) || Y_HAS_DRV(TMC5160)
+    #if Y_HAS_DRV(TMC2130) || Y_HAS_DRV(TMC2160) || Y_HAS_DRV(TMC5130) || Y_HAS_DRV(TMC5160) || Y_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE(Y,Y);
       config(driver.y, Y_STEALTHCHOP);
     #endif
-    #if Y2_HAS_DRV(TMC2130) || Y2_HAS_DRV(TMC2160) || Y2_HAS_DRV(TMC5130) || Y2_HAS_DRV(TMC5160)
+    #if Y2_HAS_DRV(TMC2130) || Y2_HAS_DRV(TMC2160) || Y2_HAS_DRV(TMC5130) || Y2_HAS_DRV(TMC5160) || Y2_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE(Y2,Y);
       config(driver.y2, Y_STEALTHCHOP);
     #endif
-    #if Z_HAS_DRV(TMC2130) || Z_HAS_DRV(TMC2160) || Z_HAS_DRV(TMC5130) || Z_HAS_DRV(TMC5160)
+    #if Z_HAS_DRV(TMC2130) || Z_HAS_DRV(TMC2160) || Z_HAS_DRV(TMC5130) || Z_HAS_DRV(TMC5160) || Z_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE(Z,Z);
       config(driver.z, Z_STEALTHCHOP);
     #endif
-    #if Z2_HAS_DRV(TMC2130) || Z2_HAS_DRV(TMC2160) || Z2_HAS_DRV(TMC5130) || Z2_HAS_DRV(TMC5160)
+    #if Z2_HAS_DRV(TMC2130) || Z2_HAS_DRV(TMC2160) || Z2_HAS_DRV(TMC5130) || Z2_HAS_DRV(TMC5160) || Z2_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE(Z2,Z);
       config(driver.z2, Z_STEALTHCHOP);
     #endif
-    #if Z3_HAS_DRV(TMC2130) || Z3_HAS_DRV(TMC2160) || Z3_HAS_DRV(TMC5130) || Z3_HAS_DRV(TMC5160)
+    #if Z3_HAS_DRV(TMC2130) || Z3_HAS_DRV(TMC2160) || Z3_HAS_DRV(TMC5130) || Z3_HAS_DRV(TMC5160) || Z3_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE(Z3,Z);
       config(driver.z3, Z_STEALTHCHOP);
     #endif
-    #if E0_HAS_DRV(TMC2130) || E0_HAS_DRV(TMC2160) || E0_HAS_DRV(TMC5130) || E0_HAS_DRV(TMC5160)
+    #if E0_HAS_DRV(TMC2130) || E0_HAS_DRV(TMC2160) || E0_HAS_DRV(TMC5130) || E0_HAS_DRV(TMC5160) || E0_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE_E(E0,E0);
       config(driver.e[0], E0_STEALTHCHOP);
     #endif
-    #if E1_HAS_DRV(TMC2130) || E1_HAS_DRV(TMC2160) || E1_HAS_DRV(TMC5130) || E1_HAS_DRV(TMC5160)
+    #if E1_HAS_DRV(TMC2130) || E1_HAS_DRV(TMC2160) || E1_HAS_DRV(TMC5130) || E1_HAS_DRV(TMC5160) || E1_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE_E(E1,E1);
       config(driver.e[1], E1_STEALTHCHOP);
     #endif
-    #if E2_HAS_DRV(TMC2130) || E2_HAS_DRV(TMC2160) || E2_HAS_DRV(TMC5130) || E2_HAS_DRV(TMC5160)
+    #if E2_HAS_DRV(TMC2130) || E2_HAS_DRV(TMC2160) || E2_HAS_DRV(TMC5130) || E2_HAS_DRV(TMC5160) || E2_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE_E(E2,E2);
       config(driver.e[2], E2_STEALTHCHOP);
     #endif
-    #if E3_HAS_DRV(TMC2130) || E3_HAS_DRV(TMC2160) || E3_HAS_DRV(TMC5130) || E3_HAS_DRV(TMC5160)
+    #if E3_HAS_DRV(TMC2130) || E3_HAS_DRV(TMC2160) || E3_HAS_DRV(TMC5130) || E3_HAS_DRV(TMC5160) || E3_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE_E(E3,E3);
       config(driver.e[3], E3_STEALTHCHOP);
     #endif
-    #if E4_HAS_DRV(TMC2130) || E4_HAS_DRV(TMC2160) || E4_HAS_DRV(TMC5130) || E4_HAS_DRV(TMC5160)
+    #if E4_HAS_DRV(TMC2130) || E4_HAS_DRV(TMC2160) || E4_HAS_DRV(TMC5130) || E4_HAS_DRV(TMC5160) || E4_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE_E(E4,E4);
       config(driver.e[4], E4_STEALTHCHOP);
     #endif
-    #if E5_HAS_DRV(TMC2130) || E5_HAS_DRV(TMC2160) || E5_HAS_DRV(TMC5130) || E5_HAS_DRV(TMC5160)
+    #if E5_HAS_DRV(TMC2130) || E5_HAS_DRV(TMC2160) || E5_HAS_DRV(TMC5130) || E5_HAS_DRV(TMC5160) || E4_HAS_DRV(TMC5161)
       TMC_MODEL_DEFINE_E(E5,E5);
       config(driver.e[5], E5_STEALTHCHOP);
     #endif
@@ -573,7 +573,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     TMC_REPORT("MAX current",         TMC_MAX_CURRENT);
     TMC_REPORT("Run current",         TMC_IRUN);
     TMC_REPORT("Hold current",        TMC_IHOLD);
-    #if HAVE_DRV(TMC2160) || HAVE_DRV(TMC5160)
+    #if HAVE_DRV(TMC2160) || HAVE_DRV(TMC5160) || HAVE_DRV(TMC5161)
       TMC_REPORT("Global scaler",     TMC_GLOBAL_SCALER);
     #endif
     TMC_REPORT("CS actual",           TMC_CS_ACTUAL);
@@ -596,7 +596,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     TMC_REPORT("Stallguard",          TMC_SGT);
 
     DRV_REPORT("DRVSTATUS",           TMC_DRV_CODES);
-    #if HAS_TMCX1X0
+    #if HAS_TMCX1XX
       DRV_REPORT("stallguard",        TMC_STALLGUARD);
       DRV_REPORT("sg_result",         TMC_SG_RESULT);
       DRV_REPORT("fsactive",          TMC_FSACTIVE);
@@ -1078,7 +1078,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   }
 
-#elif HAVE_DRV(TMC5160)
+#elif HAVE_DRV(TMC5160) || HAVE_DRV(TMC5161)
   
   void TMC_Stepper::config(Driver* drv, const bool stealth/*=false*/) {
 
@@ -1124,7 +1124,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       uint32_t TMC_Stepper::get_pwm_scale(Driver* drv) { return drv->tmc->pwm_scale_sum(); }
     #elif HAVE_DRV(TMC2660)
       uint32_t TMC_Stepper::get_pwm_scale(Driver* drv) { UNUSED(drv); return 0; }
-    #elif HAS_TMCX1X0
+    #elif HAS_TMCX1XX
       uint32_t TMC_Stepper::get_pwm_scale(Driver* drv) { return drv->tmc->PWM_SCALE(); }
     #endif
   #endif
@@ -1183,7 +1183,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       return data;
     }
 
-  #elif HAS_TMCX1X0
+  #elif HAS_TMCX1XX
 
     TMC_driver_data TMC_Stepper::get_driver_data(Driver* drv) {
       constexpr uint8_t OT_bp = 25, OTPW_bp = 26;
@@ -1304,7 +1304,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
         drv->printLabel();
         SERIAL_MV(":", pwm_scale);
         #if ENABLED(TMC_DEBUG)
-          #if HAS_TMCX1X0 || HAVE_DRV(TMC2208)
+          #if HAS_TMCX1XX || HAVE_DRV(TMC2208)
             SERIAL_MV("/", data.cs_actual);
           #endif
           #if TMC_HAS_STALLGUARD
@@ -1336,7 +1336,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
 #if ENABLED(TMC_DEBUG)
 
-  #if HAVE_DRV(TMC2160) || HAVE_DRV(TMC5160)
+  #if HAVE_DRV(TMC2160) || HAVE_DRV(TMC5160) || HAVE_DRV(TMC5161)
     void TMC_Stepper::print_vsense(Driver* drv) { UNUSED(drv); }
   #else
     void TMC_Stepper::print_vsense(Driver* drv) { SERIAL_STR(drv->tmc->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
@@ -1412,7 +1412,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       SERIAL_CHR('\t');
     }
 
-  #elif HAS_TMCX1X0
+  #elif HAS_TMCX1XX
 
     void TMC_Stepper::status(Driver* drv, const TMCdebugEnum i) {
       switch (i) {
@@ -1462,7 +1462,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       SERIAL_CHR('\t');
     }
 
-  #endif // HAS_TMCX1X0
+  #endif // HAS_TMCX1XX
 
   #if HAVE_DRV(TMC2660)
   

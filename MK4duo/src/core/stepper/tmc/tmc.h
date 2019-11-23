@@ -43,6 +43,8 @@
   #define TMC_MODEL_LIB TMC5130Stepper
 #elif HAVE_DRV(TMC5160)
   #define TMC_MODEL_LIB TMC5160Stepper
+#elif HAVE_DRV(TMC5161)
+  #define TMC_MODEL_LIB TMC5160Stepper
 #endif
 
 #if ENABLED(MONITOR_DRIVER_STATUS) && DISABLED(MONITOR_DRIVER_STATUS_INTERVAL_MS)
@@ -65,7 +67,7 @@ struct TMC_driver_data {
             #endif
       ;
   #if ENABLED(TMC_DEBUG)
-    #if HAS_TMCX1X0 || HAVE_DRV(TMC2208)
+    #if HAS_TMCX1XX || HAVE_DRV(TMC2208)
       uint8_t cs_actual;
     #endif
     uint16_t sg_result;
@@ -269,7 +271,7 @@ class TMCStorage {
 
   };
 
-#elif HAS_TMCX1X0
+#elif HAS_TMCX1XX
 
   //
   // TMC Driver Class
@@ -472,7 +474,7 @@ class TMC_Stepper {
           static uint32_t get_pwm_scale(Driver* drv);
         #elif HAVE_DRV(TMC2660)
           static uint32_t get_pwm_scale(Driver* drv);
-        #elif HAS_TMCX1X0
+        #elif HAS_TMCX1XX
           static uint32_t get_pwm_scale(Driver* drv);
         #endif
       #endif

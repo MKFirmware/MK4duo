@@ -29,6 +29,7 @@
 #define HAL_TIMER_TYPE_MAX          0xFFFFFFFF
 #define HAL_TIMER_RATE              ((F_CPU)/2)
 #define NUM_HARDWARE_TIMERS         1                                           // Only Stepper use Hardware Timer
+#define NvicPriorityStepper         2
 #define NvicPrioritySystick         15
 
 // Stepper Timer
@@ -38,7 +39,6 @@
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE)/1000000UL)            // 45 Stepper timer ticks per µs
 #define STEPPER_TIMER_MIN_INTERVAL  1                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
-#define STEPPER_CLOCK_RATE          ((F_CPU)/128)                                             // frequency of the clock used for stepper pulse timing
 
 #define START_STEPPER_INTERRUPT()   HAL_timer_start()
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt()
@@ -141,7 +141,6 @@ extern hal_timer_t  HAL_min_pulse_cycle,
                     HAL_min_pulse_tick,
                     HAL_add_pulse_ticks,
                     HAL_frequency_limit[8];
-extern bool         HAL_timer_is_active;
 
 // ------------------------
 // Hardware Timer
@@ -168,7 +167,7 @@ FORCE_INLINE bool HAL_timer_initialized() {
 }
 
 FORCE_INLINE bool HAL_timer_interrupt_is_enabled() {
-  return HAL_timer_initialized() && HAL_timer_is_active;
+  return HAL_timer_initialized() && MK_step_timer->hasInterrupt();
 }
 
 FORCE_INLINE hal_timer_t HAL_timer_get_current_count(const uint8_t) {

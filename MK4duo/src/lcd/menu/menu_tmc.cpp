@@ -120,22 +120,22 @@ void menu_tmc_microstep() {
       TMC_EDIT_STORED_HYBRID_THRS(Z3);
     #endif
     #if AXIS_HAS_TMC(E0)
-      TMC_EDIT_STORED_HYBRID_THRS(E0);
+      TMC_EDIT_STORED_HYBRID_THRS_E(0);
     #endif
     #if AXIS_HAS_TMC(E1)
-      TMC_EDIT_STORED_HYBRID_THRS(E1);
+      TMC_EDIT_STORED_HYBRID_THRS_E(1);
     #endif
     #if AXIS_HAS_TMC(E2)
-      TMC_EDIT_STORED_HYBRID_THRS(E2);
+      TMC_EDIT_STORED_HYBRID_THRS_E(2);
     #endif
     #if AXIS_HAS_TMC(E3)
-      TMC_EDIT_STORED_HYBRID_THRS(E3);
+      TMC_EDIT_STORED_HYBRID_THRS_E(3);
     #endif
     #if AXIS_HAS_TMC(E4)
-      TMC_EDIT_STORED_HYBRID_THRS(E4);
+      TMC_EDIT_STORED_HYBRID_THRS_E(4);
     #endif
     #if AXIS_HAS_TMC(E5)
-      TMC_EDIT_STORED_HYBRID_THRS(E5);
+      TMC_EDIT_STORED_HYBRID_THRS_E(5);
     #endif
     END_MENU();
   }

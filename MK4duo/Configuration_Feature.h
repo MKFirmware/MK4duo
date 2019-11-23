@@ -139,7 +139,6 @@
  *  - A5984                                                                 *
  *  - DRV8825                                                               *
  *  - LV8729                                                                *
- *  - L6470                                                                 *
  *  - TB6560                                                                *
  *  - TB6600                                                                *
  *  - TMC2100                                                               *
@@ -147,8 +146,6 @@
  *  - TMC2130_STANDALONE                                                    *
  *  - TMC2208                                                               *
  *  - TMC2208_STANDALONE                                                    *
- *  - TMC26X                                                                *
- *  - TMC26X_STANDALONE                                                     *
  *  - TMC2660                                                               *
  *  - TMC2660_STANDALONE                                                    *
  *  - TMC2160                                                               *
@@ -157,6 +154,8 @@
  *  - TMC5130_STANDALONE                                                    *
  *  - TMC5160                                                               *
  *  - TMC5160_STANDALONE                                                    *
+ *  - TMC5161                                                               *
+ *  - TMC5161_STANDALONE                                                    *
  *                                                                          *
  * See Configuration_Motor_Driver.h for configuration Motor Driver          *
  *                                                                          *
