@@ -56,10 +56,10 @@
  *                                                                                       *
  *****************************************************************************************/
 #define LCD_LANGUAGE    en
-//#define LCD_LANGUAGE_1  en
-//#define LCD_LANGUAGE_2  en
-//#define LCD_LANGUAGE_3  en
-//#define LCD_LANGUAGE_4  en
+#define LCD_LANGUAGE_1  NO_LANGUAGE
+#define LCD_LANGUAGE_2  NO_LANGUAGE
+#define LCD_LANGUAGE_3  NO_LANGUAGE
+#define LCD_LANGUAGE_4  NO_LANGUAGE
 /*****************************************************************************************/
 
 
