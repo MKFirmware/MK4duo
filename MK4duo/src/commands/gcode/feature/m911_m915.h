@@ -144,7 +144,7 @@
 
       #define TMC_SET_PWMTHRS(ST)   driver[ST##_DRV]->tmc->set_pwm_thrs(value)
 
-      LOOP_XYZ(i) {
+      LOOP_XYZE(i) {
         if (int32_t value = parser.longval(axis_codes[i])) {
           switch (i) {
             case X_AXIS:
@@ -174,13 +174,14 @@
                 TMC_SET_PWMTHRS(Z3);
               #endif
               break;
+            case E_AXIS: {
+              #if AXIS_HAS_STEALTHCHOP(E0)
+                Driver* drv = driver.e[extruders[toolManager.extruder.target]->get_driver()];
+                if (drv && drv->tmc) drv->tmc->set_pwm_thrs(value);
+              #endif
+            } break;
           }
         }
-      }
-
-      if (int32_t value = parser.longval(E_AXIS)) {
-        Driver* drv = driver.e[extruders[toolManager.extruder.target]->get_driver()];
-        if (drv && drv->tmc) drv->tmc->set_pwm_thrs(value);
       }
     }
 
@@ -271,6 +272,10 @@
 
       #if AXIS_HAS_TMC(Z)
         const uint16_t Z_current_1 = driver.z->tmc->rms_current();
+        #if MECH(DELTA)
+          driver.x->tmc->rms_current(_rms);
+          driver.y->tmc->rms_current(_rms);
+        #endif
         driver.z->tmc->rms_current(_rms);
       #endif
       #if AXIS_HAS_TMC(Z2)
@@ -282,13 +287,17 @@
         driver.z3->tmc->rms_current(_rms);
       #endif
 
-      SERIAL_MV("\nCalibration current: Z", _rms);
+      SERIAL_EMV("Calibration current: ", _rms);
 
       endstops.setSoftEndstop(false);
 
       mechanics.do_blocking_move_to_z(Z_MAX_BED + _z);
 
       #if AXIS_HAS_TMC(Z)
+        #if MECH(DELTA)
+          driver.x->tmc->rms_current(Z_current_1);
+          driver.y->tmc->rms_current(Z_current_1);
+        #endif
         driver.z->tmc->rms_current(Z_current_1);
       #endif
       #if AXIS_HAS_TMC(Z2)
@@ -301,7 +310,7 @@
       mechanics.do_blocking_move_to_z(Z_MAX_BED);
       endstops.setSoftEndstop(true);
 
-      SERIAL_EM("\nHoming Z because we lost steps");
+      SERIAL_EM("Homing Z because we lost steps");
       #if MECH(DELTA)
         mechanics.home();
       #else
