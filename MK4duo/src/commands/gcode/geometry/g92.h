@@ -42,6 +42,8 @@ inline void gcode_G92() {
     constexpr uint8_t subcode_G92 = 0;
   #endif
 
+  planner.synchronize();
+
   switch (subcode_G92) {
 
     case 0: {
@@ -65,8 +67,6 @@ inline void gcode_G92() {
                 mechanics.position_shift[i] += d;       // Other axes simply offset the coordinate space
                 endstops.update_software_endstops((AxisEnum)i);
               }
-            #else
-              mechanics.current_position[i] = v;
             #endif
           }
         }

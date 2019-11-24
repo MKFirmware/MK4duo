@@ -67,9 +67,10 @@ typedef struct EepromDataStruct {
   // ToolManager data
   //
   tool_data_t       tool_data;
+  extruder_data_t   extruder_data[MAX_EXTRUDER];
 
   //
-  // ThermalManager data
+  // TempManager data
   //
   temp_data_t       temp_data;
 
@@ -418,11 +419,12 @@ void EEPROM::post_process() {
     driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
     driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
-    heater_data_t hotend_data[MAX_HOTEND];
-    heater_data_t bed_data[MAX_BED];
-    heater_data_t chamber_data[MAX_CHAMBER];
-    heater_data_t cooler_data[MAX_COOLER];
-    fan_data_t    fan_data[MAX_FAN];
+    extruder_data_t extruder_data[MAX_EXTRUDER];
+    heater_data_t   hotend_data[MAX_HOTEND];
+    heater_data_t   bed_data[MAX_BED];
+    heater_data_t   chamber_data[MAX_CHAMBER];
+    heater_data_t   cooler_data[MAX_COOLER];
+    fan_data_t      fan_data[MAX_FAN];
 
     if (memorystore.access_start()) {
       SERIAL_EM("No EEPROM.");
@@ -441,13 +443,15 @@ void EEPROM::post_process() {
     working_crc = 0; // clear before first "real data"
 
     //
-    // Tools data
+    // ToolManager data
     //
     EEPROM_TEST(tool_data);
     EEPROM_WRITE(toolManager.extruder);
+    LOOP_EXTRUDER() if (extruders[e]) extruder_data[e] = extruders[e]->data;
+    EEPROM_WRITE(extruder_data);
 
     //
-    // ThermalManager data
+    // TempManager data
     //
     EEPROM_TEST(temp_data);
     EEPROM_WRITE(tempManager.heater);
@@ -819,11 +823,12 @@ void EEPROM::post_process() {
     driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
     driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
-    heater_data_t hotend_data[MAX_HOTEND];
-    heater_data_t bed_data[MAX_BED];
-    heater_data_t chamber_data[MAX_CHAMBER];
-    heater_data_t cooler_data[MAX_COOLER];
-    fan_data_t    fan_data[MAX_FAN];
+    extruder_data_t extruder_data[MAX_EXTRUDER];
+    heater_data_t   hotend_data[MAX_HOTEND];
+    heater_data_t   bed_data[MAX_BED];
+    heater_data_t   chamber_data[MAX_CHAMBER];
+    heater_data_t   cooler_data[MAX_COOLER];
+    fan_data_t      fan_data[MAX_FAN];
 
     int eeprom_index = EEPROM_OFFSET;
 
@@ -853,13 +858,17 @@ void EEPROM::post_process() {
       working_crc = 0; // Init to 0. Accumulated by EEPROM_READ
 
       //
-      // Tools data
+      // ToolManager data
       //
       EEPROM_READ(toolManager.extruder);
-      if (!flag.validating) toolManager.create_object();
+      EEPROM_READ(extruder_data);
+      if (!flag.validating) {
+        toolManager.create_object();
+        LOOP_EXTRUDER() if (extruders[e]) extruders[e]->data = extruder_data[e];
+      }
 
       //
-      // ThermalManager data
+      // TempManager data
       //
       EEPROM_READ(tempManager.heater);
       if (!flag.validating) tempManager.create_object();

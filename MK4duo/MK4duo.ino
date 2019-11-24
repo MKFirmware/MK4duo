@@ -265,13 +265,13 @@
  * M408 - Report JSON-style response
  * M410 - Quickstop. Abort all the planned moves
  * M412 - Filament Runout Sensor. (Requires FILAMENT_RUNOUT_SENSOR)
-            S[bool]   Enable / Disable Sensor control
-            H[bool]   Enable / Disable Host control
-            R[bool]   Reset control
-            D[float]  Distance mm
+ *          S[bool]   Enable / Disable Sensor control
+ *          H[bool]   Enable / Disable Host control
+ *          R[bool]   Reset control
+ *          D[float]  Distance mm
  * M413 - S[bool] Enable / Disable Restart Job. (Requires SD_RESTART_FILE)
  * M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL)
- *        Z[height] for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
+ *          Z[height] for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M421 - Set a single Z coordinate in the Mesh Leveling grid. X[units] Y[units] Z[units] (Requires MESH_BED_LEVELING, AUTO_BED_LEVELING_BILINEAR, or AUTO_BED_LEVELING_UBL)
  * M428 - Set the home_offset logically based on the current_position
  * M450 - Report Printer Mode
@@ -290,12 +290,16 @@
  * M531 - filename - Define filename being printed
  * M532 - X[percent] L[curLayer] - update current print state progress (X=0..100) and layer L
  * M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires SD_ABORT_ON_ENDSTOP_HIT)
+ * M563 - Set Tools heater assignment
+ *          T[tools]  - Set Tool
+ *          D[int]    - Set Driver for tool
+ *          H[bool]   - Set Hotend for tool
  * M569 - Stepper driver control X[bool] Y[bool] Z[bool] T[extruders] E[bool] set direction,
  *          D[long] set direction delay, P[int] set minimum pulse, R[long] set maximum rate, Q[bool] Enable/Disable double/quad stepping.
  * M575 - Change serial baud rate P[Port index] B[Baudrate]
  * M595 - Set AD595 or AD8495 O[offset] and S[gain]
  * M600 - Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift]
- *        E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
+ *          E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
  * M603 - Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
  * M605 - Set dual x-carriage movement mode: S[mode] [ X[duplication x-offset] R[duplication temp offset] ]
  * M649 - Set laser options. S[intensity] L[duration] P[ppm] B[set mode] R[raster mm per pulse] F[feedrate]

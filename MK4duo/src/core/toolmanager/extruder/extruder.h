@@ -33,14 +33,9 @@ struct extruder_data_t {
             hotend;               // Pointer to Hotend
   float     axis_steps_per_mm,
             max_feedrate_mm_s,
-            retract_acceleration;
+            retract_acceleration,
+            max_jerk;
   uint32_t  max_acceleration_mm_per_s2;
-  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
-    float max_e_jerk;
-  #endif
-  #if HAS_CLASSIC_JERK
-    float max_jerk;
-  #endif
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     float filament_size;  // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the toolManager.
   #endif
