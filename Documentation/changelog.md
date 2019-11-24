@@ -22,7 +22,7 @@
 *   DISPLAY 20x4                No Test
 *   DISPLAY Graphics            No Test
 *   Neopixel                    Not function
-*   
+*
 * M353: Set total number Extruder, Hotend, Bed, Chamber, Fan
 *    D[int] Set number driver extruder
 *    E[int] Set number extruder
