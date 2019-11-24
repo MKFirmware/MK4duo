@@ -1470,7 +1470,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       SERIAL_CHR('\t');
       switch (i) {
         case TMC_CODES: drv->printLabel(); break;
-        case TMC_ENABLED: SERIAL_LOGIC(nullptr, drv->isEnabled()); break;
+        case TMC_ENABLED: SERIAL_LOGIC(nullptr, drv->tmc->isEnabled()); break;
         case TMC_CURRENT: SERIAL_VAL(drv->tmc->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(drv->tmc->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)drv->tmc->rms_current() * 1.41, 0); break;

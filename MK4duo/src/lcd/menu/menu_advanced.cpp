@@ -253,18 +253,18 @@ void menu_advanced_temperature() {
     #if HAS_CLASSIC_JERK
 
       #if MECH(DELTA)
-        EDIT_ITEM(float3, MSG_JERK, &mechanics.data.max_jerk.x, 1, 990, []{
+        EDIT_ITEM(float52sign, MSG_JERK, &mechanics.data.max_jerk.x, 0.1f, 990, []{
           mechanics.data.max_jerk.y = mechanics.data.max_jerk.z = mechanics.data.max_jerk.x;
         });
       #else
-        EDIT_ITEM_FAST(float3, MSG_VA_JERK, &mechanics.data.max_jerk.x, 1, 990);
-        EDIT_ITEM_FAST(float3, MSG_VB_JERK, &mechanics.data.max_jerk.y, 1, 990);
-        EDIT_ITEM_FAST(float52sign, MSG_VC_JERK, &mechanics.data.max_jerk.z, 0.1, 990);
+        EDIT_ITEM_FAST(float52sign, MSG_VA_JERK, &mechanics.data.max_jerk.x, 0.1f, 990);
+        EDIT_ITEM_FAST(float52sign, MSG_VB_JERK, &mechanics.data.max_jerk.y, 0.1f, 990);
+        EDIT_ITEM_FAST(float52sign, MSG_VC_JERK, &mechanics.data.max_jerk.z, 0.1f, 990);
       #endif
 
-      #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
+      #if HAS_CLASSIC_E_JERK
         LOOP_EXTRUDER()
-          EDIT_ITEM_FAST_N(float3, e, MSG_VE_JERK, &extruders[e]->data.max_jerk, 1, 990);
+          EDIT_ITEM_FAST_N(float52sign, e, MSG_VE_JERK, &extruders[e]->data.max_jerk, 0.1f, 990);
       #endif // DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
 
     #endif // AS_CLASSIC_JERK

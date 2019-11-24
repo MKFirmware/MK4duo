@@ -1512,12 +1512,6 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
     #if ENABLED(LIN_ADVANCE)
 
-      #if ENABLED(JUNCTION_DEVIATION)
-        #define MAX_E_JERK extruders[extruder]->data.max_e_jerk
-      #else
-        #define MAX_E_JERK extruders[extruder]->data.max_jerk
-      #endif
-
       /**
        *
        * Use LIN_ADVANCE for blocks if all these are true:
@@ -1548,7 +1542,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         if (block->e_D_ratio > 3.0f)
           block->use_advance_lead = false;
         else {
-          const uint32_t max_accel_steps_per_s2 = MAX_E_JERK / (extruder_advance_K * block->e_D_ratio) * steps_per_mm;
+          const uint32_t max_accel_steps_per_s2 = extruders[extruder]->data.max_jerk / (extruder_advance_K * block->e_D_ratio) * steps_per_mm;
           if (accel > max_accel_steps_per_s2) DEBUG_EM("Acceleration limited.");
           NOMORE(accel, max_accel_steps_per_s2);
         }

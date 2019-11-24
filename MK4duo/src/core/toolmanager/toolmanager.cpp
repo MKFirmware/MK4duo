@@ -87,7 +87,7 @@ void ToolManager::extruder_factory_parameters(const uint8_t e) {
   extruders[e]->data.max_acceleration_mm_per_s2 = pgm_read_dword_near(&tmp_maxacc[e < COUNT(tmp_maxacc) ? e : COUNT(tmp_maxacc) - 1]);
   extruders[e]->data.retract_acceleration = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
 
-  #if HAS_CLASSIC_JERK
+  #if HAS_CLASSIC_E_JERK
     extruders[e]->data.max_jerk = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
   #endif
 

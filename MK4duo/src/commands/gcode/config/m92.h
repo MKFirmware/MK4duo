@@ -60,7 +60,7 @@ inline void gcode_M92() {
         const uint8_t t = toolManager.extruder.target;
         if (value < 20) {
           float factor = extruders[t]->data.axis_steps_per_mm / value; // increase e constants if M92 E14 is given for netfab.
-          #if HAS_CLASSIC_JERK && (DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE))
+          #if HAS_CLASSIC_JERK && HAS_CLASSIC_E_JERK
             extruders[t]->data.max_jerk *= factor;
           #endif
           extruders[t]->data.max_feedrate_mm_s *= factor;
