@@ -169,16 +169,16 @@ struct driver_t {
     struct { Driver *x, *y, *z
       , *e[MAX_DRIVER_E]
       #if X_STEPPER_COUNT == 2
-        , x2
+        , *x2
       #endif
       #if Y_STEPPER_COUNT == 2
-        , y2
+        , *y2
       #endif
       #if Z_STEPPER_COUNT >= 2
-        , z2
+        , *z2
       #endif
       #if Z_STEPPER_COUNT == 3
-        , z3
+        , *z3
       #endif
       ;
     };

@@ -42,70 +42,86 @@ class FixedMatrix : public MathMatrix<T> {
 
   private: /** Private Parameters */
 
-    T data[ROWS * COLS];
+    T data[ROWS][COLS];
 
   public: /** Public Function */
 
     uint8_t rows() const override { return ROWS; }
     uint8_t cols() const override { return COLS; }
 
-    T& operator() (uint8_t r, uint8_t c) override { return data[r * COLS + c]; }
+    T& operator() (uint8_t r, uint8_t c) override { return data[r][c]; }
 
-    const T& operator() (uint8_t r, uint8_t c) const override { return data[r * COLS + c]; }
+    const T& operator() (uint8_t r, uint8_t c) const override { return data[r][c]; }
 
     void SwapRows(uint8_t i, uint8_t j, uint8_t numCols = COLS);
 
-    void GaussJordan(T *solution, uint8_t numRows);
+    bool GaussJordan(uint8_t numRows, uint8_t numCols);
 
-    T* GetRow(uint8_t r) { return data + (r * COLS); }
+    T* GetRow(uint8_t r) { return data[r]; }
 
-    const T* GetRow(uint8_t r) const { return data + (r * COLS); }
+    const T* GetRow(uint8_t r) const { return data[r]; }
 
+    void Fill(T val);
 };
 
 template<class T, uint8_t ROWS, uint8_t COLS>
 inline void FixedMatrix<T, ROWS, COLS>::SwapRows(uint8_t i, uint8_t j, uint8_t numCols) {
   if (i != j) {
-    for (uint8_t k = i; k < numCols; ++k) {
-      T temp = (*this)(i, k);
-      (*this)(i, k) = (*this)(j, k);
-      (*this)(j, k) = temp;
+    for (uint8_t k = 0; k < numCols; ++k) {
+      T temp = data[i][k];
+      data[i][k] = data[j][k];
+			data[j][k] = temp;
     }
   }
 }
 
-// Perform Gauss-Jordan elimination on a N x (N+1) matrix.
-// Returns a pointer to the solution vector.
+// Perform Gauss-Jordan elimination on a N x (N+M) matrix. Return true if successful, false if not possible.
 template<class T, uint8_t ROWS, uint8_t COLS>
-void FixedMatrix<T, ROWS, COLS>::GaussJordan(T *solution, uint8_t numRows) {
+bool FixedMatrix<T, ROWS, COLS>::GaussJordan(uint8_t numRows, uint8_t numCols) {
   for (uint8_t i = 0; i < numRows; ++i) {
     // Swap the rows around for stable Gauss-Jordan elimination
-    float vmax = fabsf((*this)(i, i));
+    float vmax = fabsf(data[i][i]);
     for (uint8_t j = i + 1; j < numRows; ++j) {
-      const float rmax = fabsf((*this)(j, i));
+      const float rmax = fabsf(data[j][i]);
       if (rmax > vmax) {
-        SwapRows(i, j);
+        SwapRows(i, j, numCols);
         vmax = rmax;
       }
     }
 
-    T v = (*this)(i, i);
+    // Use row i to eliminate the element in the ith column from previous and subsequent rows
+    const T v = data[i][i];
+    if (v == (T)0.0) return false;
+
     for (uint8_t j = 0; j < i; ++j) {
-      T factor = (*this)(j, i) / v;
-      (*this)(j, i) = 0.0;
-      for (uint8_t k = i + 1; k <= numRows; ++k)
-        (*this)(j, k) -= (*this)(i, k) * factor;
+      const T factor = data[j][i] / v;
+      data[j][i] = (T)0.0;
+      for (uint8_t k = i + 1; k < numCols; ++k)
+        data[j][k] -= data[i][k] * factor;
     }
 
     for (uint8_t j = i + 1; j < numRows; ++j) {
-      T factor = (*this)(j, i) / v;
-      (*this)(j, i) = 0.0;
-      for (uint8_t k = i + 1; k <= numRows; ++k)
-        (*this)(j, k) -= (*this)(i, k) * factor;
+      const T factor = data[j][i] / v;
+      data[j][i] = (T)0.0;
+      for (uint8_t k = i + 1; k < numCols; ++k)
+        data[j][k] -= data[i][k] * factor;
     }
   }
 
-  for (uint8_t i = 0; i < numRows; ++i)
-    solution[i] = (*this)(i, numRows) / (*this)(i, i);
+  for (uint8_t r = 0; r < numRows; ++r) {
+    const T val = data[r][r];
+    for (uint8_t c = numRows; c < numCols; ++c) data[r][c] /= val;
+    data[r][r] = (T)1.0;
+  }
 
+  return true;
+}
+
+// Set all elements to a specified value
+template<class T, uint8_t ROWS, uint8_t COLS>
+void FixedMatrix<T, ROWS, COLS>::Fill(T val) {
+	for (uint8_t i = 0; i < ROWS; ++i) {
+		for (uint8_t j = 0; j < COLS; ++j)
+			data[i][j] = val;
+	}
 }

@@ -206,6 +206,8 @@
 | M702 | ADVANCED PAUSE FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
 | M800 | SD_RESTART_FILE | S goto to lcd menu. With no parameters run restart commands
 | M851 | Probe | Set X Y Z Probe Offset in current units, set speed [F]ast and [S]low in mm/min, [R]epetititons
+| M876 | Host dialog handling
+| M890 | Run User Gcode. S[int] Start User Gcode 1 - 5
 | M900 | LIN ADVANCE | K[factor] Set Linear Advance K-factor
 | M906 | ALLIGATOR or TRINAMIC | Set motor currents XYZ T0-4 E. Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given.
 | M907 | a board with digital trimpots | Set digital trimpot motor current using axis codes
