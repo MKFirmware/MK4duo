@@ -1388,6 +1388,9 @@ void EEPROM::reset() {
   // Call Printer Factory parameters
   printer.factory_parameters();
 
+  // Call Stepper Factory parameters
+  stepper.factory_parameters();
+
   // Call Tools Factory parameters
   toolManager.factory_parameters();
 
@@ -1399,9 +1402,6 @@ void EEPROM::reset() {
 
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();
-
-  // Call Stepper Factory parameters
-  stepper.factory_parameters();
 
   // Call Planner Factory parameters
   planner.factory_parameters();

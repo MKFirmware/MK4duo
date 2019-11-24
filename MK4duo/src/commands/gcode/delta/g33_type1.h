@@ -270,8 +270,14 @@ inline void gcode_G33() {
       }
     }
 
+    if (!normalMatrix.GaussJordan(numFactors, numFactors + 1)) {
+			SERIAL_EM("Unable to calculate calibration parameters. Please reduce probe radius.");
+			return;
+		}
+
     float solution[numFactors];
-    normalMatrix.GaussJordan(solution, numFactors);
+    for (uint8_t i = 0; i < numFactors; ++i)
+			solution[i] = normalMatrix(i, numFactors);
 
     // Debug Solved matrix, solution and residuals
     if (g33_debug) {

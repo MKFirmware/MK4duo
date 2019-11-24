@@ -28,13 +28,13 @@
 
 #if DISABLED(EMERGENCY_PARSER)
 
-  #define CODE_M876
+#define CODE_M876
 
-  /**
-   * M876: Host Prompt Response
-   */
-  inline void gcode_M876() {
-    if (parser.seenval('S')) host_action.response_handler(parser.value_byte());
-  }
+/**
+ * M876: Host dialog handling
+ */
+inline void gcode_M876() {
+  if (parser.seenval('S')) host_action.response_handler(parser.value_byte());
+}
 
 #endif

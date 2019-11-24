@@ -152,6 +152,7 @@
 #include "host/m531.h"                    // Define filename being printed
 #include "host/m532_m73.h"                // Update current print state progress
 #include "host/m876.h"                    // Host Prompt Response
+#include "host/m890.h"                    // Run User Gcode
 
 // LCD Commands
 #include "lcd/m0_m1.h"

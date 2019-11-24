@@ -132,13 +132,13 @@ uint8_t       Stepper::active_extruder        = 0,
               Stepper::active_extruder_driver = 0;
 
 #if ENABLED(BEZIER_JERK_CONTROL)
-  int32_t __attribute__((used)) Stepper::bezier_A __asm__("bezier_A");    // A coefficient in Bézier speed curve with alias for assembler
-  int32_t __attribute__((used)) Stepper::bezier_B __asm__("bezier_B");    // B coefficient in Bézier speed curve with alias for assembler
-  int32_t __attribute__((used)) Stepper::bezier_C __asm__("bezier_C");    // C coefficient in Bézier speed curve with alias for assembler
-  uint32_t __attribute__((used)) Stepper::bezier_F __asm__("bezier_F");   // F coefficient in Bézier speed curve with alias for assembler
-  uint32_t __attribute__((used)) Stepper::bezier_AV __asm__("bezier_AV"); // AV coefficient in Bézier speed curve with alias for assembler
+  int32_t __attribute__((used))   Stepper::bezier_A __asm__("bezier_A");      //  A coefficient in Bézier speed curve with alias for assembler
+  int32_t __attribute__((used))   Stepper::bezier_B __asm__("bezier_B");      //  B coefficient in Bézier speed curve with alias for assembler
+  int32_t __attribute__((used))   Stepper::bezier_C __asm__("bezier_C");      //  C coefficient in Bézier speed curve with alias for assembler
+  uint32_t __attribute__((used))  Stepper::bezier_F __asm__("bezier_F");      //  F coefficient in Bézier speed curve with alias for assembler
+  uint32_t __attribute__((used))  Stepper::bezier_AV __asm__("bezier_AV");    // AV coefficient in Bézier speed curve with alias for assembler
   #if ENABLED(__AVR__)
-    bool __attribute__((used)) Stepper::A_negative __asm__("A_negative"); // If A coefficient was negative
+    bool __attribute__((used))    Stepper::A_negative __asm__("A_negative");  // If A coefficient was negative
   #endif
   bool Stepper::bezier_2nd_half = false;  // =false If Bézier curve has been initialized or not
 #endif
@@ -152,19 +152,14 @@ uint32_t Stepper::nextMainISR = 0;
 #endif
 
 #if ENABLED(LIN_ADVANCE)
-
   constexpr uint32_t LA_ADV_NEVER         = 0xFFFFFFFF;
   uint32_t  Stepper::nextAdvanceISR       = LA_ADV_NEVER,
             Stepper::LA_isr_rate          = LA_ADV_NEVER;
-
   uint16_t  Stepper::LA_current_adv_steps = 0,
             Stepper::LA_final_adv_steps   = 0,
             Stepper::LA_max_adv_steps     = 0;
-
   int8_t    Stepper::LA_steps             = 0;
-
   bool      Stepper::LA_use_advance_lead  = false;
-
 #endif // LIN_ADVANCE
 
 int32_t Stepper::ticks_nominal = -1;
@@ -325,6 +320,19 @@ void Stepper::factory_parameters() {
 
   LOOP_DRV_XYZ()  if (driver[d]) driver_factory_parameters(driver[d], d);
   LOOP_DRV_EXT()  if (driver[d]) driver_factory_parameters(driver.e[d], d + XYZ);
+
+  #if X_STEPPER_COUNT == 2
+    if (driver.x2) driver_factory_parameters(driver.x2, X2_DRV);
+  #endif
+  #if Y_STEPPER_COUNT == 2
+    if (driver.y2) driver_factory_parameters(driver.y2, Y2_DRV);
+  #endif
+  #if Z_STEPPER_COUNT == 3
+    if (driver.z3) driver_factory_parameters(driver.z3, Z3_DRV);
+  #endif
+  #if Z_STEPPER_COUNT >= 2
+    if (driver.z2) driver_factory_parameters(driver.z2, Z2_DRV);
+  #endif
 
   #if HAS_TRINAMIC
     tmc.factory_parameters();

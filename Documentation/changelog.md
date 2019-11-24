@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 23-11-2019
+* Revision 24-11-2019
 *
 * Version EEPROM MKV77
 *
@@ -32,10 +32,12 @@
 *    F[int] Set number fan
 *
 * M563: Set Tools heater assignment
-*
 *   T[tools]  - Set Tool
 *   D[int]    - Set Driver for tool
 *   H[bool]   - Set Hotend for tool
+*
+* M890: Run User GCode
+*   S[int]    - Run 1 - 5 user gcode
 *
 * Add multiple Language, max 5, for lcd..
 *
