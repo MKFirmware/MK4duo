@@ -193,6 +193,7 @@ void Mechanics::sync_plan_position() {
   planner.set_position_mm(current_position);
 }
 void Mechanics::sync_plan_position_e() {
+  if (printer.debugFeature()) DEBUG_EMV("sync_plan_position_e", current_position.e);
   planner.set_e_position_mm(current_position.e);
 }
 

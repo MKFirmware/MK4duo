@@ -65,7 +65,7 @@ void Cncrouter::init() {
 
 void Cncrouter::manage() {
   #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
-    static short_timer_t next_speed_step_timer(true);
+    static short_timer_t next_speed_step_timer(millis());
     if (rpm_target != rpm_instant && next_speed_step_timer.expired((CNCROUTER_SLOWSTART_INTERVAL) * 1000))
       speed_step();   
   #endif

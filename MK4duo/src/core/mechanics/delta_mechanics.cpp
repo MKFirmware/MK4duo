@@ -187,7 +187,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
     // Calculate and execute the segments
     while (--numLines) {
 
-      static short_timer_t next_idle_timer(true);
+      static short_timer_t next_idle_timer(millis());
       if (next_idle_timer.expired(200)) printer.idle();
 
       raw += segment_distance;

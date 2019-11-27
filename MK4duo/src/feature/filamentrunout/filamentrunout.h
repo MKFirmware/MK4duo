@@ -359,7 +359,7 @@ class FilamentSensorBase {
 
       static inline void run() {
         #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-          static short_timer_t nex_timer(true);
+          static short_timer_t nex_timer(millis());
           if (nex_timer.expired(1000)) {
             LOOP_EXTRUDER() {
               SERIAL_STR(e ? PSTR(", ") : PSTR("Remaining mm: "));

@@ -54,6 +54,87 @@
     <detect>M353.*F(-?\d*)</detect>
   </entry>
 
+  <!-- M563: Tools Driver Heater assignment -->
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 0 Driver assignment</description>
+    <set>M563 T0 D@</set>
+    <detect>M563 T0.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 0 Hotend assignment</description>
+    <set>M563 T0 H@</set>
+    <detect>M563 T0.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 1 Driver assignment</description>
+    <set>M563 T1 D@</set>
+    <detect>M563 T1.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 1 Hotend assignment</description>
+    <set>M563 T1 H@</set>
+    <detect>M563 T1.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 2 Driver assignment</description>
+    <set>M563 T2 D@</set>
+    <detect>M563 T2.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 2 Hotend assignment</description>
+    <set>M563 T2 H@</set>
+    <detect>M563 T2.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 3 Driver assignment</description>
+    <set>M563 T3 D@</set>
+    <detect>M563 T3.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 3 Hotend assignment</description>
+    <set>M563 T3 H@</set>
+    <detect>M563 T3.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 4 Driver assignment</description>
+    <set>M563 T4 D@</set>
+    <detect>M563 T4.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 4 Hotend assignment</description>
+    <set>M563 T4 H@</set>
+    <detect>M563 T4.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 5 Driver assignment</description>
+    <set>M563 T5 D@</set>
+    <detect>M563 T5.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 5 Hotend assignment</description>
+    <set>M563 T5 H@</set>
+    <detect>M563 T5.*H(-?\d*)</detect>
+  </entry><entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 5 Driver assignment</description>
+    <set>M563 T5 D@</set>
+    <detect>M563 T5.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 5 Hotend assignment</description>
+    <set>M563 T5 H@</set>
+    <detect>M563 T5.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 6 Driver assignment</description>
+    <set>M563 T6 D@</set>
+    <detect>M563 T6.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="5">
+    <description unit="[0-5]">Tool 6 Hotend assignment</description>
+    <set>M563 T6 H@</set>
+    <detect>M563 T6.*H(-?\d*)</detect>
+  </entry>
+
   <!-- M92: Axis resolution -->
   <entry type="float" min="0">
     <description unit="[Steps/unit]">X resolution</description>
@@ -1426,7 +1507,7 @@
 
   <!-- M306: Heaters parameters -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 0 Power drive min</description>
+    <description unit="[0-255]">Hotend 0 Power drive min</description>
     <set>M306 H0 A@</set>
     <detect>M306 H0.*A(-?\d*)</detect>
   </entry>
@@ -1482,7 +1563,7 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 1 Power drive min</description>
+    <description unit="[0-255]">Hotend 1 Power drive min</description>
     <set>M306 H1 A@</set>
     <detect>M306 H1.*A(-?\d*)</detect>
   </entry>
@@ -1538,7 +1619,7 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 2 Power drive min</description>
+    <description unit="[0-255]">Hotend 2 Power drive min</description>
     <set>M306 H2 A@</set>
     <detect>M306 H2.*A(-?\d*)</detect>
   </entry>
@@ -1594,7 +1675,7 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 3 Power drive min</description>
+    <description unit="[0-255]">Hotend 3 Power drive min</description>
     <set>M306 H3 A@</set>
     <detect>M306 H3.*A(-?\d*)</detect>
   </entry>
@@ -1650,7 +1731,7 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 4 Power drive min</description>
+    <description unit="[0-255]">Hotend 4 Power drive min</description>
     <set>M306 H4 A@</set>
     <detect>M306 H4.*A(-?\d*)</detect>
   </entry>
@@ -1706,7 +1787,7 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 5 Power drive min</description>
+    <description unit="[0-255]">Hotend 5 Power drive min</description>
     <set>M306 H5 A@</set>
     <detect>M306 H5.*A(-?\d*)</detect>
   </entry>
@@ -1762,7 +1843,7 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Bed Power drive min</description>
+    <description unit="[0-255]">Bed Power drive min</description>
     <set>M306 H-1 T0 A@</set>
     <detect>M306 H-1 T0.*A(-?\d*)</detect>
   </entry>
@@ -1818,7 +1899,7 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Chamber Power drive min</description>
+    <description unit="[0-255]">Chamber Power drive min</description>
     <set>M306 H-2 T0 A@</set>
     <detect>M306 H-2 T0.*A(-?\d*)</detect>
   </entry>

@@ -290,7 +290,7 @@
  * M531 - filename - Define filename being printed
  * M532 - X[percent] L[curLayer] - update current print state progress (X=0..100) and layer L
  * M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires SD_ABORT_ON_ENDSTOP_HIT)
- * M563 - Set Tools heater assignment
+ * M563 - Set Tools Driver Hotend assignment
  *          T[tools]  - Set Tool
  *          D[int]    - Set Driver for tool
  *          H[bool]   - Set Hotend for tool

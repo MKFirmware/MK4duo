@@ -83,7 +83,7 @@ void Restart::load_job() {
 
 void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=true*/) {
 
-  static short_timer_t save_restart_timer(true);
+  static short_timer_t save_restart_timer(millis());
 
   // Did Z change since the last call?
   if (save_restart_timer.expired((SD_RESTART_FILE_SAVE_TIME) * 1000) || force_save

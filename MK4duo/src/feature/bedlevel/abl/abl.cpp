@@ -27,7 +27,7 @@
 AutoBedLevel abl;
 
 /** Public Parameters */
-xy_int_t    AutoBedLevel::bilinear_grid_spacing,
+xy_pos_t    AutoBedLevel::bilinear_grid_spacing,
             AutoBedLevel::bilinear_start;
 bed_mesh_t  AutoBedLevel::z_values;
 
@@ -140,7 +140,7 @@ void AutoBedLevel::print_bilinear_leveling_grid() {
 
   float       AutoBedLevel::z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
   xy_float_t  AutoBedLevel::bilinear_grid_factor_virt;
-  xy_int_t    AutoBedLevel::bilinear_grid_spacing_virt;
+  xy_pos_t    AutoBedLevel::bilinear_grid_spacing_virt;
 
   void AutoBedLevel::print_bilinear_leveling_grid_virt() {
     SERIAL_LM(ECHO, "Subdivided with CATMULL ROM Leveling Grid:");

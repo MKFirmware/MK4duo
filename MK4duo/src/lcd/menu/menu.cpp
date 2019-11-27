@@ -151,7 +151,7 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const
   if (currentScreen != screen) {
 
     #if ENABLED(DOUBLECLICK_FOR_Z_BABYSTEPPING) && ENABLED(BABYSTEPPING)
-      static short_timer_t doubleclick_expire_timer(true);
+      static short_timer_t doubleclick_expire_timer(millis());
       // Going to menu_main from status screen? Remember first click time.
       // Going back to status screen within a very short time? Go to Z babystepping.
       if (screen == menu_main) {

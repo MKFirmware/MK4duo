@@ -145,7 +145,7 @@ void plan_arc(
     const float inv_duration = fr_mm_s / MM_PER_ARC_SEGMENT;
   #endif
 
-  short_timer_t next_idle_timer(true);
+  short_timer_t next_idle_timer(millis());
 
   #if N_ARC_CORRECTION > 1
     int8_t arc_recalc_count = N_ARC_CORRECTION;

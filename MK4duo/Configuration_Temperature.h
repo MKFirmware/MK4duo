@@ -248,10 +248,6 @@
 #define HOTEND_HYSTERESIS 2       // (degC) range of +/- temperatures considered "close" to the target one
 #define HOTEND_CHECK_INTERVAL 100 // ms between checks in bang-bang control
 
-// If the temperature difference between the target temperature and the actual temperature
-// is more then PID FUNCTIONAL RANGE then the PID will be shut off and the heater will be set to min/max.
-#define PID_FUNCTIONAL_RANGE 10
-
 #define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
 
 // this adds an experimental additional term to the heating power, proportional to the extrusion speed.

@@ -325,8 +325,8 @@ void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq
 
 void HAL::Tick() {
 
-  static short_timer_t  cycle_1s_timer(true),
-                        cycle_100_timer(true);
+  static short_timer_t  cycle_1s_timer(millis()),
+                        cycle_100_timer(millis());
 
   static uint8_t channel = 0;
 

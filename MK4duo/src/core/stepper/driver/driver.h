@@ -49,7 +49,7 @@ union driver_flag_t {
     bool  enable      : 1;
     bool  dir         : 1;
     bool  step        : 1;
-    bool  bit_3       : 1;
+    bool  step_status : 1;
     bool  bit_4       : 1;
     bool  bit_5       : 1;
     bool  bit_6       : 1;
@@ -156,7 +156,10 @@ class Driver {
       HAL::digitalWrite(data.pin.step, state);
     }
     FORCE_INLINE void step_toggle(const bool state) {
-      if (state) HAL::digitalWrite(data.pin.step, !HAL::digitalRead(data.pin.step));
+      if (state) {
+        HAL::digitalWrite(data.pin.step, !data.flag.step_status);
+        data.flag.step_status = !data.flag.step_status;
+      }
     }
     FORCE_INLINE bool step_read() {
       return HAL::digitalRead(data.pin.step);

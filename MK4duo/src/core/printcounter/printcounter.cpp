@@ -192,8 +192,8 @@ void PrintCounter::saveStats() {
 
 void PrintCounter::tick() {
 
-  static short_timer_t  update_next_timer(true);  // Max 60 seconds
-  static long_timer_t   eeprom_next_timer(true);  // Up  60 seconds
+  static short_timer_t  update_next_timer(millis());  // Max 60 seconds
+  static long_timer_t   eeprom_next_timer(millis());  // Up  60 seconds
 
   if (update_next_timer.expired((STATS_UPDATE_INTERVAL) * 1000U)) {
     #if ENABLED(DEBUG_PRINTCOUNTER)

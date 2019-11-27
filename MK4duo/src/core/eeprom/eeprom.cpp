@@ -51,7 +51,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV77"
+#define EEPROM_VERSION "MKV78"
 #define EEPROM_OFFSET 100
 
 // Check the integrity of data offsets.
@@ -175,7 +175,7 @@ typedef struct EepromDataStruct {
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     uint8_t         grid_max_x,
                     grid_max_y;
-    xy_int_t        bilinear_grid_spacing,
+    xy_pos_t        bilinear_grid_spacing,
                     bilinear_start;
     float           z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
   #endif
@@ -578,11 +578,11 @@ void EEPROM::post_process() {
         "Bilinear Z array is the wrong size."
       );
       const uint8_t grid_max_x = GRID_MAX_POINTS_X, grid_max_y = GRID_MAX_POINTS_Y;
-      EEPROM_WRITE(grid_max_x);                 // 1 byte
-      EEPROM_WRITE(grid_max_y);                 // 1 byte
-      EEPROM_WRITE(abl.bilinear_grid_spacing);  // 2 ints
-      EEPROM_WRITE(abl.bilinear_start);         // 2 ints
-      EEPROM_WRITE(abl.z_values);               // 9-256 floats
+      EEPROM_WRITE(grid_max_x);
+      EEPROM_WRITE(grid_max_y);
+      EEPROM_WRITE(abl.bilinear_grid_spacing);
+      EEPROM_WRITE(abl.bilinear_start);
+      EEPROM_WRITE(abl.z_values);
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     //
@@ -996,13 +996,13 @@ void EEPROM::post_process() {
       //
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
         uint8_t grid_max_x, grid_max_y;
-        EEPROM_READ_ALWAYS(grid_max_x);            // 1 byte
-        EEPROM_READ_ALWAYS(grid_max_y);            // 1 byte
+        EEPROM_READ_ALWAYS(grid_max_x);
+        EEPROM_READ_ALWAYS(grid_max_y);
         if (grid_max_x == GRID_MAX_POINTS_X && grid_max_y == GRID_MAX_POINTS_Y) {
           if (!flag.validating) bedlevel.set_bed_leveling_enabled(false);
-          EEPROM_READ(abl.bilinear_grid_spacing); // 2 ints
-          EEPROM_READ(abl.bilinear_start);        // 2 ints
-          EEPROM_READ(abl.z_values);              // 9 to 256 floats
+          EEPROM_READ(abl.bilinear_grid_spacing);
+          EEPROM_READ(abl.bilinear_start);
+          EEPROM_READ(abl.z_values);
         }
         else { // EEPROM data is stale
           // Skip past disabled (or stale) Bilinear Grid data

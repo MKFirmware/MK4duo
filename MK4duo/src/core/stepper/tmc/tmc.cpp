@@ -496,12 +496,12 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
   void TMC_Stepper::monitor_driver() {
-    static short_timer_t next_poll_timer(true);
+    static short_timer_t next_poll_timer(millis());
     bool need_update_error_counters = next_poll_timer.expired(MONITOR_DRIVER_STATUS_INTERVAL_MS);
     bool need_debug_reporting = false;
     if (need_update_error_counters) {
       #if ENABLED(TMC_DEBUG)
-        static short_timer_t next_debug_reporting_timer(true);
+        static short_timer_t next_debug_reporting_timer(millis());
         if (next_debug_reporting_timer.expired(report_status_interval))
           need_debug_reporting = true;
       #endif
@@ -582,7 +582,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     TMC_REPORT("stealthChop",         TMC_STEALTHCHOP);
     TMC_REPORT("msteps\t",            TMC_MICROSTEPS);
     TMC_REPORT("tstep\t",             TMC_TSTEP);
-    TMC_REPORT("threshold\t",         TMC_TPWMTHRS);
+    TMC_REPORT("threshold",           TMC_TPWMTHRS);
     TMC_REPORT("[mm/s]\t",            TMC_TPWMTHRS_MMS);
     TMC_REPORT("OT prewarn",          TMC_OTPW);
     #if ENABLED(MONITOR_DRIVER_STATUS)
@@ -1599,7 +1599,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
     }
 
     if (print_e) {
-      LOOP_EXTRUDER() if (driver.e[0] && driver.e[0]->tmc) status(driver.e[e], i, extruders[e]->data.axis_steps_per_mm);
+      LOOP_EXTRUDER() if (driver.e[e] && driver.e[e]->tmc) status(driver.e[e], i, extruders[e]->data.axis_steps_per_mm);
     }
 
     SERIAL_EOL();
@@ -1637,24 +1637,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
     }
 
     if (print_e) {
-      #if AXIS_HAS_TMC(E0)
-        parse_drv_status(driver.e[0], i);
-      #endif
-      #if AXIS_HAS_TMC(E1)
-        parse_drv_status(driver.e[1], i);
-      #endif
-      #if AXIS_HAS_TMC(E2)
-        parse_drv_status(driver.e[2], i);
-      #endif
-      #if AXIS_HAS_TMC(E3)
-        parse_drv_status(driver.e[3], i);
-      #endif
-      #if AXIS_HAS_TMC(E4)
-        parse_drv_status(driver.e[4], i);
-      #endif
-      #if AXIS_HAS_TMC(E5)
-        parse_drv_status(driver.e[5], i);
-      #endif
+      LOOP_EXTRUDER() if (driver.e[e] && driver.e[e]->tmc) parse_drv_status(driver.e[e], i);
     }
 
     SERIAL_EOL();

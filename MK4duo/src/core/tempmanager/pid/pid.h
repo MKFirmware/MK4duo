@@ -37,41 +37,34 @@ struct pid_data_t {
 
     float           Kp, Ki, Kd, Kc;
     uint8_t         Max;
-    limit_uchar_t drive;
+    limit_uchar_t   drive;
 
   private: /** Private Parameters */
 
-    float temp_istate         = 0.0,
-          last_temperature    = 0.0,
-          temperature_1s      = 0.0;
+    float temp_istate = 0.0,
+          pid_output  = 0.0,   
+          last_temp   = 0.0;
 
-    limit_float_t temp_istate_limit;
+    millis_l last_time = 0;
 
   public: /** Public Function */
 
-    uint8_t spin(const int16_t target_temp, const float current_temp
+    float compute(const float target_temp, const float current_temp
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         , const uint8_t tid, const int16_t lpq_len=0
       #endif
     ) {
 
-      static short_timer_t cycle_1s_timer(true);
-      float pid_output = 0.0;
+      const millis_l now = millis();
 
-      const float pid_error = float(target_temp) - current_temp;
+      const float pid_error = target_temp - current_temp;
 
-      if (pid_error > PID_FUNCTIONAL_RANGE) {
-        pid_output = Max;
-        temp_istate = temp_istate_limit.min;
-      }
-      else if (pid_error < -(PID_FUNCTIONAL_RANGE) || target_temp <= 20)
-        pid_output = 0;
-      else {
-        pid_output = Kp * pid_error;
-        temp_istate = constrain(temp_istate + pid_error, temp_istate_limit.min, temp_istate_limit.max);
-        pid_output += Ki * temp_istate * 0.1;
-        float dgain = Kd * (last_temperature - temperature_1s);
-        pid_output += dgain;
+      if (now - last_time >= 1000UL) {
+
+        // Compute PID output
+        temp_istate += (Ki * pid_error);
+        LIMIT(temp_istate, drive.min, drive.max);
+        pid_output = Kp * pid_error + temp_istate - Kd * (current_temp - last_temp);
 
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
           if (tid == toolManager.active_hotend()) {
@@ -90,21 +83,12 @@ struct pid_data_t {
 
         LIMIT(pid_output, 0, Max);
 
-      }
+        last_temp = current_temp;
+        last_time = now;
 
-      if (cycle_1s_timer.expired(1000U)) {
-        last_temperature = temperature_1s;
-        temperature_1s = current_temp;
       }
 
       return pid_output;
-    }
-
-    void update() {
-      if (Ki != 0) {
-        temp_istate_limit.min = (float)drive.min * 10.0f / Ki;
-        temp_istate_limit.max = (float)drive.max * 10.0f / Ki;
-      }
     }
 
 };

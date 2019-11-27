@@ -114,7 +114,7 @@ uint8_t NextionLCD::PageID                      = 0;
 #if HAS_LCD_MENU
   bool  NextionLCD::line_encoder_touch          = false;
   #if LCD_TIMEOUT_TO_STATUS
-    short_timer_t NextionLCD::return_to_status_timer(true);
+    short_timer_t NextionLCD::return_to_status_timer(millis());
   #endif
 #endif
 
@@ -1205,7 +1205,7 @@ void LcdUI::init() { nexlcd.init(); }
 
 bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   static uint8_t blink = 0;
-  static short_timer_t next_blink_timer(true);
+  static short_timer_t next_blink_timer(millis());
   if (next_blink_timer.expired(moltiplicator * 1000)) blink ^= 0xFF;
   return blink != 0;
 }
@@ -1216,7 +1216,7 @@ void LcdUI::kill_screen(PGM_P lcd_msg) {
 
 void LcdUI::update() {
 
-  static short_timer_t next_lcd_update_timer(true);
+  static short_timer_t next_lcd_update_timer(millis());
 
   if (!nexlcd.NextionON) return;
 
@@ -1498,7 +1498,7 @@ void LcdUI::stop_print() {
 
       UNUSED(row);
 
-      static short_timer_t nex_update_timer(true);
+      static short_timer_t nex_update_timer(millis());
 
       char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 

@@ -769,10 +769,10 @@
     bool click_and_hold(const clickFunc_t func=nullptr) {
       if (lcdui.button_pressed()) {
         lcdui.quick_feedback(false);                // Preserve button state for click-and-hold
-        short_timer_t nxt_timer(true);
+        short_timer_t next_timer(millis());
         while (lcdui.button_pressed()) {            // Loop while the encoder is pressed. Uses hardware flag!
           printer.idle();                           // idle, of course
-          if (nxt_timer.expired(1500)) {            // After 1.5 seconds
+          if (next_timer.expired(1500)) {           // After 1.5 seconds
             lcdui.quick_feedback();
             if (func) (*func)();
             lcdui.wait_for_release();
