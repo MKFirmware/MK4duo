@@ -88,8 +88,6 @@ inline void gcode_M306() {
     act->data.pin = parser.value_pin();
   }
 
-  act->data.pid.update();
-
 }
 
 #endif // HAS_HEATER

@@ -31,24 +31,38 @@ class timer {
 
   public: /** Constructor */
 
-    timer(const bool auto_start=false);
+    timer()                   { running = false; }
+    timer(const millis_l now) { ms = T(now); running = true; }
 
   private: /** Private Parameters */
 
-    bool  _running;
-    T     _started;
+    T ms = 0;
+    bool running;
 
   protected: /** Protected Function */
 
-    T started() { return _started; }
+    T started() { return ms; }
 
   public: /** Public Function */
   
-    void start();
-    void start(const T period_ms);
-    void stop()     { _running = false; }
-    bool isRunning()  { return _running; }
-    bool expired(const T period_ms, const bool renew=true);
+    void start()                    { ms = millis(); running = true; }
+    void start(const T period_ms)   { ms = millis() + period_ms; running = true; }
+    void stop()                     { running = false; }
+    bool isStopped()                { return !running; }
+    bool isRunning()                { return running; }
+    bool expired(const T period_ms, const bool renew=true) {
+      if (!running || !period_ms) return false;
+      bool expired = false;
+      const T now = millis();
+      if (ms <= ms + period_ms) {
+        if ((now >= ms + period_ms) || (now < ms)) expired = true;
+      }
+      else if ((now >= ms + period_ms) && (now < ms)) expired = true;
+      if (expired) {
+        renew ? ms = now : running = false;
+      }
+      return expired;
+    }
     bool pending(const T period_ms) { return !expired(period_ms); }
 
 };

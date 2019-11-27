@@ -48,7 +48,7 @@
  */
 inline void gcode_M150() {
   if (parser.seen('S')) {
-    short_timer_t end_timer(true);
+    short_timer_t end_timer(millis());
     const uint8_t second = parser.value_byte();
     do {
       const uint8_t red   = random(256);

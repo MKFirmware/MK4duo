@@ -47,8 +47,8 @@ inline void gcode_G0_G1(
           // Is this move an attempt to retract or recover?
           if (WITHIN(ABS(echange), MIN_AUTORETRACT, MAX_AUTORETRACT) && fwretract.retracted[toolManager.extruder.active] == (echange > 0.0)) {
             mechanics.current_position.e = mechanics.destination.e; // Hide a G1-based retract/recover from calculations
-            mechanics.sync_plan_position_e();                                   // AND from the planner
-            return fwretract.retract(echange < 0.0);                            // Firmware-based retract/recover (double-retract ignored)
+            mechanics.sync_plan_position_e();                       // AND from the planner
+            return fwretract.retract(echange < 0.0);                // Firmware-based retract/recover (double-retract ignored)
           }
         }
       }

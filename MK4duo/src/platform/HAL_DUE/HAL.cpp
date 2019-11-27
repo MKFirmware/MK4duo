@@ -549,8 +549,8 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
  */
 void HAL::Tick() {
 
-  static short_timer_t  cycle_1s_timer(true),
-                        cycle_100_timer(true);
+  static short_timer_t  cycle_1s_timer(millis()),
+                        cycle_100_timer(millis());
 
   if (printer.isStopped()) return;
 

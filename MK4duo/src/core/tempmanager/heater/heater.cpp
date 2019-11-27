@@ -65,7 +65,6 @@ void Heater::init() {
   thermal_runaway_state = TRInactive;
 
   data.sensor.CalcDerivedParameters();
-  data.pid.update();
 
   if (printer.isRunning()) return; // All running not reinitialize
 
@@ -211,7 +210,7 @@ void Heater::get_output() {
     #if MAX_COOLER > 0
       if (type == IS_COOLER) {
         if (isUsePid()) {
-          pwm_value = data.pid.spin(current_temperature, targetTemperature
+          pwm_value = data.pid.compute(current_temperature, targetTemperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
               , 0xFF
             #endif
@@ -227,7 +226,7 @@ void Heater::get_output() {
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             const uint8_t id = (type == IS_HOTEND) ? data.ID : 0xFF;
           #endif
-          pwm_value = data.pid.spin(targetTemperature, current_temperature
+          pwm_value = data.pid.compute(targetTemperature, current_temperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
               , id, tempManager.heater.lpq_len
             #endif
@@ -543,7 +542,6 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       data.pid.Kp = tune_pid.Kp;
       data.pid.Ki = tune_pid.Ki;
       data.pid.Kd = tune_pid.Kd;
-      data.pid.update();
 
       setPidTuned(true);
       Pidtuning = false;
@@ -675,7 +673,7 @@ void Heater::reset_idle_timer() {
 
 void Heater::thermal_runaway_protection() {
 
-  static long_timer_t thermal_runaway_timer(true);
+  static long_timer_t thermal_runaway_timer(millis());
 
   switch (thermal_runaway_state) {
 

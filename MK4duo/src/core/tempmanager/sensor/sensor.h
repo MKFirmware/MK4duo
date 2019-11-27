@@ -178,7 +178,7 @@ typedef struct {
 
       int16_t read_max6675() {
 
-        static short_timer_t next_max6675_timer(true);
+        static short_timer_t next_max6675_timer(millis());
         static uint16_t max6675_temp = 2000;
 
         if (next_max6675_timer.pending(MAX6675_HEAT_INTERVAL))
@@ -237,7 +237,7 @@ typedef struct {
 
       int16_t read_max31855() {
 
-        static short_timer_t next_max31855_timer(true);
+        static short_timer_t next_max31855_timer(millis());
         static uint16_t last_max31855_temp  = 2000;
 
         uint32_t data = 0;

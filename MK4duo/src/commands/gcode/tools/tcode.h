@@ -74,7 +74,7 @@ inline void gcode_T(const uint8_t tool_id) {
   #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {
-    
+
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       if (printer.isPrinting() && toolManager.extruder.previous != tool_id && toolManager.extruder.total == 1) {
         commands.inject_P(PSTR("M600"));
@@ -88,7 +88,9 @@ inline void gcode_T(const uint8_t tool_id) {
 
   if (printer.debugFeature()) {
     DEBUG_POS("AFTER", mechanics.current_position);
-    DEBUG_EM("<<< T()");
+    DEBUG_MV("<<< T(", tool_id);
+    DEBUG_CHR(')');
+    DEBUG_EOL();
   }
 
 }

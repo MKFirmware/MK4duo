@@ -282,7 +282,7 @@ void LcdUI::init() {
 
 bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   static uint8_t blink = 0;
-  static short_timer_t next_blink_timer(true);
+  static short_timer_t next_blink_timer(millis());
   if (next_blink_timer.expired(1000 * moltiplicator)) blink ^= 0xFF;
   return blink != 0;
 }
@@ -486,7 +486,7 @@ void LcdUI::status_screen() {
     if (old_frm != new_frm) {
       mechanics.feedrate_percentage = new_frm;
       encoderPosition = 0;
-      static short_timer_t next_beep_timer(true);
+      static short_timer_t next_beep_timer(millis());
       if (next_beep_timer.expired(500))
         sound.playtone(10, 440);
     }
@@ -644,7 +644,7 @@ bool LcdUI::detected() {
 void LcdUI::update() {
 
   static uint16_t max_display_update_time = 0;
-  static short_timer_t next_lcd_update_timer(true);
+  static short_timer_t next_lcd_update_timer(millis());
   const millis_l ms = millis();
 
   #if HAS_LCD_MENU

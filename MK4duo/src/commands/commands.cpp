@@ -704,9 +704,7 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
       }
       break;
 
-      case 'T':
-        gcode_T(parser.codenum); // Tn: Tool Change
-      break;
+      case 'T': gcode_T(parser.codenum); break;
 
       default: unknown_error();
     }
@@ -4031,8 +4029,7 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
       }
       break;
 
-      case 'T': gcode_T(parser.codenum);
-      break;
+      case 'T': gcode_T(parser.codenum); break;
 
       default: unknown_error();
     }

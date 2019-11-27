@@ -89,7 +89,7 @@
     bez_target.y = position.y;
     float step = MAX_STEP;
 
-    short_timer_t next_idle_timer(true);
+    short_timer_t next_idle_timer(millis());
 
     while (t < 1.0) {
 

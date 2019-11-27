@@ -72,7 +72,6 @@ inline void gcode_M301() {
     }
   #endif
 
-  act->data.pid.update();
   act->setPidTuned(true);
   act->ResetFault();
 

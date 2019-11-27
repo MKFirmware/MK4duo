@@ -150,7 +150,6 @@ class Core_Mechanics: public Mechanics {
      *          nozzle must be be able to reach +10,-10.
      */
     static bool position_is_reachable_by_probe(const float &rx, const float &ry);
-    static inline bool position_is_reachable_by_probe(const xy_int_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
     static inline bool position_is_reachable_by_probe(const xy_pos_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
 
     /**

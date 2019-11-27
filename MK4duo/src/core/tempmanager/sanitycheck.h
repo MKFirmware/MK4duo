@@ -136,9 +136,6 @@
 #if DISABLED(POWER_DRIVE_MAX)
   #error "DEPENDENCY ERROR: Missing setting POWER_DRIVE_MAX."
 #endif
-#if DISABLED(PID_FUNCTIONAL_RANGE)
-  #error "DEPENDENCY ERROR: Missing setting PID_FUNCTIONAL_RANGE."
-#endif
 #if DISABLED(HOTEND_Kp)
   #error "DEPENDENCY ERROR: Missing setting HOTEND_Kp."
 #endif

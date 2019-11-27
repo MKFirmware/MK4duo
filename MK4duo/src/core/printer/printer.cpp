@@ -651,7 +651,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if HAS_HOME
     // Handle a standalone HOME button
-    static long_timer_t next_home_key_timer(true);
+    static long_timer_t next_home_key_timer(millis());
     if (!IS_SD_PRINTING() && !READ(HOME_PIN)) {
       if (next_home_key_timer.expired(HOME_DEBOUNCE_DELAY)) {
         LCD_MESSAGEPGM(MSG_AUTO_HOME);
@@ -661,7 +661,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
-    static long_timer_t extruder_runout_timer(true);
+    static long_timer_t extruder_runout_timer(millis());
     if (hotends[toolManager.active_hotend()]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
       && extruder_runout_timer.expired((EXTRUDER_RUNOUT_SECONDS) * 1000)
       && !planner.has_blocks_queued()
@@ -916,7 +916,7 @@ void Printer::handle_safety_watch() {
    * while the machine is not accepting
    */
   void Printer::host_keepalive_tick() {
-    static short_timer_t host_keepalive_timer(true);
+    static short_timer_t host_keepalive_timer(millis());
     if (!isSuspendAutoreport() && host_keepalive_timer.expired(host_keepalive_time * 1000) && busy_state != NotBusy) {
       switch (busy_state) {
         case InHandler:
@@ -945,7 +945,7 @@ void Printer::handle_safety_watch() {
   void Printer::handle_status_leds() {
 
     static bool red_led = false;
-    static short_timer_t next_status_led_update_timer(true);
+    static short_timer_t next_status_led_update_timer(millis());
 
     // Update every 0.5s
     if (next_status_led_update_timer.expired(500)) {

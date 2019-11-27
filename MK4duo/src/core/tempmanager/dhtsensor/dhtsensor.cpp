@@ -99,7 +99,7 @@ void DHTSensor::print_M305() {
 
 void DHTSensor::spin() {
 
-  static short_timer_t min_read_timer(true);
+  static short_timer_t min_read_timer(millis());
 
   if (min_read_timer.pending(DHTMinimumReadInterval)) return;
 
