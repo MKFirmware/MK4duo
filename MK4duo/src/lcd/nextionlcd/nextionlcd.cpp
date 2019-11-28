@@ -1146,17 +1146,15 @@ bool NextionLCD::getConnect(char* buffer) {
 
     if (processing_manual_move) return;
 
-    if (manual_move_axis != (int8_t)NO_AXIS && manual_move_timer.expired(move_menu_scale < 0.99f ? 1 : 250, false) && !planner.is_full()) {
+    if (manual_move_axis != (int8_t)NO_AXIS && manual_move_timer.expired(move_menu_scale < 0.99f ? 0UL : 250UL, false) && !planner.is_full()) {
 
       #if IS_KINEMATIC
 
         const float old_feedrate = mechanics.feedrate_mm_s;
         mechanics.feedrate_mm_s = MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]);
 
-        #if EXTRUDERS > 1
-          const int8_t old_extruder = toolManager.extruder.active;
-          if (manual_move_axis == E_AXIS) toolManager.extruder.active = manual_move_e_index;
-        #endif
+        toolManager.extruder.previous = toolManager.extruder.active;
+        if (manual_move_axis == E_AXIS) toolManager.extruder.active = manual_move_e_index;
 
         // Set movement on a single axis
         mechanics.destination = mechanics.current_position;
@@ -1171,13 +1169,11 @@ bool NextionLCD::getConnect(char* buffer) {
         // previous invocation is being blocked. Modifications to manual_move_offset shouldn't be made while
         // processing_manual_move is true or the planner will get out of sync.
         processing_manual_move = true;
-        mechanics.prepare_move_to_destination(); // will call set_current_to_destination
+        mechanics.prepare_move_to_destination();
         processing_manual_move = false;
 
         mechanics.feedrate_mm_s = old_feedrate;
-        #if EXTRUDERS > 1
-          toolManager.extruder.active = old_extruder;
-        #endif
+        toolManager.extruder.active = toolManager.extruder.previous;
 
       #else
 

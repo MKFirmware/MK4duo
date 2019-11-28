@@ -48,9 +48,9 @@ extern int8_t manual_move_axis;
 //
 // Tell lcdui.update() to start a move to current_position.x" after a short delay.
 //
-inline void manual_move_to_current(AxisEnum axis) {
-  if (axis == E_AXIS) lcdui.manual_move_e_index = MenuItemBase::itemIndex;
-  manual_move_timer.start(move_menu_scale < 0.99f ? 0 : 250); // delay for bigger moves
+inline void manual_move_to_current(AxisEnum axis, const int8_t eindex=-1) {
+  if (axis == E_AXIS) lcdui.manual_move_e_index = eindex >= 0 ? eindex : toolManager.extruder.active;
+  manual_move_timer.start(); // delay for bigger moves
   manual_move_axis = (int8_t)axis;
 }
 
@@ -140,7 +140,7 @@ void lcd_move_x() { _lcd_move_xyz(GET_TEXT(MSG_MOVE_X), X_AXIS); }
 void lcd_move_y() { _lcd_move_xyz(GET_TEXT(MSG_MOVE_Y), Y_AXIS); }
 void lcd_move_z() { _lcd_move_xyz(GET_TEXT(MSG_MOVE_Z), Z_AXIS); }
 
-void lcd_move_e() {
+void lcd_move_e(const int8_t eindex=-1) {
   if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
   if (lcdui.encoderPosition) {
     if (!lcdui.processing_manual_move) {
@@ -150,12 +150,13 @@ void lcd_move_e() {
       #else
         mechanics.current_position.e += diff;
       #endif
-      manual_move_to_current(E_AXIS);
+      manual_move_to_current(E_AXIS, eindex);
       lcdui.refresh(LCDVIEW_REDRAW_NOW);
     }
     lcdui.encoderPosition = 0;
   }
   if (lcdui.should_draw()) {
+    MenuItemBase::init(eindex);
     MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_MOVE_E), ftostr41sign(mechanics.current_position.e
       #if IS_KINEMATIC
         + manual_move_offset
@@ -269,8 +270,13 @@ void menu_move() {
 
   #endif
 
-  LOOP_EXTRUDER()
-    SUBMENU_N(e, MSG_MOVE_E, []{ _menu_move_distance(E_AXIS, lcd_move_e); });
+  // The current extruder
+  SUBMENU(MSG_MOVE_E, []{ _menu_move_distance(E_AXIS, []{ lcd_move_e(); }, -1); });
+
+  if (toolManager.extruder.total > 1) {
+    LOOP_EXTRUDER()
+      SUBMENU_N(e, MSG_MOVE_E, []{ _menu_move_distance(E_AXIS, []{ lcd_move_e(MenuItemBase::itemIndex); }, MenuItemBase::itemIndex); });
+  }
 
   END_MENU();
 }

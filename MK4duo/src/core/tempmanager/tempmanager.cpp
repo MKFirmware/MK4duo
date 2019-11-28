@@ -176,8 +176,11 @@ void TempManager::change_number_heater(const HeatertypeEnum type, const uint8_t 
     }
     else if (heater.hotends > h) {
       for (uint8_t hh = h; hh < MAX_HOTEND; hh++) {
-        delete (hotends[hh]);
-        hotends[hh] = nullptr;
+        if (hotends[hh]) {
+          delete (hotends[hh]);
+          hotends[hh] = nullptr;
+          SERIAL_LMV(ECHO, "Delete H", int(hh));
+        }
       }
       heater.hotends = h;
     }
@@ -189,8 +192,11 @@ void TempManager::change_number_heater(const HeatertypeEnum type, const uint8_t 
     }
     else if (heater.beds > h) {
       for (uint8_t hh = h; hh < MAX_BED; hh++) {
-        delete (beds[hh]);
-        beds[hh] = nullptr;
+        if (beds[hh]) {
+          delete (beds[hh]);
+          beds[hh] = nullptr;
+          SERIAL_LMV(ECHO, "Delete Bed", int(hh));
+        }
       }
       heater.beds = h;
     }
@@ -202,8 +208,11 @@ void TempManager::change_number_heater(const HeatertypeEnum type, const uint8_t 
     }
     else if (heater.chambers > h) {
       for (uint8_t hh = h; hh < MAX_CHAMBER; hh++) {
-        delete (chambers[hh]);
-        chambers[hh] = nullptr;
+        if (chambers[hh]) {
+          delete (chambers[hh]);
+          chambers[hh] = nullptr;
+          SERIAL_LMV(ECHO, "Delete Chamber", int(hh));
+        }
       }
       heater.chambers = h;
     }
