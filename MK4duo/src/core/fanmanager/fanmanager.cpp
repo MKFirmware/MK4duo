@@ -67,8 +67,11 @@ void FanManager::change_number_fan(const uint8_t f) {
   }
   else if (data.fans > f) {
     for (uint8_t ff = f; ff < MAX_FAN; ff++) {
-      delete (fans[ff]);
-      fans[ff] = nullptr;
+      if (fans[ff]) {
+        delete (fans[ff]);
+        fans[ff] = nullptr;
+        SERIAL_LMV(ECHO, "Delete Fan", int(ff));
+      }
     }
     data.fans = f;
   }
