@@ -23,9 +23,7 @@
 
 // Struct Nozzle data
 struct nozzle_data_t {
-  #if MAX_HOTEND > 1
-    xyz_pos_t hotend_offset[MAX_HOTEND];
-  #endif
+  xyz_pos_t hotend_offset[MAX_HOTEND];
   #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
     xyz_pos_t park_point;
   #endif
