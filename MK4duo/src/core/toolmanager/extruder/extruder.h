@@ -37,7 +37,7 @@ struct extruder_data_t {
             max_jerk;
   uint32_t  max_acceleration_mm_per_s2;
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    float filament_size;  // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the toolManager.
+    float   filament_size;  // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the toolManager.
   #endif
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     float   load_length,
