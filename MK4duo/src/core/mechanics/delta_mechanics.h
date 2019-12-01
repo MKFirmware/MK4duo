@@ -59,7 +59,7 @@ class Delta_Mechanics : public Mechanics {
 
     static mechanics_data_t data;
 
-    static abc_float_t delta;
+    static abc_pos_t delta;
 
     static float  delta_clip_start_height;
 
@@ -147,7 +147,7 @@ class Delta_Mechanics : public Mechanics {
      * Delta function
      */
     static void InverseTransform(const float Ha, const float Hb, const float Hc, xyz_pos_t &cartesian);
-    FORCE_INLINE static void InverseTransform(const xyz_pos_t &pos, xyz_pos_t &cartesian) { InverseTransform(pos.x, pos.x, pos.z, cartesian); }
+    FORCE_INLINE static void InverseTransform(const abc_pos_t &pos, xyz_pos_t &cartesian) { InverseTransform(pos.a, pos.b, pos.c, cartesian); }
     static void Transform(const xyz_pos_t &raw);
     static void recalc_delta_settings();
 
@@ -195,10 +195,6 @@ class Delta_Mechanics : public Mechanics {
      */
     static void report_current_position_detail();
 
-    #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-      static float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
-    #endif
-
     /**
      * Print mechanics parameters in memory
      */
@@ -226,7 +222,7 @@ class Delta_Mechanics : public Mechanics {
     /**
      * Buffer a fast move without interpolation. Set current_position to destination
      */
-    static void prepare_uninterpolated_move_to_destination(const feedrate_t &fr_mm_s=0.0);
+    static void prepare_uninterpolated_move_to_destination(const feedrate_t &fr_mm_s=0.0f);
 
     /**
      * Calculate the highest Z position where the

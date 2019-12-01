@@ -30,6 +30,13 @@
 
 #define CODE_G33
 
+/**
+ * Probe a point
+ */
+static float calibration_probe(const xyz_pos_t &pos, const bool stow=false) {
+  return probe.check_at_point(pos.x, pos.y, stow ? PROBE_PT_STOW : PROBE_PT_RAISE, 4);
+}
+
 static void ac_home() {
   endstops.setEnabled(true);
   mechanics.home(false);
@@ -62,7 +69,7 @@ static void ac_cleanup() {
 
 // Homed height
 float homed_height;
-static void Calc_homed_height() {
+static void calc_homed_height() {
   const float tempHeight = mechanics.data.diagonal_rod;		// any sensible height will do here, probably even zero
   abc_pos_t cartesian;
   mechanics.InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
@@ -112,11 +119,134 @@ static void Adjust(const uint8_t numFactors, const float v[]) {
   }
 
   mechanics.recalc_delta_settings();
-  Calc_homed_height();
+  calc_homed_height();
   const float heightError = homed_height + mechanics.data.endstop_adj.a - oldHeightA - v[0];
   mechanics.data.height -= heightError;
   homed_height -= heightError;
 
+}
+
+// Compute the derivative of height with respect to a parameter at the specified motor endpoints.
+// 'deriv' indicates the parameter as follows:
+// 0, 1, 2 = X, Y, Z tower endstop adjustments
+// 3 = delta radius
+// 4 = X tower correction
+// 5 = Y tower correction
+// 6 = data.diagonal_rod rod length
+// 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
+static float compute_derivative(const uint16_t deriv, const abc_pos_t &hpos) {
+  constexpr float perturb = 0.2;      // perturbation amount in mm or degrees
+  float zHi = 0.0f,
+        zLo = 0.0f;
+  abc_float_t newPos  = { 0.0f, 0.0f, 0.0f };
+
+  switch (deriv) {
+    case 0:
+    case 1:
+    case 2:
+      // Endstop corrections
+      mechanics.InverseTransform((deriv == 0) ? hpos.a + perturb : hpos.a, (deriv == 1) ? hpos.b + perturb : hpos.b, (deriv == 2) ? hpos.c + perturb : hpos.c, newPos);
+      zHi = newPos.c;
+      mechanics.InverseTransform((deriv == 0) ? hpos.a - perturb : hpos.a, (deriv == 1) ? hpos.b - perturb : hpos.b, (deriv == 2) ? hpos.c - perturb : hpos.c, newPos);
+      zLo = newPos.c;
+      break;
+
+    case 3: {
+      const float old_delta_radius = mechanics.data.radius;
+
+      // Calc High parameters
+      mechanics.data.radius += perturb;
+      mechanics.recalc_delta_settings();
+      mechanics.InverseTransform(hpos, newPos);
+      zHi = newPos.c;
+
+      // Reset Delta Radius
+      mechanics.data.radius = old_delta_radius;
+
+      // Calc Low parameters
+      mechanics.data.radius -= perturb;
+      mechanics.recalc_delta_settings();
+      mechanics.InverseTransform(hpos, newPos);
+      zLo = newPos.c;
+
+      // Reset Delta Radius
+      mechanics.data.radius = old_delta_radius;
+      break;
+    }
+
+    case 4: {
+      const float old_delta_tower_angle_adj = mechanics.data.tower_angle_adj.a;
+
+      // Calc High parameters
+      mechanics.data.tower_angle_adj.a += perturb;
+      mechanics.recalc_delta_settings();
+      mechanics.InverseTransform(hpos, newPos);
+      zHi = newPos.c;
+
+      // Reset Delta tower Alpha angle adj 
+      mechanics.data.tower_angle_adj.a = old_delta_tower_angle_adj;
+
+      // Calc Low parameters
+      mechanics.data.tower_angle_adj.a -= perturb;
+      mechanics.recalc_delta_settings();
+      mechanics.InverseTransform(hpos, newPos);
+      zLo = newPos.c;
+
+      // Reset Delta tower Alpha angle adj 
+      mechanics.data.tower_angle_adj.a = old_delta_tower_angle_adj;
+      break;
+    }
+
+    case 5: {
+      const float old_delta_tower_angle_adj = mechanics.data.tower_angle_adj.b;
+
+      // Calc High parameters
+      mechanics.data.tower_angle_adj.b += perturb;
+      mechanics.recalc_delta_settings();
+      mechanics.InverseTransform(hpos, newPos);
+      zHi = newPos.c;
+
+      // Reset Delta tower Beta angle adj 
+      mechanics.data.tower_angle_adj.b = old_delta_tower_angle_adj;
+
+      // Calc Low parameters
+      mechanics.data.tower_angle_adj.b -= perturb;
+      mechanics.recalc_delta_settings();
+      mechanics.InverseTransform(hpos, newPos);
+      zLo = newPos.c;
+
+      // Reset Delta tower Beta angle adj 
+      mechanics.data.tower_angle_adj.b = old_delta_tower_angle_adj;
+      break;
+    }
+
+    case 6: {
+      const float old_delta_diagonal_rod = mechanics.data.diagonal_rod;
+
+      // Calc High parameters
+      mechanics.data.diagonal_rod += perturb;
+      mechanics.recalc_delta_settings();
+      mechanics.InverseTransform(hpos, newPos);
+      zHi = newPos.c;
+
+      // Reset Delta Diagonal Rod
+      mechanics.data.diagonal_rod = old_delta_diagonal_rod;
+
+      // Calc Low parameters
+      mechanics.data.diagonal_rod -= perturb;
+      mechanics.recalc_delta_settings();
+      mechanics.InverseTransform(hpos, newPos);
+      zLo = newPos.c;
+
+      // Reset Delta Diagonal Rod
+      mechanics.data.diagonal_rod = old_delta_diagonal_rod;
+      break;
+    }
+  }
+
+  mechanics.recalc_delta_settings();
+
+  return (zHi - zLo) / (2.0f * perturb);
 }
 
 /**
@@ -133,18 +263,17 @@ static void Adjust(const uint8_t numFactors, const float v[]) {
  */
 inline void gcode_G33() {
 
-  const uint8_t MaxCalibrationPoints  = 10,
+  constexpr uint8_t MaxCalibrationPoints  = 10,
                 NperifericalPoints    = 6,
                 NinternalPoints       = 3,
                 MaxnumFactors         = 7;
 
   uint8_t iteration = 0;
 
-  float   xBedProbePoints[MaxCalibrationPoints],
-          yBedProbePoints[MaxCalibrationPoints],
-          zBedProbePoints[MaxCalibrationPoints],
-          initialSumOfSquares,
+  float   initialSumOfSquares,
           expectedRmsError;
+
+  xyz_pos_t BedProbePoints[MaxCalibrationPoints];
 
   char    rply[50];
 
@@ -173,34 +302,34 @@ inline void gcode_G33() {
 
   DEPLOY_PROBE();
 
-  Calc_homed_height();
+  calc_homed_height();
 
   for (uint8_t probe_index = 0; probe_index < NperifericalPoints; probe_index++) {
-    xBedProbePoints[probe_index] = mechanics.data.probe_radius * SIN((2 * M_PI * probe_index) / float(NperifericalPoints));
-    yBedProbePoints[probe_index] = mechanics.data.probe_radius * COS((2 * M_PI * probe_index) / float(NperifericalPoints));
-    zBedProbePoints[probe_index] = probe.check_at_point(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
-    if (isnan(zBedProbePoints[probe_index])) return ac_cleanup();
+    BedProbePoints[probe_index].x = mechanics.data.probe_radius * SIN((2 * M_PI * probe_index) / float(NperifericalPoints));
+    BedProbePoints[probe_index].y = mechanics.data.probe_radius * COS((2 * M_PI * probe_index) / float(NperifericalPoints));
+    BedProbePoints[probe_index].z = calibration_probe(BedProbePoints[probe_index]);
+    if (isnan(BedProbePoints[probe_index].z)) return ac_cleanup();
   }
 
   if (probe_points == 10) {
     for (uint8_t index = 0; index < NinternalPoints; index++) {
       const uint8_t probe_index = index + NperifericalPoints;
-      xBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * SIN((2 * M_PI * index) / float(NinternalPoints));
-      yBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * COS((2 * M_PI * index) / float(NinternalPoints));
-      zBedProbePoints[probe_index] = probe.check_at_point(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
-      if (isnan(zBedProbePoints[probe_index])) return ac_cleanup();
+      BedProbePoints[probe_index].x = (mechanics.data.probe_radius / 2) * SIN((2 * M_PI * index) / float(NinternalPoints));
+      BedProbePoints[probe_index].y = (mechanics.data.probe_radius / 2) * COS((2 * M_PI * index) / float(NinternalPoints));
+      BedProbePoints[probe_index].z = calibration_probe(BedProbePoints[probe_index]);
+      if (isnan(BedProbePoints[probe_index].z)) return ac_cleanup();
     }
   }
 
-  xBedProbePoints[probe_points - 1] = 0.0f;
-  yBedProbePoints[probe_points - 1] = 0.0f;
-  zBedProbePoints[probe_points - 1] = probe.check_at_point(0.0f, 0.0f, PROBE_PT_STOW, 4);
-  if (isnan(zBedProbePoints[probe_points - 1])) return ac_cleanup();
+  BedProbePoints[probe_points - 1].x = 0.0f;
+  BedProbePoints[probe_points - 1].y = 0.0f;
+  BedProbePoints[probe_points - 1].z = calibration_probe(BedProbePoints[probe_points - 1], true);
+  if (isnan(BedProbePoints[probe_points - 1].z)) return ac_cleanup();
 
   // convert data.endstop_adj;
   Convert_endstop_adj();
 
-  FixedMatrix<float, MaxCalibrationPoints, ABC> probeMotorPositions;
+  abc_float_t probeMotorPositions[MaxCalibrationPoints];
   float corrections[MaxCalibrationPoints];
 
   initialSumOfSquares = 0.0;
@@ -208,14 +337,10 @@ inline void gcode_G33() {
   // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
   for (uint8_t i = 0; i < probe_points; ++i) {
     corrections[i] = 0.0;
-    abc_float_t machinePos = { xBedProbePoints[i], yBedProbePoints[i], 0.0f };
-
+    abc_float_t machinePos = { BedProbePoints[i].x, BedProbePoints[i].y, 0.0f };
     mechanics.Transform(machinePos);
-
-    for (uint8_t axis = 0; axis < ABC; axis++)
-      probeMotorPositions(i, axis) = mechanics.delta[axis];
-
-    initialSumOfSquares += sq(zBedProbePoints[i]);
+    probeMotorPositions[i] = mechanics.delta;
+    initialSumOfSquares += sq(BedProbePoints[i].z);
   }
 
   // Do 1 or more Newton-Raphson iterations
@@ -227,7 +352,7 @@ inline void gcode_G33() {
     for (uint8_t i = 0; i < probe_points; i++) {
       for (uint8_t j = 0; j < numFactors; j++) {
         derivativeMatrix(i, j) =
-          mechanics.ComputeDerivative(j, probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS));
+          compute_derivative(j, probeMotorPositions[i]);
       }
     }
 
@@ -252,9 +377,9 @@ inline void gcode_G33() {
         }
         normalMatrix(i, j) = temp;
       }
-      float temp = -1 * derivativeMatrix(0, i) * (zBedProbePoints[0] + corrections[0]);
+      float temp = -1 * derivativeMatrix(0, i) * (BedProbePoints[0].z + corrections[0]);
       for (uint8_t k = 1; k < probe_points; k++) {
-        temp += -1 * derivativeMatrix(k, i) * (zBedProbePoints[k] + corrections[k]);
+        temp += -1 * derivativeMatrix(k, i) * (BedProbePoints[k].z + corrections[k]);
       }
       normalMatrix(i, numFactors) = temp;
     }
@@ -297,7 +422,7 @@ inline void gcode_G33() {
       // Calculate and display the residuals
       SERIAL_MSG("Residuals:");
       for (uint8_t i = 0; i < probe_points; ++i) {
-        float residual = zBedProbePoints[i];
+        float residual = BedProbePoints[i].z;
         for (uint8_t j = 0; j < numFactors; j++)
           residual += solution[j] * derivativeMatrix(i, j);
         sprintf_P(rply, PSTR(" %7.4f"), (double)residual);
@@ -313,11 +438,13 @@ inline void gcode_G33() {
     float sumOfSquares = 0.0f;
 
     for (int8_t i = 0; i < probe_points; i++) {
-      LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
+      probeMotorPositions[i].a += solution[A_AXIS];
+      probeMotorPositions[i].b += solution[B_AXIS];
+      probeMotorPositions[i].c += solution[C_AXIS];
       abc_pos_t newPosition;
-      mechanics.InverseTransform(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
+      mechanics.InverseTransform(probeMotorPositions[i], newPosition);
       corrections[i] = newPosition.z;
-      expectedResiduals[i] = zBedProbePoints[i] + newPosition.z;
+      expectedResiduals[i] = BedProbePoints[i].z + newPosition.z;
       sumOfSquares += sq(expectedResiduals[i]);
     }
 
