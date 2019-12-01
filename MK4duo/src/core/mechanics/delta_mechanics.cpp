@@ -41,24 +41,24 @@ Delta_Mechanics mechanics;
 /** Public Parameters */
 mechanics_data_t Delta_Mechanics::data;
 
-abc_float_t Delta_Mechanics::delta{0.0f};
+abc_pos_t   Delta_Mechanics::delta{0.0f};
 float       Delta_Mechanics::delta_clip_start_height = 0;
 
 /** Private Parameters */
 abc_float_t Delta_Mechanics::D2{0.0f},      // Diagonal rod ^2
             Delta_Mechanics::towerX{0.0f},  // The X coordinate of each tower
             Delta_Mechanics::towerY{0.0f};  // The Y coordinate of each tower
-float       Delta_Mechanics::Xbc    = 0.0,
-            Delta_Mechanics::Xca    = 0.0,
-            Delta_Mechanics::Xab    = 0.0,
-            Delta_Mechanics::Ybc    = 0.0,
-            Delta_Mechanics::Yca    = 0.0,
-            Delta_Mechanics::Yab    = 0.0,
-            Delta_Mechanics::coreKa = 0.0,
-            Delta_Mechanics::coreKb = 0.0,
-            Delta_Mechanics::coreKc = 0.0,
-            Delta_Mechanics::Q      = 0.0,
-            Delta_Mechanics::Q2     = 0.0;
+float       Delta_Mechanics::Xbc    = 0.0f,
+            Delta_Mechanics::Xca    = 0.0f,
+            Delta_Mechanics::Xab    = 0.0f,
+            Delta_Mechanics::Ybc    = 0.0f,
+            Delta_Mechanics::Yca    = 0.0f,
+            Delta_Mechanics::Yab    = 0.0f,
+            Delta_Mechanics::coreKa = 0.0f,
+            Delta_Mechanics::coreKb = 0.0f,
+            Delta_Mechanics::coreKc = 0.0f,
+            Delta_Mechanics::Q      = 0.0f,
+            Delta_Mechanics::Q2     = 0.0f;
 
 /** Public Function */
 void Delta_Mechanics::factory_parameters() {
@@ -680,7 +680,7 @@ void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
   setAxisHomed(axis, true);
 
-  current_position[axis] = (axis == C_AXIS ? data.height : 0.0);
+  current_position[axis] = (axis == C_AXIS ? data.height : 0.0f);
 
   #if ENABLED(BABYSTEPPING) && ENABLED(BABYSTEP_DISPLAY_TOTAL)
     babystep.reset_total(axis);
@@ -751,133 +751,6 @@ void Delta_Mechanics::report_current_position_detail() {
   report_xyze(diff);
 
 }
-
-#if ENABLED(DELTA_AUTO_CALIBRATION_1)
-
-  // Compute the derivative of height with respect to a parameter at the specified motor endpoints.
-  // 'deriv' indicates the parameter as follows:
-  // 0, 1, 2 = X, Y, Z tower endstop adjustments
-  // 3 = delta radius
-  // 4 = X tower correction
-  // 5 = Y tower correction
-  // 6 = data.diagonal_rod rod length
-  // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
-  float Delta_Mechanics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
-    constexpr float perturb = 0.2;      // perturbation amount in mm or degrees
-    float zHi = 0.0,
-          zLo = 0.0;
-    abc_float_t newPos  = { 0.0, 0.0, 0.0 };
-
-    switch (deriv) {
-      case 0:
-      case 1:
-      case 2:
-        // Endstop corrections
-        InverseTransform((deriv == 0) ? ha + perturb : ha, (deriv == 1) ? hb + perturb : hb, (deriv == 2) ? hc + perturb : hc, newPos);
-        zHi = newPos.c;
-        InverseTransform((deriv == 0) ? ha - perturb : ha, (deriv == 1) ? hb - perturb : hb, (deriv == 2) ? hc - perturb : hc, newPos);
-        zLo = newPos.c;
-        break;
-
-      case 3: {
-        const float old_delta_radius = data.radius;
-
-        // Calc High parameters
-        data.radius += perturb;
-        recalc_delta_settings();
-        InverseTransform(ha, hb, hc, newPos);
-        zHi = newPos.c;
-
-        // Reset Delta Radius
-        data.radius = old_delta_radius;
-
-        // Calc Low parameters
-        data.radius -= perturb;
-        recalc_delta_settings();
-        InverseTransform(ha, hb, hc, newPos);
-        zLo = newPos.c;
-
-        // Reset Delta Radius
-        data.radius = old_delta_radius;
-        break;
-      }
-
-      case 4: {
-        const float old_delta_tower_angle_adj = data.tower_angle_adj.a;
-
-        // Calc High parameters
-        data.tower_angle_adj.a += perturb;
-        recalc_delta_settings();
-        InverseTransform(ha, hb, hc, newPos);
-        zHi = newPos.c;
-
-        // Reset Delta tower Alpha angle adj 
-        data.tower_angle_adj.a = old_delta_tower_angle_adj;
-
-        // Calc Low parameters
-        data.tower_angle_adj.a -= perturb;
-        recalc_delta_settings();
-        InverseTransform(ha, hb, hc, newPos);
-        zLo = newPos.c;
-
-        // Reset Delta tower Alpha angle adj 
-        data.tower_angle_adj.a = old_delta_tower_angle_adj;
-        break;
-      }
-
-      case 5: {
-        const float old_delta_tower_angle_adj = data.tower_angle_adj.b;
-
-        // Calc High parameters
-        data.tower_angle_adj.b += perturb;
-        recalc_delta_settings();
-        InverseTransform(ha, hb, hc, newPos);
-        zHi = newPos.c;
-
-        // Reset Delta tower Beta angle adj 
-        data.tower_angle_adj.b = old_delta_tower_angle_adj;
-
-        // Calc Low parameters
-        data.tower_angle_adj.b -= perturb;
-        recalc_delta_settings();
-        InverseTransform(ha, hb, hc, newPos);
-        zLo = newPos.c;
-
-        // Reset Delta tower Beta angle adj 
-        data.tower_angle_adj.b = old_delta_tower_angle_adj;
-        break;
-      }
-
-      case 6: {
-        const float old_delta_diagonal_rod = data.diagonal_rod;
-
-        // Calc High parameters
-        data.diagonal_rod += perturb;
-        recalc_delta_settings();
-        InverseTransform(ha, hb, hc, newPos);
-        zHi = newPos.c;
-
-        // Reset Delta Diagonal Rod
-        data.diagonal_rod = old_delta_diagonal_rod;
-
-        // Calc Low parameters
-        data.diagonal_rod -= perturb;
-        recalc_delta_settings();
-        InverseTransform(ha, hb, hc, newPos);
-        zLo = newPos.c;
-
-        // Reset Delta Diagonal Rod
-        data.diagonal_rod = old_delta_diagonal_rod;
-        break;
-      }
-    }
-
-    recalc_delta_settings();
-
-    return (zHi - zLo) / (2.0f * perturb);
-  }
-
-#endif // ENABLED(DELTA_AUTO_CALIBRATION_1)
 
 #if DISABLED(DISABLE_M503)
 
@@ -1045,7 +918,7 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
 
   // Clear retracted status if homing the Z axis
   #if ENABLED(FWRETRACT)
-    if (axis == Z_AXIS) fwretract.current_hop = 0.0;
+    if (axis == Z_AXIS) fwretract.current_hop = 0.0f;
   #endif
 
   if (printer.debugFeature()) {
@@ -1058,7 +931,7 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
 /**
  * Buffer a fast move without interpolation. Set current_position to destination
  */
-void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_t &fr_mm_s/*=0.0*/) {
+void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_t &fr_mm_s/*=0.0f*/) {
 
   if (printer.debugFeature()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
 

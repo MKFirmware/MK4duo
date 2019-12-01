@@ -51,7 +51,7 @@ class Babystep {
 
   public: /** Public Parameters */
 
-    static volatile int16_t todo[BS_TODO_AXIS(Z_AXIS) + 1];
+    static volatile int16_t steps[BS_TODO_AXIS(Z_AXIS) + 1];
 
       #if HAS_LCD_MENU
         static int16_t accum;                                   // Total babysteps in current edit

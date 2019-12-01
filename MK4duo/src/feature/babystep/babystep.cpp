@@ -34,7 +34,7 @@
 Babystep babystep;
 
 /** Public Parameters */
-volatile int16_t Babystep::todo[BS_TODO_AXIS(Z_AXIS) + 1];
+volatile int16_t Babystep::steps[BS_TODO_AXIS(Z_AXIS) + 1];
 
 #if HAS_LCD_MENU
   int16_t Babystep::accum;
@@ -71,38 +71,38 @@ void Babystep::add_steps(const AxisEnum axis, const int16_t distance) {
     #if ENABLED(BABYSTEP_XY)
       switch (axis) {
         case CORE_AXIS_1: // X on CoreXY and CoreXZ, Y on CoreYZ
-          todo[CORE_AXIS_1] += distance * 2;
-          todo[CORE_AXIS_2] += distance * 2;
+          steps[CORE_AXIS_1] += distance * 2;
+          steps[CORE_AXIS_2] += distance * 2;
           break;
         case CORE_AXIS_2: // Y on CoreXY, Z on CoreXZ and CoreYZ
-          todo[CORE_AXIS_1] += CORESIGN(distance * 2);
-          todo[CORE_AXIS_2] -= CORESIGN(distance * 2);
+          steps[CORE_AXIS_1] += CORESIGN(distance * 2);
+          steps[CORE_AXIS_2] -= CORESIGN(distance * 2);
           break;
         case NORMAL_AXIS: // Z on CoreXY, Y on CoreXZ, X on CoreYZ
         default:
-          todo[NORMAL_AXIS] += distance;
+          steps[NORMAL_AXIS] += distance;
           break;
       }
     #elif CORE_IS_XZ || CORE_IS_YZ
       // Only Z stepping needs to be handled here
-      todo[CORE_AXIS_1] += CORESIGN(distance * 2);
-      todo[CORE_AXIS_2] -= CORESIGN(distance * 2);
+      steps[CORE_AXIS_1] += CORESIGN(distance * 2);
+      steps[CORE_AXIS_2] -= CORESIGN(distance * 2);
     #else
-      todo[Z_AXIS] += distance;
+      steps[Z_AXIS] += distance;
     #endif
   #else
-    todo[BS_TODO_AXIS(axis)] += distance;
+    steps[BS_TODO_AXIS(axis)] += distance;
   #endif
 
 }
 
 /** Private Function */
 void Babystep::step_axis(const AxisEnum axis) {
-  const int16_t curTodo = todo[BS_TODO_AXIS(axis)]; // get rid of volatile for performance
+  const int16_t curTodo = steps[BS_TODO_AXIS(axis)]; // get rid of volatile for performance
   if (curTodo) {
     stepper.babystep((AxisEnum)axis, curTodo > 0);
-    if (curTodo > 0)  todo[BS_TODO_AXIS(axis)]--;
-    else              todo[BS_TODO_AXIS(axis)]++;
+    if (curTodo > 0)  steps[BS_TODO_AXIS(axis)]--;
+    else              steps[BS_TODO_AXIS(axis)]++;
   }
 }
 

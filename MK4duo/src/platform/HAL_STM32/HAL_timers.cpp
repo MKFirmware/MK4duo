@@ -50,9 +50,9 @@ void HAL_calc_pulse_cycle() {
   HAL_min_pulse_cycle = MAX((hal_timer_t)((STEPPER_TIMER_RATE) / stepper.data.maximum_rate), ((STEPPER_TIMER_RATE) / 500000UL) * MAX((hal_timer_t)stepper.data.minimum_pulse, 1UL));
 
   if (stepper.data.minimum_pulse)
-    HAL_min_pulse_tick = (STEPPER_TIMER_TICKS_PER_US) * hal_timer_t(stepper.data.minimum_pulse) + ((MIN_ISR_START_LOOP_CYCLES) / hal_timer_t(STEPPER_TIMER_PRESCALE));
+    HAL_min_pulse_tick = hal_timer_t(stepper.data.minimum_pulse) * (STEPPER_TIMER_TICKS_PER_US);
   else
-    HAL_min_pulse_tick = ((((STEPPER_TIMER_TICKS_PER_US) + 1) / 2) + ((MIN_ISR_START_LOOP_CYCLES) / hal_timer_t(STEPPER_TIMER_PRESCALE)));
+    HAL_min_pulse_tick = ((STEPPER_TIMER_TICKS_PER_US) + 1) / 2;
 
   HAL_add_pulse_ticks = (HAL_min_pulse_cycle / hal_timer_t(STEPPER_TIMER_PRESCALE)) - HAL_min_pulse_tick;
 
