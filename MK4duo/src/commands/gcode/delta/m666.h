@@ -68,7 +68,7 @@ inline void gcode_M666() {
   if (parser.seen('D')) mechanics.data.diagonal_rod               = parser.value_linear_units();
   if (parser.seen('R')) mechanics.data.radius                     = parser.value_linear_units();
   if (parser.seen('S')) mechanics.data.segments_per_second_print  = parser.value_ushort();
-  if (parser.seen('S')) mechanics.data.segments_per_second_move   = parser.value_ushort();
+  if (parser.seen('F')) mechanics.data.segments_per_second_move   = parser.value_ushort();
   if (parser.seen('L')) mechanics.data.segments_per_line          = parser.value_byte();
   if (parser.seen('A')) mechanics.data.diagonal_rod_adj[A_AXIS]   = parser.value_linear_units();
   if (parser.seen('B')) mechanics.data.diagonal_rod_adj[B_AXIS]   = parser.value_linear_units();
