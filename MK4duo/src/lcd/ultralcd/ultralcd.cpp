@@ -402,7 +402,7 @@ bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
  */
 
 #if ENABLED(LCD_PROGRESS_BAR)
-  short_timer_t LcdUI::progress_bar_timer;
+  short_timer_t LcdUI::progress_bar_timer(millis());
   #if PROGRESS_MSG_EXPIRE > 0
     millis_s LcdUI::expire_status_time = 0;
   #endif

@@ -155,10 +155,6 @@ class Planner {
 
     static bool cleaning_buffer_flag;                 // A flag to disable queuing of blocks
 
-    #if ENABLED(LIN_ADVANCE)
-      static float  extruder_advance_K;
-    #endif
-
     #if HAS_POSITION_FLOAT
       static xyze_pos_t  position_float;
     #endif
@@ -218,11 +214,7 @@ class Planner {
 
     static void init();
 
-    static inline void factory_parameters() {
-      #if ENABLED(LIN_ADVANCE)
-        extruder_advance_K = LIN_ADVANCE_K;
-      #endif
-    }
+    static inline void factory_parameters() {}
 
     static void reset_acceleration_rates();
     static void refresh_positioning();

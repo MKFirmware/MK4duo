@@ -33,20 +33,31 @@
 /**
  * M900: Set Linear Advance K-factor
  *
+ *  T<tools>    Set extruder
  *  K<factor>   Set advance K factor
  */
 inline void gcode_M900() {
+
+  if (commands.get_target_tool(900)) return;
+
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M218 report.
+    if (parser.seen_any()) {
+      toolManager.print_M900();
+      return;
+    }
+  #endif
+
   if (parser.seenval('K')) {
     const float newK = parser.floatval('K');
     if (WITHIN(newK, 0, 10)) {
       planner.synchronize();
-      planner.extruder_advance_K = newK;
+      extruders[toolManager.extruder.target]->data.advance_K = newK;
     }
     else
       SERIAL_EM("?K value out of range (0-10).");
   }
-  else
-    SERIAL_LMV(ECHO, "Advance K=", planner.extruder_advance_K);
+
 }
 
 #endif // ENABLED(LIN_ADVANCE)

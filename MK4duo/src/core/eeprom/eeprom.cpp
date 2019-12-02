@@ -271,13 +271,6 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // Linear Advance
-  //
-  #if ENABLED(LIN_ADVANCE)
-    float           planner_extruder_advance_K;
-  #endif
-
-  //
   // Hysteresis Feature
   //
   #if ENABLED(HYSTERESIS_FEATURE)
@@ -678,13 +671,6 @@ void EEPROM::post_process() {
     //
     #if ENABLED(IDLE_OOZING_PREVENT)
       EEPROM_WRITE(printer.IDLE_OOZING_enabled);
-    #endif
-
-    //
-    // Linear Advance
-    //
-    #if ENABLED(LIN_ADVANCE)
-      EEPROM_WRITE(planner.extruder_advance_K);
     #endif
 
     //
@@ -1107,13 +1093,6 @@ void EEPROM::post_process() {
       //
       #if ENABLED(IDLE_OOZING_PREVENT)
         EEPROM_READ(printer.IDLE_OOZING_enabled);
-      #endif
-
-      //
-      // Linear Advance
-      //
-      #if ENABLED(LIN_ADVANCE)
-        EEPROM_READ(planner.extruder_advance_K);
       #endif
 
       //
@@ -1815,8 +1794,7 @@ void EEPROM::reset() {
      * Linear Advance
      */
     #if ENABLED(LIN_ADVANCE)
-      SERIAL_LM(CFG, "Linear Advance");
-      SERIAL_LMV(CFG, "  M900 K", planner.extruder_advance_K);
+      toolManager.print_M900();
     #endif
 
     /**
