@@ -2069,14 +2069,34 @@
 
   <!-- M900: Linear Advance -->
   <entry type="float">
-    <description unit="[unit]">Linear Advance K factor</description>
-    <set>M900 K@</set>
-    <detect>M900.*K(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">T0 Linear Advance K factor</description>
+    <set>M900 T0 K@</set>
+    <detect>M900 T0.*K(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Linear Advance Extrusion-Distance ratio</description>
-    <set>M900 R@</set>
-    <detect>M900.*R(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">T1 Linear Advance K factor</description>
+    <set>M900 T1 K@</set>
+    <detect>M900 T1.*K(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">T2 Linear Advance K factor</description>
+    <set>M900 T2 K@</set>
+    <detect>M900 T2.*K(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">T3 Linear Advance K factor</description>
+    <set>M900 T3 K@</set>
+    <detect>M900 T3.*K(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">T4 Linear Advance K factor</description>
+    <set>M900 T4 K@</set>
+    <detect>M900 T4.*K(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">T5 Linear Advance K factor</description>
+    <set>M900 T5 K@</set>
+    <detect>M900 T5.*K(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- M666: Delta geometry parameters -->

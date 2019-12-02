@@ -41,7 +41,8 @@ void menu_tmc();
     BACK_ITEM(MSG_ADVANCED_SETTINGS);
 
     #if ENABLED(LIN_ADVANCE)
-      EDIT_ITEM(float52, MSG_ADVANCE_K, &planner.extruder_advance_K, 0, 999);
+      LOOP_EXTRUDER()
+        EDIT_ITEM_N(float52, e, MSG_ADVANCE_K, &extruders[e]->data.advance_K, 0, 999);
     #endif
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -325,7 +326,8 @@ void menu_advanced_settings() {
       #if ENABLED(VOLUMETRIC_EXTRUSION) || ENABLED(ADVANCED_PAUSE_FEATURE)
         SUBMENU(MSG_FILAMENT, menu_advanced_filament);
       #elif ENABLED(LIN_ADVANCE)
-        EDIT_ITEM(float52, MSG_ADVANCE_K, &planner.extruder_advance_K, 0, 999);
+        LOOP_EXTRUDER()
+          EDIT_ITEM_N(float52, e, MSG_ADVANCE_K, &extruders[e]->data.advance_K, 0, 999);
       #endif
     }
       

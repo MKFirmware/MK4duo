@@ -99,6 +99,10 @@ class ToolManager {
 
     static void print_M563();
 
+    #if ENABLED(LIN_ADVANCE)
+      static void print_M900();
+    #endif
+
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static void print_M200();
     #endif

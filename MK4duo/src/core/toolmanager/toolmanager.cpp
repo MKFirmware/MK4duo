@@ -99,8 +99,8 @@ void ToolManager::extruder_factory_parameters(const uint8_t e) {
     extruders[e]->data.unload_length = PAUSE_PARK_UNLOAD_LENGTH;
   #endif
 
-  #if ENABLED(VOLUMETRIC_EXTRUSION)
-    extruders[e]->data.filament_size = DEFAULT_NOMINAL_FILAMENT_DIA;
+  #if ENABLED(LIN_ADVANCE)
+    extruders[e]->data.advance_K = LIN_ADVANCE_K;
   #endif
 
   #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -397,15 +397,25 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
 void ToolManager::print_M563() {
   SERIAL_LM(CFG, "Hotend assignment T<Tool> H<Hotend>");
-  #if MAX_EXTRUDER > 0
-    LOOP_EXTRUDER() {
-      SERIAL_SMV(CFG, "  M563 T", (int)e);
-      SERIAL_MV(" D", extruders[e]->data.driver);
-      SERIAL_MV(" H", extruders[e]->data.hotend);
-      SERIAL_EOL();
-    }
-  #endif
+  LOOP_EXTRUDER() {
+    SERIAL_SMV(CFG, "  M563 T", (int)e);
+    SERIAL_MV(" D", extruders[e]->data.driver);
+    SERIAL_MV(" H", extruders[e]->data.hotend);
+    SERIAL_EOL();
+  }
 }
+
+#if ENABLED(LIN_ADVANCE)
+
+  void ToolManager::print_M900() {
+    SERIAL_LM(CFG, "Linear Advance T<Tool> K<factor>");
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M900 T", (int)e);
+      SERIAL_EMV(" K", extruders[e]->data.advance_K);
+    }
+  }
+
+#endif
 
 #if ENABLED(VOLUMETRIC_EXTRUSION)
 

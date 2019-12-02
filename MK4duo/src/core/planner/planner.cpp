@@ -109,10 +109,6 @@ float Planner::previous_nominal_speed_sqr = 0.0;
   xy_ulong_t Planner::axis_segment_time_us[3] = { { MAX_FREQ_TIME_US + 1, 0, 0 }, { MAX_FREQ_TIME_US + 1, 0, 0 } };
 #endif
 
-#if ENABLED(LIN_ADVANCE)
-  float Planner::extruder_advance_K   = LIN_ADVANCE_K;
-#endif
-
 #if HAS_POSITION_FLOAT
   xyze_pos_t Planner::position_float{0.0f};
 #endif
@@ -1518,12 +1514,12 @@ bool Planner::fill_block(block_t * const block, bool split_move,
        *
        * esteps             : This is a print move, because we checked for A, B, C steps before.
        *
-       * extruder_advance_K : There is an advance factor set.
+       * extruder advance K : There is an advance factor set.
        *
        * de > 0             : Extruder is running forward (e.g., for "Wipe while retracting" (Slic3r) or "Combing" (Cura) moves)
        */
       block->use_advance_lead =  esteps
-                              && extruder_advance_K
+                              && extruders[extruder]->data.advance_K
                               && de > 0;
 
       if (block->use_advance_lead) {
@@ -1542,7 +1538,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         if (block->e_D_ratio > 3.0f)
           block->use_advance_lead = false;
         else {
-          const uint32_t max_accel_steps_per_s2 = extruders[extruder]->data.max_jerk / (extruder_advance_K * block->e_D_ratio) * steps_per_mm;
+          const uint32_t max_accel_steps_per_s2 = extruders[extruder]->data.max_jerk / (extruders[extruder]->data.advance_K * block->e_D_ratio) * steps_per_mm;
           if (accel > max_accel_steps_per_s2) DEBUG_EM("Acceleration limited.");
           NOMORE(accel, max_accel_steps_per_s2);
         }
@@ -1582,8 +1578,8 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif
   #if ENABLED(LIN_ADVANCE)
     if (block->use_advance_lead) {
-      block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * extruders[extruder]->data.axis_steps_per_mm);
-      if (extruder_advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
+      block->advance_speed = (STEPPER_TIMER_RATE) / (extruders[extruder]->data.advance_K * block->e_D_ratio * block->acceleration * extruders[extruder]->data.axis_steps_per_mm);
+      if (extruders[extruder]->data.advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
         DEBUG_EM("More than 2 steps per eISR loop executed.");
       if (block->advance_speed < 200)
         DEBUG_EM("eISR running at > 10kHz.");
@@ -1597,21 +1593,29 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     // Unit vector of previous path line segment
     static xyze_float_t previous_unit_vec;
 
-    #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
+    #if IS_KINEMATIC
       xyze_float_t unit_vec = delta_mm_cart * inverse_millimeters;
     #else
       xyze_float_t unit_vec = delta_mm * inverse_millimeters;
+    #endif
+
+    #if IS_CORE
+      /**
+       * On CoreXY the length of the vector [A,B] is SQRT(2) times the length of the head movement vector [X,Y].
+       * So taking Z and E into account, we cannot scale to a unit vector with "inverse_millimeters".
+       * => normalize the complete junction vector
+       */
+      normalize_junction_vector(unit_vec);
     #endif
 
     // Skip first block or when previous_nominal_speed is used as a flag for homing and offset cycles.
     if (moves_queued && !UNEAR_ZERO(previous_nominal_speed_sqr)) {
       // Compute cosine of angle between previous and current path. (prev_unit_vec is negative)
       // NOTE: Max junction velocity is computed without sin() or acos() by trig half angle identity.
-      float junction_cos_theta = -previous_unit_vec.x * unit_vec.x
-                                 -previous_unit_vec.y * unit_vec.y
-                                 -previous_unit_vec.z * unit_vec.z
-                                 -previous_unit_vec.e * unit_vec.e
-                                ;
+      float junction_cos_theta =  (-previous_unit_vec.x * unit_vec.x)
+                                 +(-previous_unit_vec.y * unit_vec.y)
+                                 +(-previous_unit_vec.z * unit_vec.z)
+                                 +(-previous_unit_vec.e * unit_vec.e);
 
       // NOTE: Computed without any expensive trig, sin() or acos(), by trig half angle identity of cos(theta).
       if (junction_cos_theta > 0.999999f) {
@@ -1662,7 +1666,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     float safe_speed = nominal_speed;
 
     uint8_t limited = 0;
-    #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+    #if HAS_LINEAR_E_JERK
       LOOP_XYZ(i)
     #else
       LOOP_XYZE(i)
@@ -1700,7 +1704,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
       // Now limit the jerk in all axes.
       const float smaller_speed_factor = vmax_junction / previous_nominal_speed;
-      #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+      #if HAS_LINEAR_E_JERK
         LOOP_XYZ(axis)
       #else
         LOOP_XYZE(axis)
@@ -2489,7 +2493,7 @@ void Planner::recalculate_trapezoids() {
             calculate_trapezoid_for_block(current_block, current_entry_speed * nomr, next_entry_speed * nomr);
             #if ENABLED(LIN_ADVANCE)
               if (current_block->use_advance_lead) {
-                const float comp = current_block->e_D_ratio * extruder_advance_K * extruders[toolManager.extruder.active]->data.axis_steps_per_mm;
+                const float comp = current_block->e_D_ratio * extruders[toolManager.extruder.target]->data.advance_K * extruders[toolManager.extruder.active]->data.axis_steps_per_mm;
                 current_block->max_adv_steps = current_nominal_speed * comp;
                 current_block->final_adv_steps = next_entry_speed * comp;
               }
@@ -2528,7 +2532,7 @@ void Planner::recalculate_trapezoids() {
       calculate_trapezoid_for_block(next_block, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
       #if ENABLED(LIN_ADVANCE)
         if (next_block->use_advance_lead) {
-          const float comp = next_block->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm.e[toolManager.extruder.active];
+          const float comp = next_block->e_D_ratio * extruders[toolManager.extruder.target]->data.advance_K * extruders[toolManager.extruder.target]->data.axis_steps_per_mm;
           next_block->max_adv_steps = next_nominal_speed * comp;
           next_block->final_adv_steps = (MINIMUM_PLANNER_SPEED) * comp;
         }

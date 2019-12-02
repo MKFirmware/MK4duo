@@ -24,5 +24,5 @@
 #define FIRMWARE_NAME           "MK4duo"
 #define SHORT_BUILD_VERSION     "4.4.0"
 #define BUILD_VERSION           FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_REVISION_DATE    "28-11-2019"
+#define STRING_REVISION_DATE    "02-12-2019"
 #define MK4DUO_FIRMWARE_URL     "marlinkimbra.it"
