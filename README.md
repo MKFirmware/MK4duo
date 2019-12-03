@@ -125,5 +125,6 @@ More features have been added by:
 
 ## License
 
-MK4duo is published under the [GPL license](/Documentation/COPYING.md) because I believe in open development.
-Do not use this code in products (3D printers, CNC etc) that are closed source or are crippled by a patent.
+MK4duo is published under the [GPL license](/LICENSE) because we believe in open development. The GPL comes with both rights and obligations. Whether you use MK4duo firmware as the driver for your open or closed-source product, you must keep MK4duo open, and you must provide your compatible MK4duo source code to end users upon request. The most straightforward way to comply with the MK4duo license is to make a fork of MK4duo on Github, perform your modifications, and direct users to your modified fork.
+
+While we can't prevent the use of this code in products (3D printers, CNC, etc.) that are closed source or crippled by a patent, we would prefer that you choose another firmware or, better yet, make your own.
