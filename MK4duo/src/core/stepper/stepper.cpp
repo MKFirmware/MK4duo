@@ -1778,8 +1778,10 @@ uint32_t Stepper::block_phase_step() {
         mixer.stepper_setup(current_block->b_color);
       #endif
 
-      active_extruder = current_block->active_extruder;
-      active_extruder_driver = get_active_extruder_driver();
+      #if MAX_EXTRUDER > 1
+        active_extruder = current_block->active_extruder;
+        active_extruder_driver = get_active_extruder_driver();
+      #endif
 
       // Initialize the trapezoid generator from the current block.
       #if ENABLED(LIN_ADVANCE)

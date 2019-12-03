@@ -53,10 +53,10 @@ void Nozzle::factory_parameters() {
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
     constexpr xyz_pos_t nozzle_park_point = NOZZLE_PARK_POINT;
+    data.park_point = nozzle_park_point;
   #elif MAX_EXTRUDER > 1
-    constexpr xyz_pos_t nozzle_park_point = { 0, 0, TOOL_CHANGE_Z_RAISE };
+    data.park_point.set(0, 0, TOOL_CHANGE_Z_RAISE);
   #endif
-  data.park_point = nozzle_park_point;
 
 }
 
