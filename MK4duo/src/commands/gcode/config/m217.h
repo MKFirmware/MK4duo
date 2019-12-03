@@ -75,11 +75,8 @@ inline void gcode_M217() {
     if (parser.seenval('R')) { const int16_t  v = parser.value_linear_units();  extruders[t]->data.retract_speed  = constrain(v, 10, 6000);         }
   #endif
 
-  #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
-    if (parser.seenval('X')) nozzle.data.park_point.x = parser.value_linear_units();
-    if (parser.seenval('Y')) nozzle.data.park_point.y = parser.value_linear_units();
-  #endif
-
+  if (parser.seenval('X')) nozzle.data.park_point.x = parser.value_linear_units();
+  if (parser.seenval('Y')) nozzle.data.park_point.y = parser.value_linear_units();
   if (parser.seenval('Z')) nozzle.data.park_point.z = parser.value_linear_units();
 
 }

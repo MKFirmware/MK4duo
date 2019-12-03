@@ -91,7 +91,9 @@ void menu_tool_change() {
     EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &toolManager.data.retract_speed, 10, 5400);
     EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_PRIME_SPD, &toolManager.data.prime_speed, 10, 5400);
   #endif
-  EDIT_ITEM(float3, MSG_TOOL_CHANGE_ZLIFT, &nozzle.data.park_point.z, 0, 10);
+  #if MAX_EXTRUDER > 1
+    EDIT_ITEM(float3, MSG_TOOL_CHANGE_ZLIFT, &nozzle.data.park_point.z, 0, 10);
+  #endif
   END_MENU();
 }
 
