@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=master)](https://travis-ci.org/MKFirmware/MK4duo)
 ![GitHub](https://img.shields.io/github/license/MKFirmware/MK4duo)
 ![GitHub contributors](https://img.shields.io/github/contributors/MKFirmware/MK4duo)
-![GitHub Release Date](https://img.shields.io/github/release-date/MKFirmware/MK4duo)
+![GitHub Last commit](https://img.shields.io/github/last-commit/MKFirmware/MK4duo)
 
 ## Version 4.4.0
 
