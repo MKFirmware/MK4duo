@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 28-11-2019
+* Revision 02-12-2019
 *
 * Version EEPROM MKV78
 *
@@ -43,6 +43,7 @@
 *
 * Rename DELTA_SEGMENTS_PER_SECOND in DELTA_SEGMENTS_PER_SECOND_PRINT for delta print
 * Add DELTA_SEGMENTS_PER_SECOND_MOVE for delta move
+* Add Linear advanced K-Factor for Extruder
 *
 * Fix JUNCTION_DEVIATION
 *
