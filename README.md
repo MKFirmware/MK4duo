@@ -1,4 +1,4 @@
-<img align="right" src="Documentation/Logo/Logo%20github.png"/>
+<img align="right" src="Documentation/Logo/LOGO_github.png"/>
 
 # MK4duo 3D Printer Firmware
 
