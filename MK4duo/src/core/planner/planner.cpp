@@ -1302,7 +1302,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           stepper.enable_E(1);
         break;
       }
-    #elif ENABLED(DONDOLO_SINGLE_MOTOR)
+    #elif ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(MKSE6)
       stepper.enable_E(0);
     #endif
   }
