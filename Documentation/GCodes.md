@@ -192,7 +192,7 @@
 | M531 | - | Filename - Define filename being printed
 | M532 | - | X[percent] L[curLayer] - update current print state progress (X=0..100) and layer L
 | M540 | SD_ABORT_ON_ENDSTOP_HIT | Use S[0\|1] to enable or disable the stop print on endstop hit
-| M563 | - | Set Tools heater assignment. T[tools] Set Tool, D[int] Set Driver for tool, H[bool] Set Hotend for tool
+| M563 | - | Set Tools heater assignment. T[tools] Set Tool, D[int] Set Driver for tool, H[int] Set Hotend for tool
 | M575 |   | Change serial baud rate P[Port index] B[Baudrate]
 | M569 | - | Stepper driver control X[bool] Y[bool] Z[bool] T[extruders] E[bool] set direction, D[long] set direction delay, P[int] set minimum pulse, R[long] set maximum rate, Q[bool] Enable/Disable Double/Quad stepping.
 | M595 | - | Set AD595 or AD8495 offset & Gain H[hotend] O[offset] S[gain]
