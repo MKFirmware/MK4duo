@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if MAX_BED > 0
+#if HAS_BEDS
 
 #define CODE_M190
 
@@ -50,4 +50,4 @@ inline void gcode_M190() {
   }
 }
 
-#endif // MAX_BED > 0
+#endif // HAS_BEDS

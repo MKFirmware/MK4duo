@@ -406,7 +406,7 @@ class TMC_Stepper {
     static void test_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e);
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
-      static void monitor_driver();
+      static void monitor_drivers();
     #endif
 
     #if HAS_SENSORLESS

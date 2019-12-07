@@ -108,16 +108,16 @@ typedef struct EepromDataStruct {
   //
   // Heaters data
   //
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     heater_data_t   hotend_data[MAX_HOTEND];
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     heater_data_t   bed_data[MAX_BED];
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     heater_data_t   chamber_data[MAX_CHAMBER];
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     heater_data_t   cooler_data[MAX_COOLER];
   #endif
 
@@ -206,16 +206,16 @@ typedef struct EepromDataStruct {
   // LCD menu
   //
   #if HAS_LCD_MENU
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       int16_t       lcdui_preheat_hotend_temp[3];
     #endif
-    #if MAX_BED > 0  
+    #if HAS_BEDS  
       int16_t       lcdui_preheat_bed_temp[3];
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       int16_t       lcdui_preheat_chamber_temp[3];
     #endif
-    #if MAX_FAN > 0
+    #if HAS_FAN
       uint8_t       lcdui_preheat_fan_speed[3];
     #endif
   #endif
@@ -490,19 +490,19 @@ void EEPROM::post_process() {
     //
     // Heaters data
     //
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       LOOP_HOTEND()   if (hotends[h])   hotend_data[h]  = hotends[h]->data;
       EEPROM_WRITE(hotend_data);
     #endif
-    #if MAX_BED > 0
+    #if HAS_BEDS
       LOOP_BED()      if (beds[h])      bed_data[h]     = beds[h]->data;
       EEPROM_WRITE(bed_data);
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       LOOP_CHAMBER()  if (chambers[h])  chamber_data[h] = chambers[h]->data;
       EEPROM_WRITE(chamber_data);
     #endif
-    #if MAX_COOLER > 0
+    #if HAS_COOLERS
       LOOP_COOLER()   if (coolers[h])   cooler_data[h]  = coolers[h]->data;
       EEPROM_WRITE(cooler_data);
     #endif
@@ -606,16 +606,16 @@ void EEPROM::post_process() {
     // LCD menu
     //
     #if HAS_LCD_MENU
-      #if MAX_HOTEND > 0
+      #if HAS_HOTENDS
         EEPROM_WRITE(lcdui.preheat_hotend_temp);
       #endif
-      #if MAX_BED > 0
+      #if HAS_BEDS
         EEPROM_WRITE(lcdui.preheat_bed_temp);
       #endif
-      #if MAX_CHAMBER > 0
+      #if HAS_CHAMBERS
         EEPROM_WRITE(lcdui.preheat_chamber_temp);
       #endif
-      #if MAX_FAN > 0
+      #if HAS_FAN
         EEPROM_WRITE(lcdui.preheat_fan_speed);
       #endif
     #endif
@@ -898,29 +898,29 @@ void EEPROM::post_process() {
       //
       // Heaters data
       //
-      #if MAX_HOTEND > 0
+      #if HAS_HOTENDS
         EEPROM_READ(hotend_data);
       #endif
-      #if MAX_BED > 0
+      #if HAS_BEDS
         EEPROM_READ(bed_data);
       #endif
-      #if MAX_CHAMBER > 0
+      #if HAS_CHAMBERS
         EEPROM_READ(chamber_data);
       #endif
-      #if MAX_COOLER > 0
+      #if HAS_COOLERS
         EEPROM_READ(cooler_data);
       #endif
       if (!flag.validating) {
-        #if MAX_HOTEND > 0
+        #if HAS_HOTENDS
           LOOP_HOTEND()   if (hotends[h])   hotends[h]->data  = hotend_data[h];
         #endif
-        #if MAX_BED > 0
+        #if HAS_BEDS
           LOOP_BED()      if (beds[h])      beds[h]->data     = bed_data[h];
         #endif
-        #if MAX_CHAMBER > 0
+        #if HAS_CHAMBERS
           LOOP_CHAMBER()  if (chambers[h])  chambers[h]->data = chamber_data[h];
         #endif
-        #if MAX_COOLER > 0
+        #if HAS_COOLERS
           LOOP_COOLER()   if (coolers[h])   coolers[h]->data  = cooler_data[h];
         #endif
       }
@@ -1029,16 +1029,16 @@ void EEPROM::post_process() {
       // LCD menu
       //
       #if HAS_LCD_MENU
-        #if MAX_HOTEND > 0
+        #if HAS_HOTENDS
           EEPROM_READ(lcdui.preheat_hotend_temp);
         #endif
-        #if MAX_BED > 0
+        #if HAS_BEDS
           EEPROM_READ(lcdui.preheat_bed_temp);
         #endif
-        #if MAX_CHAMBER > 0
+        #if HAS_CHAMBERS
           EEPROM_READ(lcdui.preheat_chamber_temp);
         #endif
-        #if MAX_FAN > 0
+        #if HAS_FAN
           EEPROM_READ(lcdui.preheat_fan_speed);
         #endif
       #endif
@@ -1507,28 +1507,28 @@ void EEPROM::reset() {
     /**
      * Print heaters parameters
      */
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       LOOP_HOTEND() {
         hotends[h]->print_M305();
         hotends[h]->print_M306();
         hotends[h]->print_M301();
       }
     #endif
-    #if MAX_BED > 0
+    #if HAS_BEDS
       LOOP_BED() {
         beds[h]->print_M305();
         beds[h]->print_M306();
         beds[h]->print_M301();
       }
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       LOOP_CHAMBER() {
         chambers[h]->print_M305();
         chambers[h]->print_M306();
         chambers[h]->print_M301();
       }
     #endif
-    #if MAX_COOLER > 0
+    #if HAS_COOLERS
       LOOP_COOLER() {
         coolers[h]->print_M305();
         coolers[h]->print_M306();
@@ -1700,16 +1700,16 @@ void EEPROM::reset() {
       SERIAL_LM(CFG, "Material heatup parameters");
       for (uint8_t i = 0; i < COUNT(lcdui.preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
-        #if MAX_HOTEND > 0
+        #if HAS_HOTENDS
           SERIAL_MV(" H", TEMP_UNIT(lcdui.preheat_hotend_temp[i]));
         #endif
-        #if MAX_BED > 0
+        #if HAS_BEDS
           SERIAL_MV(" B", TEMP_UNIT(lcdui.preheat_bed_temp[i]));
         #endif
         #if CHAMBER > 0
           SERIAL_MV(" C", TEMP_UNIT(lcdui.preheat_chamber_temp[i]));
         #endif
-        #if MAX_FAN > 0
+        #if HAS_FAN
           SERIAL_MV(" F", lcdui.preheat_fan_speed[i]);
         #endif
         SERIAL_EOL();

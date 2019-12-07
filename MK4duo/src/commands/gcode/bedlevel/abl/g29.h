@@ -618,17 +618,17 @@ inline void gcode_G29() {
       // Outer loop is Y with PROBE_Y_FIRST disabled
       for (PR_OUTER_VAR = 0; PR_OUTER_VAR < PR_OUTER_END && !isnan(measured_z); PR_OUTER_VAR++) {
 
-        uint8_t inStart, inStop, inInc;
+        int8_t inStart, inStop, inInc;
 
         if (zig) { // away from origin
           inStart = 0;
-          inStop = PR_INNER_END;
-          inInc = 1;
+          inStop  = PR_INNER_END;
+          inInc   = 1;
         }
         else {     // towards origin
           inStart = PR_INNER_END - 1;
-          inStop = 0xFF;
-          inInc = 0xFF;
+          inStop  = -1;
+          inInc   = -1;
         }
 
         zig ^= true; // zag
@@ -638,7 +638,7 @@ inline void gcode_G29() {
 
         // Inner loop is Y with PROBE_Y_FIRST enabled
         // Inner loop is X with PROBE_Y_FIRST disabled
-        for (PR_INNER_VAR = inStart; PR_INNER_VAR != inStop; PR_INNER_VAR += inInc) {
+        for (PR_INNER_VAR = inStart; PR_INNER_VAR != inStop; pt_index++, PR_INNER_VAR += inInc) {
 
           probePos = probe_position_lf + gridSpacing * meshCount.asFloat();
 
@@ -660,7 +660,7 @@ inline void gcode_G29() {
             lcdui.status_printf_P(0, PSTR(S_FMT " %i/%i"), GET_TEXT(MSG_PROBING_MESH), int(pt_index), int(GRID_MAX_POINTS));
           #endif
 
-          measured_z = faux ? 0.001 * random(-100, 101) : probe.check_at_point(probePos, raise_after, verbose_level);
+          measured_z = faux ? 0.001f * random(-100, 101) : probe.check_at_point(probePos, raise_after, verbose_level);
 
           if (isnan(measured_z)) {
             bedlevel.restore_bed_leveling_state();

@@ -122,6 +122,8 @@ xyze_long_t   Stepper::delta_error{0};
 
 xyze_ulong_t  Stepper::advance_dividend{0};
 
+xyze_bool_t   Stepper::step_needed{false};
+
 uint32_t      Stepper::advance_divisor        = 0,
               Stepper::step_events_completed  = 0,  // The number of step events executed in the current block
               Stepper::accelerate_until       = 0,  // The point from where we need to stop data.acceleration
@@ -1158,32 +1160,12 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 
 #if ENABLED(BABYSTEPPING)
 
-  #if MECH(DELTA)
-    #define CYCLES_EATEN_BABYSTEP (2 * 15)
-  #else
-    #define CYCLES_EATEN_BABYSTEP 0
-  #endif
-  #define EXTRA_CYCLES_BABYSTEP (HAL_min_pulse_tick - (CYCLES_EATEN_BABYSTEP))
-
-  #if EXTRA_CYCLES_BABYSTEP > 20
-    #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER_NUM)
-    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER_NUM) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
-  #else
-    #define _SAVE_START NOOP
-    #if EXTRA_CYCLES_BABYSTEP > 0
-      #define _PULSE_WAIT DELAY_NS(EXTRA_CYCLES_BABYSTEP * NS_PER_CYCLE)
-    #elif MECH(DELTA)
-      #define _PULSE_WAIT DELAY_US(2);
-    #elif HAL_min_pulse_tick > 0
-      #define _PULSE_WAIT NOOP
-    #else
-      #define _PULSE_WAIT DELAY_US(4);
-    #endif
-  #endif
-
   // MUST ONLY BE CALLED BY AN ISR,
   // No other ISR should ever interrupt this!
   void Stepper::babystep(const AxisEnum axis, const bool direction) {
+
+    hal_timer_t pulse_tick_end;
+
     DISABLE_ISRS();
 
     switch (axis) {
@@ -1200,10 +1182,10 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_Y_dir(driver.y->isDir()^direction^false);
             if (data.direction_delay >= 50)
               HAL::delayNanoseconds(data.direction_delay);
-            _SAVE_START;
             start_X_step();
             start_Y_step();
-            _PULSE_WAIT;
+            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
             stop_X_step();
             stop_Y_step();
             set_X_dir(old_X_dir);
@@ -1217,10 +1199,10 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_Z_dir(driver.z->isDir()^direction^false);
             if (data.direction_delay >= 50)
               HAL::delayNanoseconds(data.direction_delay);
-            _SAVE_START;
             start_X_step();
             start_Z_step();
-            _PULSE_WAIT;
+            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
             stop_X_step();
             stop_Z_step();
             set_X_dir(old_X_dir);
@@ -1231,9 +1213,9 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_X_dir(driver.x->isDir()^direction^false);
             if (data.direction_delay >= 50)
               HAL::delayNanoseconds(data.direction_delay);
-            _SAVE_START;
             start_X_step();
-            _PULSE_WAIT;
+            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
             stop_X_step();
             set_X_dir(old_X_dir);
           #endif
@@ -1249,10 +1231,10 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_Y_dir(driver.y->isDir()^direction^false^(CORESIGN(1)<0));
             if (data.direction_delay >= 50)
               HAL::delayNanoseconds(data.direction_delay);
-            _SAVE_START;
             start_X_step();
             start_Y_step();
-            _PULSE_WAIT;
+            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
             stop_X_step();
             stop_Y_step();
             set_X_dir(old_X_dir);
@@ -1266,10 +1248,10 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_Z_dir(driver.z->isDir()^direction^false^(CORESIGN(1)<0));
             if (data.direction_delay >= 50)
               HAL::delayNanoseconds(data.direction_delay);
-            _SAVE_START;
             start_Y_step();
             start_Z_step();
-            _PULSE_WAIT;
+            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
             stop_Y_step();
             stop_Z_step();
             set_Y_dir(old_Y_dir);
@@ -1280,9 +1262,9 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_Y_dir(driver.y->isDir()^direction^false);
             if (data.direction_delay >= 50)
               HAL::delayNanoseconds(data.direction_delay);
-            _SAVE_START;
             start_Y_step();
-            _PULSE_WAIT;
+            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
             stop_Y_step();
             set_Y_dir(old_Y_dir);
           #endif
@@ -1301,10 +1283,10 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z^(CORESIGN(1)<0));
           if (data.direction_delay >= 50)
             HAL::delayNanoseconds(data.direction_delay);
-          _SAVE_START;
           start_X_step();
           start_Z_step();
-          _PULSE_WAIT;
+          pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
           stop_X_step();
           stop_Z_step();
           set_X_dir(old_X_dir);
@@ -1318,10 +1300,10 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           set_Z_dir(driver.z->isDir()^direction^false^(CORESIGN(1)<0));
           if (data.direction_delay >= 50)
             HAL::delayNanoseconds(data.direction_delay);
-          _SAVE_START;
           start_Y_step();
           start_Z_step();
-          _PULSE_WAIT;
+          pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
           stop_Y_step();
           stop_Z_step();
           set_Y_dir(old_Y_dir);
@@ -1332,9 +1314,9 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z);
           if (data.direction_delay >= 50)
             HAL::delayNanoseconds(data.direction_delay);
-          _SAVE_START;
           start_Z_step();
-          _PULSE_WAIT;
+          pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
           stop_Z_step();
           set_Z_dir(old_Z_dir);
         #else // DELTA
@@ -1356,13 +1338,12 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           if (data.direction_delay >= 50)
             HAL::delayNanoseconds(data.direction_delay);
 
-          _SAVE_START;
-
           start_X_step();
           start_Y_step();
           start_Z_step();
 
-          _PULSE_WAIT;
+          pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
 
           stop_X_step();
           stop_Y_step();
@@ -1455,19 +1436,25 @@ void Stepper::pulse_phase_step() {
   // Just update the value we will get at the end of the loop
   step_events_completed += events_to_do;
 
-  // Get the timer count and estimate the end of the pulse
-  hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_min_pulse_tick;
+  bool first_step = true;
+  hal_timer_t pulse_tick_end;
 
   // Take multiple steps per interrupt (For high speed moves)
   do {
 
+    // Prepare active pulse
+    pulse_tick_prepare();
+
+    if (first_step)
+      first_step = false;
+    else
+      while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+
     // Start an active pulse
     pulse_tick_start();
 
-    if (data.minimum_pulse) {
-      // Just wait for the requested pulse time.
-      while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_end) { /* nada */ }
-    }
+    pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+    while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
 
     // Stop an active pulse
     pulse_tick_stop();
@@ -1492,23 +1479,12 @@ void Stepper::pulse_phase_step() {
         laser.extinguish();
     #endif // LASER
 
-    // Decrement the count of pending pulses to do
-    --events_to_do;
-
-    // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
-    pulse_end += HAL_add_pulse_ticks;
-
     // For minimum pulse time wait after stopping pulses also
     // Just wait for the requested pulse time.
-    if (events_to_do) {
-      while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_end) { /* nada */ }
-      if (data.minimum_pulse) {
-        // Add to the value, the time that the pulse must be active (to be used on the next loop)
-        pulse_end += HAL_min_pulse_tick;
-      }
-    }
+    if (events_to_do)
+      pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_low_tick;
 
-  } while (events_to_do);
+  } while (--events_to_do);
 
 }
 
@@ -1863,56 +1839,73 @@ uint32_t Stepper::block_phase_step() {
   return interval;
 }
 
-FORCE_INLINE void Stepper::pulse_tick_start() {
+FORCE_INLINE void Stepper::pulse_tick_prepare() {
 
   #if HAS_X_STEP
     delta_error.x += advance_dividend.x;
-    if (delta_error.x >= 0) {
-      start_X_step();
+    if ((step_needed.x = (delta_error.x >= 0))) {
       count_position.x += count_direction.x;
+      delta_error.x -= advance_divisor;
     }
   #endif
 
   #if HAS_Y_STEP
     delta_error.y += advance_dividend.y;
-    if (delta_error.y >= 0) {
-      start_Y_step();
+    if ((step_needed.y = (delta_error.y >= 0))) {
       count_position.y += count_direction.y;
+      delta_error.y -= advance_divisor;
     }
   #endif
 
   #if HAS_Z_STEP
     delta_error.z += advance_dividend.z;
-    if (delta_error.z >= 0) {
-      start_Z_step();
+    if ((step_needed.z = (delta_error.z >= 0))) {
       count_position.z += count_direction.z;
+      delta_error.z -= advance_divisor;
     }
   #endif
 
   // Pulse Extruders
-  // Tick the E axis, correct error term and update position
   #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
     delta_error.e += advance_dividend.e;
-    if (delta_error.e >= 0) {
+    if ((step_needed.e = (delta_error.e >= 0))) {
       count_position[E_AXIS] += count_direction.e;
       #if ENABLED(LIN_ADVANCE)
         delta_error.e -= advance_divisor;
         // Don't step E here - But remember the number of steps to perform
         motor_direction(E_AXIS) ? --LA_steps : ++LA_steps;
-      #else
-        // !LIN_ADVANCE && COLOR_MIXING_EXTRUDER
-        e_step_write(mixer.get_next_stepper(), !driver.e[0]->isStep());
       #endif
     }
-
   #else
-
     delta_error.e += advance_dividend.e;
-    if (delta_error.e >= 0) {
-      e_step_write(active_extruder_driver, !driver.e[active_extruder_driver]->isStep());
+    if ((step_needed.e = (delta_error.e >= 0))) {
       count_position[E_AXIS] += count_direction.e;
+      delta_error.e -= advance_divisor;
     }
+  #endif
 
+}
+
+FORCE_INLINE void Stepper::pulse_tick_start() {
+
+  #if HAS_X_STEP
+    if (step_needed.x) start_X_step();
+  #endif
+
+  #if HAS_Y_STEP
+    if (step_needed.y) start_Y_step();
+  #endif
+
+  #if HAS_Z_STEP
+    if (step_needed.z) start_Z_step();
+  #endif
+
+  #if DISABLED(LIN_ADVANCE)
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      if (step_needed.e) e_step_write(mixer.get_next_stepper(), !driver.e[0]->isStep());
+    #else
+      if (step_needed.e) e_step_write(active_extruder_driver, !driver.e[active_extruder_driver]->isStep());
+    #endif
   #endif
 
 }
@@ -1920,37 +1913,22 @@ FORCE_INLINE void Stepper::pulse_tick_start() {
 FORCE_INLINE void Stepper::pulse_tick_stop() {
 
   #if HAS_X_STEP
-    if (delta_error.x >= 0) {
-      delta_error.x -= advance_divisor;
-      stop_X_step();
-    }
+    if (step_needed.x) stop_X_step();
   #endif
 
   #if HAS_Y_STEP
-    if (delta_error.y >= 0) {
-      delta_error.y -= advance_divisor;
-      stop_Y_step();
-    }
+    if (step_needed.y) stop_Y_step();
   #endif
 
   #if HAS_Z_STEP
-    if (delta_error.z >= 0) {
-      delta_error.z -= advance_divisor;
-      stop_Z_step();
-    }
+    if (step_needed.z) stop_Z_step();
   #endif
 
   #if DISABLED(LIN_ADVANCE)
     #if ENABLED(COLOR_MIXING_EXTRUDER)
-      if (delta_error.e >= 0) {
-        delta_error.e -= advance_divisor;
-        e_step_write(mixer.get_stepper(), driver.e[0]->isStep());
-      }
+      if (step_needed.e) e_step_write(mixer.get_stepper(), driver.e[0]->isStep());
     #else
-      if (delta_error.e >= 0) {
-        delta_error.e -= advance_divisor;
-        e_step_write(active_extruder_driver, driver.e[active_extruder_driver]->isStep());
-      }
+      if (step_needed.e) e_step_write(active_extruder_driver, driver.e[active_extruder_driver]->isStep());
     #endif
   #endif
 
@@ -2298,11 +2276,16 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     // Min delay is 50 Nanoseconds
     if (data.direction_delay >= 50) HAL::delayNanoseconds(data.direction_delay);
 
-    // Get the timer count and estimate the end of the pulse
-    hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_min_pulse_tick;
+    bool first_step = true;
+    hal_timer_t pulse_tick_end;
 
     // Step E stepper if we have steps
     while (LA_steps) {
+
+      if (first_step)
+        first_step = false;
+      else
+        while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         e_step_write(mixer.get_next_stepper(), !driver.e[0]->isStep());
@@ -2310,12 +2293,8 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
         e_step_write(active_extruder_driver, !driver.e[active_extruder_driver]->isStep());
       #endif
 
-      if (data.minimum_pulse) {
-        // Just wait for the requested pulse time.
-        while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_end) { /* nada */ }
-        // Add the delay needed to ensure the maximum driver rate is enforced
-        pulse_end += HAL_add_pulse_ticks;
-      }
+      pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
+      while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
 
       LA_steps < 0 ? ++LA_steps : --LA_steps;
 
@@ -2327,13 +2306,9 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 
       // For minimum pulse time wait before looping
       // Just wait for the requested pulse time.
-      if (LA_steps) {
-        if (data.minimum_pulse) {
-          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_end) { /* nada */ }
-          // Add to the value, the time that the pulse must be active (to be used on the next loop)
-          pulse_end += HAL_min_pulse_tick;
-        }
-      }
+      if (LA_steps)
+        pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_low_tick;
+
     } // LA_steps
 
     return interval;

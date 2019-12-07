@@ -94,13 +94,13 @@ void menu_tmc();
 
 #if ENABLED(PID_AUTOTUNE_MENU)
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     int16_t autotune_temp[MAX_HOTEND]           = { 200 };
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     int16_t autotune_temp_bed[MAX_BED]          = { 60 };
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     int16_t autotune_temp_chamber[MAX_CHAMBER]  = { 60 };
   #endif
 
@@ -123,7 +123,7 @@ void menu_advanced_temperature() {
   #endif
 
   // PID Hotend
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       if (hotends[h]->isUsePid()) {
         EDIT_ITEM_N(float52, h, MSG_PID_P, &hotends[h]->data.pid.Kp, 1, 9990);
@@ -141,7 +141,7 @@ void menu_advanced_temperature() {
   #endif
 
   // PID Bed
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() {
       if (beds[h]->isUsePid()) {
         EDIT_ITEM_N(float52, h, MSG_BED_PID_P, &beds[h]->data.pid.Kp, 1, 9990);
@@ -156,7 +156,7 @@ void menu_advanced_temperature() {
   #endif
 
   // PID Chamber
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       if (chambers[h]->isUsePid()) {
         EDIT_ITEM_N(float52, h, MSG_CHAMBER_PID_P, &chambers[h]->data.pid.Kp, 1, 9990);

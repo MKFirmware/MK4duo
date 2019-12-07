@@ -29,10 +29,9 @@
 // Public Variables
 // ------------------------
 hal_timer_t HAL_min_pulse_cycle     = 0,
-            HAL_min_pulse_tick      = 0,
-            HAL_add_pulse_ticks     = 0,
+            HAL_pulse_high_tick     = 0,
+            HAL_pulse_low_tick      = 0,
             HAL_frequency_limit[8]  = { 0 };
-bool        HAL_timer_is_active     = false;
 
 // ------------------------
 // Hardware Timer
@@ -46,15 +45,29 @@ hal_timer_t HAL_isr_execuiton_cycle(const hal_timer_t rate) {
   return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES) * rate + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
 }
 
+hal_timer_t HAL_ns_to_pulse_tick(const hal_timer_t ns) {
+  return (STEPPER_TIMER_TICKS_PER_US) * ns / 1000UL;
+}
+
 void HAL_calc_pulse_cycle() {
-  HAL_min_pulse_cycle = MAX((hal_timer_t)((STEPPER_TIMER_RATE) / stepper.data.maximum_rate), ((STEPPER_TIMER_RATE) / 500000UL) * MAX((hal_timer_t)stepper.data.minimum_pulse, 1UL));
 
-  if (stepper.data.minimum_pulse)
-    HAL_min_pulse_tick = hal_timer_t(stepper.data.minimum_pulse) * (STEPPER_TIMER_TICKS_PER_US);
-  else
-    HAL_min_pulse_tick = ((STEPPER_TIMER_TICKS_PER_US) + 1) / 2;
+  const hal_timer_t HAL_min_step_period_ns = 1000000000UL / stepper.data.maximum_rate;
+  hal_timer_t       HAL_min_pulse_high_ns,
+                    HAL_min_pulse_low_ns;
 
-  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / hal_timer_t(STEPPER_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+  HAL_min_pulse_cycle = MAX((hal_timer_t)((F_CPU) / stepper.data.maximum_rate), ((F_CPU) / 500000UL) * MAX((hal_timer_t)stepper.data.minimum_pulse, 1UL));
+
+  if (stepper.data.minimum_pulse) {
+    HAL_min_pulse_high_ns = hal_timer_t(stepper.data.minimum_pulse) * 1000UL;
+    HAL_min_pulse_low_ns  = MAX((HAL_min_step_period_ns - MIN(HAL_min_step_period_ns, HAL_min_pulse_high_ns)), HAL_min_pulse_high_ns);
+  }
+  else {
+    HAL_min_pulse_high_ns = 500000000UL / stepper.data.maximum_rate;
+    HAL_min_pulse_low_ns  = HAL_min_pulse_high_ns;
+  }
+
+  HAL_pulse_high_tick = HAL_ns_to_pulse_tick(HAL_min_pulse_high_ns - MIN(HAL_min_pulse_high_ns, (TIMER_SETUP_NS)));
+  HAL_pulse_low_tick  = HAL_ns_to_pulse_tick(HAL_min_pulse_low_ns - MIN(HAL_min_pulse_low_ns, (TIMER_SETUP_NS)));
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))       ;
@@ -65,6 +78,7 @@ void HAL_calc_pulse_cycle() {
   HAL_frequency_limit[5] = ((F_CPU) / HAL_isr_execuiton_cycle(32))  >> 5;
   HAL_frequency_limit[6] = ((F_CPU) / HAL_isr_execuiton_cycle(64))  >> 6;
   HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execuiton_cycle(128)) >> 7;
+
 }
 
 void HAL_timer_start() {
@@ -74,21 +88,19 @@ void HAL_timer_start() {
     MK_step_timer->setOverflow(HAL_TIMER_TYPE_MAX, TICK_FORMAT);
     MK_step_timer->attachInterrupt(Step_Handler);
     MK_step_timer->resume();
-    HAL_timer_is_active = true;
+    MK_step_timer->setInterruptPriority(NvicPriorityStepper, 0);
   }
 }
 
 void HAL_timer_enable_interrupt() {
-  if (HAL_timer_initialized() && !HAL_timer_is_active) {
+  if (HAL_timer_initialized() && !MK_step_timer->hasInterrupt()) {
     MK_step_timer->attachInterrupt(Step_Handler);
-    HAL_timer_is_active = true;
   }
 }
 
 void HAL_timer_disable_interrupt() {
-  if (HAL_timer_initialized() && HAL_timer_is_active) {
+  if (HAL_timer_initialized() && MK_step_timer->hasInterrupt()) {
     MK_step_timer->detachInterrupt();
-    HAL_timer_is_active = false;
   }
 }
 

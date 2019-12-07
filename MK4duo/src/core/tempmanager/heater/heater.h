@@ -209,15 +209,15 @@ class Heater {
 
 };
 
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
   extern Heater* hotends[MAX_HOTEND];
 #endif
-#if MAX_BED > 0
+#if HAS_BEDS
   extern Heater* beds[MAX_BED];
 #endif
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
   extern Heater* chambers[MAX_CHAMBER];
 #endif
-#if MAX_COOLER > 0
+#if HAS_COOLERS
   extern Heater* coolers[MAX_COOLER];
 #endif

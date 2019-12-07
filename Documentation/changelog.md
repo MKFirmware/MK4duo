@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 02-12-2019
+* Revision 07-12-2019
 *
 * Version EEPROM MKV78
 *
@@ -46,6 +46,7 @@
 * Add Linear advanced K-Factor for Extruder
 *
 * Fix JUNCTION_DEVIATION
+* Fix BABYSTEPPING
 *
 * Fix and clear code
 

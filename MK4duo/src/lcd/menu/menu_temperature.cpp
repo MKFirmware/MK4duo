@@ -29,16 +29,16 @@
 #if HAS_LCD_MENU
 
 // Initialized by settings.load()
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
   int16_t LcdUI::preheat_hotend_temp[3];
 #endif
-#if MAX_BED > 0
+#if HAS_BEDS
   int16_t LcdUI::preheat_bed_temp[3];
 #endif
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
   int16_t LcdUI::preheat_chamber_temp[3];
 #endif
-#if MAX_FAN > 0
+#if HAS_FAN
   uint8_t LcdUI::preheat_fan_speed[3];
 #endif
 
@@ -47,20 +47,20 @@
 //
 
 void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_hotend) {
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     hotends[hotend]->set_target_temp(MIN(tempManager.hotend_maxtemp_all(), lcdui.preheat_hotend_temp[memory]));
   #else
     UNUSED(hotend);
   #endif
   if (!only_hotend) {
-    #if MAX_BED > 0
+    #if HAS_BEDS
       LOOP_BED() beds[h]->set_target_temp(lcdui.preheat_bed_temp[memory]);
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       LOOP_CHAMBER() chambers[h]->set_target_temp(lcdui.preheat_chamber_temp[memory]);
     #endif
   }
-  #if MAX_FAN > 0
+  #if HAS_FAN
     #if FAN_COUNT > 1
       fans[toolManager.extruder.active < FAN_COUNT ? toolManager.extruder.active : 0]->speed = lcdui.preheat_fan_speed[memory];
     #else
@@ -70,7 +70,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   lcdui.return_to_status();
 }
 
-#if MAX_HOTEND >0 || MAX_BED > 0
+#if MAX_HOTEND >0 || HAS_BEDS
 
   void menu_preheat_m1() {
     START_MENU();
@@ -120,7 +120,7 @@ void menu_temperature() {
   //
   // Nozzle:
   //
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND()
       EDIT_ITEM_FAST_N(int3, h, MSG_NOZZLE, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
   #endif
@@ -128,7 +128,7 @@ void menu_temperature() {
   //
   // Bed:
   //
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED()
       EDIT_ITEM_FAST_N(int3, h, MSG_BED, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
   #endif
@@ -136,7 +136,7 @@ void menu_temperature() {
   //
   // Chamber:
   //
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER()
       EDIT_ITEM_FAST_N(int3, h, MSG_CHAMBER, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
   #endif
@@ -144,19 +144,19 @@ void menu_temperature() {
   //
   // Cooler:
   //
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     EDIT_ITEM_FAST(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
   // Fan Speed:
   //
-  #if MAX_FAN > 0
+  #if HAS_FAN
     LOOP_FAN()
       EDIT_ITEM_FAST_N(percent, f, MSG_FAN_SPEED, &fans[f]->speed, 0, 255);
   #endif
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
 
     //
     // Preheat for Material 1, 2 and 3
@@ -170,12 +170,12 @@ void menu_temperature() {
     //
     bool has_heat = false;
     LOOP_HOTEND() if (hotends[h]->deg_target()) { has_heat = true; break; }
-    #if MAX_BED > 0
+    #if HAS_BEDS
       LOOP_BED() if (beds[h]->deg_target()) { has_heat = true; break; }
     #endif
     if (has_heat) ACTION_ITEM(MSG_COOLDOWN, lcd_cooldown);
 
-  #endif // MAX_HOTEND > 0
+  #endif // HAS_HOTENDS
 
   END_MENU();
 }

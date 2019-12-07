@@ -50,17 +50,17 @@ typedef struct {
 
   uint16_t feedrate;
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     int16_t target_temperature[MAX_HOTEND];
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     int16_t bed_target_temperature[MAX_BED];
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     int16_t chamber_target_temperature[MAX_CHAMBER];
   #endif
 
-  #if MAX_FAN > 0
+  #if HAS_FAN
     uint8_t fan_speed[MAX_FAN];
   #endif
 

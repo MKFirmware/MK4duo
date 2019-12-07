@@ -34,13 +34,13 @@
  * M116: Wait for all heaters to reach target temperature
  */
 inline void gcode_M116() {
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h]->wait_for_target(true);
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() beds[h]->wait_for_target(true);
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() chambers[h]->wait_for_target(true);
   #endif
 }

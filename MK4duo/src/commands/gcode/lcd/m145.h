@@ -45,13 +45,13 @@ inline void gcode_M145() {
   }
   else {
     int v;
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       if (parser.seenval('H')) {
         v = parser.value_int();
         lcdui.preheat_hotend_temp[material] = constrain(v, tempManager.hotend_mintemp_all(), tempManager.hotend_maxtemp_all());
       }
     #endif
-    #if MAX_BED > 0
+    #if HAS_BEDS
       if (parser.seenval('B')) {
         v = parser.value_int();
         lcdui.preheat_bed_temp[material] = constrain(v, tempManager.bed_mintemp_all(), tempManager.bed_maxtemp_all());
@@ -63,7 +63,7 @@ inline void gcode_M145() {
         lcdui.preheat_chamber_temp[material] = constrain(v, tempManager.chamber_mintemp_all(), tempManager.chamber_maxtemp_all());
       }
     #endif
-    #if MAX_FAN > 0
+    #if HAS_FAN
       if (parser.seenval('F')) {
         v = parser.value_int();
         lcdui.preheat_fan_speed[material] = constrain(v, 0, 255);

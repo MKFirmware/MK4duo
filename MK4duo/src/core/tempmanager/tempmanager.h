@@ -124,7 +124,7 @@ class TempManager {
     /**
      * Calc min & max temp of all hotends
      */
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       static int16_t hotend_mintemp_all();
       static int16_t hotend_maxtemp_all();
     #endif
@@ -132,7 +132,7 @@ class TempManager {
     /**
      * Calc min & max temp of all beds
      */
-    #if MAX_BED > 0
+    #if HAS_BEDS
       static int16_t bed_mintemp_all();
       static int16_t bed_maxtemp_all();
     #endif
@@ -140,7 +140,7 @@ class TempManager {
     /**
      * Calc min & max temp of all chambers
      */
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       static int16_t chamber_mintemp_all();
       static int16_t chamber_maxtemp_all();
     #endif
@@ -148,7 +148,7 @@ class TempManager {
     /**
      * Calc min & max temp of all coolers
      */
-    #if MAX_COOLER > 0
+    #if HAS_COOLERS
       static int16_t cooler_mintemp_all();
       static int16_t cooler_maxtemp_all();
     #endif
@@ -191,28 +191,28 @@ class TempManager {
     /**
      * Hotends Factory parameters
      */
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       static void hotends_factory_parameters(const uint8_t h);
     #endif
 
     /**
      * Beds Factory parameters
      */
-    #if MAX_BED > 0
+    #if HAS_BEDS
       static void beds_factory_parameters(const uint8_t h);
     #endif
 
     /**
      * Chambers Factory parameters
      */
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       static void chambers_factory_parameters(const uint8_t h);
     #endif
 
     /**
      * Coolers Factory parameters
      */
-    #if MAX_COOLER > 0
+    #if HAS_COOLERS
       static void coolers_factory_parameters(const uint8_t h);
     #endif
 

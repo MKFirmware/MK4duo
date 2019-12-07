@@ -1718,13 +1718,13 @@
  ***************************************************************************************
  *                                                                                     *
  * The maximum stepping rate (in Hz) the motor stepper driver allows                   *
- * If non defined, it defaults to 1000000 / (2 * MINIMUM STEPPER PULSE)                *
- *  500000 : Maximum for A4988 stepper driver                                          *
- *  400000 : Maximum for TMC2xxx stepper driver                                        *
- *  250000 : Maximum for DRV8825 stepper driver                                        *
- *  150000 : Maximum for TB6600 stepper driver                                         *
- *  130000 : Maximum for LV8729 stepper driver                                         *
- *   15000 : Maximum for TB6560 stepper driver                                         *
+ * If non defined, it defaults to 1Mhz / (2 * MINIMUM STEPPER PULSE)                   *
+ *  5000000 : Maximum for TMC2xxx stepper driver                                       *
+ *  1000000 : Maximum for LV8729 stepper driver                                        *
+ *   500000 : Maximum for A4988 stepper driver                                         *
+ *   250000 : Maximum for DRV8825 stepper driver                                       *
+ *   150000 : Maximum for TB6600 stepper driver                                        *
+ *    15000 : Maximum for TB6560 stepper driver                                        *
  *                                                                                     *
  ***************************************************************************************/
 #define MAXIMUM_STEPPER_RATE 500000

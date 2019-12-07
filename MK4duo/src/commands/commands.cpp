@@ -249,16 +249,16 @@ Heater* Commands::get_target_heater() {
   const int8_t h  = parser.intval('H');
   const uint8_t t = parser.byteval('T');
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     if (WITHIN(h, 0 , tempManager.heater.hotends - 1)) return hotends[h];
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     if (h == -1 && WITHIN(t, 0 , tempManager.heater.beds - 1)) return beds[t];
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     if (h == -2 && WITHIN(t, 0 , tempManager.heater.chambers - 1)) return chambers[t];
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     if (h == -3 && WITHIN(t, 0 , tempManager.heater.coolers - 1)) return coolers[t];
   #endif
 

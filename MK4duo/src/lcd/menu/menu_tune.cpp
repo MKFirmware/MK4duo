@@ -100,7 +100,7 @@ void menu_tune() {
   //
   // Nozzle:
   //
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND()
       EDIT_ITEM_FAST_N(int3, h, MSG_NOZZLE, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
   #endif
@@ -108,7 +108,7 @@ void menu_tune() {
   //
   // Bed:
   //
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED()
       EDIT_ITEM_FAST_N(int3, h, MSG_BED, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
   #endif
@@ -116,7 +116,7 @@ void menu_tune() {
   //
   // Chamber:
   //
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER()
       EDIT_ITEM_FAST_N(int3, h, MSG_CHAMBER, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
   #endif
@@ -124,14 +124,14 @@ void menu_tune() {
   //
   // Cooler:
   //
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     EDIT_ITEM_FAST(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
   // Fan Speed:
   //
-  #if MAX_FAN > 0
+  #if HAS_FAN
     LOOP_FAN()
       EDIT_ITEM_FAST_N(percent, f, MSG_FAN_SPEED, &fans[f]->speed, 0, 255);
   #endif

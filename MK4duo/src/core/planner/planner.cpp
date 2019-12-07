@@ -1228,7 +1228,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       powerManager.power_on();
     #endif
 
-    #if !HAS_MKMULTI_TOOLS
+    #if !HAS_MKMULTI_TOOLS && !ENABLED(DONDOLO_SINGLE_MOTOR)
 
       #if ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
 
@@ -1302,7 +1302,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           stepper.enable_E(1);
         break;
       }
-    #elif ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(MKSE6)
+    #else
       stepper.enable_E(0);
     #endif
   }

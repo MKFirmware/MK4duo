@@ -29,16 +29,16 @@
 uint8_t MCUSR;
 
 /** Private Parameters */
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
   ADCAveragingFilter  HAL::HOTENDsensorFilters[MAX_HOTEND];
 #endif
-#if MAX_BED > 0
+#if HAS_BEDS
   ADCAveragingFilter  HAL::BEDsensorFilters[MAX_BED];
 #endif
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
   ADCAveragingFilter  HAL::CHAMBERsensorFilters[MAX_CHAMBER];
 #endif
-#if MAX_COOLER > 0
+#if HAS_COOLERS
   ADCAveragingFilter  HAL::COOLERsensorFilters[MAX_COOLER];
 #endif
 
@@ -109,22 +109,22 @@ void HAL::analogStart() {
 
   analogReadResolution(ANALOG_INPUT_BITS);
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       pinMode(hotends[h]->data.sensor.pin, INPUT);
     }
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() {
       pinMode(beds[h]->data.sensor.pin, INPUT);
     }
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       pinMode(chambers[h]->data.sensor.pin, INPUT);
     }
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       pinMode(coolers[h]->data.sensor.pin, INPUT);
     }
@@ -218,7 +218,7 @@ void HAL::Tick() {
   // Event 1.0 Second
   if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(HOTENDsensorFilters[h]);
       currentFilter.process_reading(analogRead(hotends[h]->data.sensor.pin));
@@ -226,7 +226,7 @@ void HAL::Tick() {
         hotends[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
       currentFilter.process_reading(analogRead(beds[h]->data.sensor.pin));
@@ -234,7 +234,7 @@ void HAL::Tick() {
         beds[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
       currentFilter.process_reading(analogRead(chambers[h]->data.sensor.pin));
@@ -242,7 +242,7 @@ void HAL::Tick() {
         chambers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
       currentFilter.process_reading(analogRead(coolers[h]->data.sensor.pin));

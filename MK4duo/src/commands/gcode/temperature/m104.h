@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
 
 #define CODE_M104
 
@@ -61,4 +61,4 @@ inline void gcode_M104() {
 
 }
 
-#endif // MAX_HOTEND > 0
+#endif // HAS_HOTENDS

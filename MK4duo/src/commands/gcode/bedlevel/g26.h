@@ -363,7 +363,7 @@ inline bool turn_on_heaters() {
 
   SERIAL_EM("Waiting for heatup.");
 
-  #if MAX_BED > 0
+  #if HAS_BEDS
     if (g26_bed_temp > 25) {
       #if HAS_LCD
         lcdui.set_status_P(GET_TEXT(MSG_G26_HEATING_BED), 99);
@@ -511,7 +511,7 @@ inline void gcode_G26() {
   bool  g26_continue_with_closest = parser.boolval('C'),
         g26_keep_heaters_on       = parser.boolval('K');
 
-  #if MAX_BED > 0
+  #if HAS_BEDS
     if (parser.seenval('B')) {
       g26_bed_temp = parser.value_celsius();
       if (g26_bed_temp && !WITHIN(g26_bed_temp, 40, beds[0]->data.temp.max - 10)) {
@@ -827,7 +827,7 @@ LEAVE:
   #endif
 
   if (!g26_keep_heaters_on) {
-    #if MAX_BED > 0
+    #if HAS_BEDS
       beds[0]->set_target_temp(0);
     #endif
     hotends[toolManager.active_hotend()]->set_target_temp(0);

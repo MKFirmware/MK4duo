@@ -261,57 +261,55 @@ void AutoBedLevel::refresh_bed_level() {
 // Get the Z adjustment for non-linear bed leveling
 float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
 
-  static float  z1, d2, z3, d4, L, D, ratio_x, ratio_y,
-                last_x = -999.999, last_y = -999.999;
+  static float  z1, d2, z3, d4, L, D;
+
+  static xy_pos_t prev { -999.999, -999.999 }, ratio;
 
   // Whole units for the grid line indices. Constrained within bounds.
-  static int8_t gridx, gridy, nextx, nexty,
-                last_gridx = -99, last_gridy = -99;
+  static xy_int8_t thisg, nextg, lastg { -99, -99 };
 
   // XY relative to the probed area
-  const float rx = raw.x - bilinear_start.x,
-              ry = raw.y - bilinear_start.y;
+  xy_pos_t rel = raw - bilinear_start.asFloat();
 
-  if (last_x != rx) {
-    last_x = rx;
-    ratio_x = rx * ABL_BG_FACTOR(x);
-    const float gx = constrain(FLOOR(ratio_x), 0, ABL_BG_POINTS_X - 1);
-    ratio_x -= gx;      // Subtract whole to get the ratio within the grid box
-    NOLESS(ratio_x, 0); // Never < 0.0. (> 1.0 is ok when nextx==gridx.)
-    gridx = gx;
-    nextx = MIN(gridx + 1, ABL_BG_POINTS_X - 1);
+  if (prev.x != rel.x) {
+    prev.x = rel.x;
+    ratio.x = rel.x * ABL_BG_FACTOR(x);
+    const float gx = constrain(FLOOR(ratio.x), 0, ABL_BG_POINTS_X - 1);
+    ratio.x -= gx;      // Subtract whole to get the ratio within the grid box
+    NOLESS(ratio.x, 0); // Never < 0.0. (> 1.0 is ok when nextg.x==thisg.x.)
+    thisg.x = gx;
+    nextg.x = MIN(thisg.x + 1, ABL_BG_POINTS_X - 1);
   }
 
-  if (last_y != ry || last_gridx != gridx) {
+  if (prev.y != rel.y || lastg.x != thisg.x) {
 
-    if (last_y != ry) {
-      last_y = ry;
-      ratio_y = ry * ABL_BG_FACTOR(y);
-      const float gy = constrain(FLOOR(ratio_y), 0, ABL_BG_POINTS_Y - 1);
-      ratio_y -= gy;
-      NOLESS(ratio_y, 0);
-      gridy = gy;
-      nexty = MIN(gridy + 1, ABL_BG_POINTS_Y - 1);
+    if (prev.y != rel.y) {
+      prev.y = rel.y;
+      ratio.y = rel.y * ABL_BG_FACTOR(y);
+      const float gy = constrain(FLOOR(ratio.y), 0, ABL_BG_POINTS_Y - 1);
+      ratio.y -= gy;
+      NOLESS(ratio.y, 0);
+      thisg.y = gy;
+      nextg.y = MIN(thisg.y + 1, ABL_BG_POINTS_Y - 1);
     }
 
-    if (last_gridx != gridx || last_gridy != gridy) {
-      last_gridx = gridx;
-      last_gridy = gridy;
+    if (lastg != thisg) {
+      lastg = thisg;
       // Z at the box corners
-      z1 = ABL_BG_GRID(gridx, gridy);       // left-front
-      d2 = ABL_BG_GRID(gridx, nexty) - z1;  // left-back (delta)
-      z3 = ABL_BG_GRID(nextx, gridy);       // right-front
-      d4 = ABL_BG_GRID(nextx, nexty) - z3;  // right-back (delta)
+      z1 = ABL_BG_GRID(thisg.x, thisg.y);       // left-front
+      d2 = ABL_BG_GRID(thisg.x, nextg.y) - z1;  // left-back (delta)
+      z3 = ABL_BG_GRID(nextg.x, thisg.y);       // right-front
+      d4 = ABL_BG_GRID(nextg.x, nextg.y) - z3;  // right-back (delta)
     }
 
-    // Bilinear interpolate. Needed since ry or gridx has changed.
-                L = z1 + d2 * ratio_y;      // Linear interp. LF -> LB
-    const float R = z3 + d4 * ratio_y;      // Linear interp. RF -> RB
+    // Bilinear interpolate. Needed since ry or thisg.x has changed.
+                L = z1 + d2 * ratio.y;      // Linear interp. LF -> LB
+    const float R = z3 + d4 * ratio.y;      // Linear interp. RF -> RB
 
     D = R - L;
   }
 
-  const float offset = L + ratio_x * D;     // the offset almost always changes
+  const float offset = L + ratio.x * D;     // the offset almost always changes
 
   /*
   static float last_offset = 0;
@@ -319,12 +317,12 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
     SERIAL_MSG("Sudden Shift at ");
     SERIAL_MV("x=", rx);
     SERIAL_MV(" / ", ABL_BG_SPACING(X_AXIS));
-    SERIAL_EMV(" -> gridx=", gridx);
+    SERIAL_EMV(" -> thisg.x=", thisg.x);
     SERIAL_MV(" y=", ry);
     SERIAL_MV(" / ", ABL_BG_SPACING(Y_AXIS));
-    SERIAL_EMV(" -> gridy=", gridy);
-    SERIAL_MV(" ratio_x=", ratio_x);
-    SERIAL_EMV(" ratio_y=", ratio_y);
+    SERIAL_EMV(" -> thisg.y=", thisg.y);
+    SERIAL_MV(" ratio.x=", ratio.x);
+    SERIAL_EMV(" ratio.y=", ratio.y);
     SERIAL_MV(" z1=", z1);
     SERIAL_MV(" d2=", d2);
     SERIAL_MV(" z3=", z3);

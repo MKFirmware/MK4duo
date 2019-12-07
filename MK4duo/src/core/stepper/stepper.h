@@ -101,6 +101,7 @@ class Stepper {
     // Delta error variables for the Bresenham line tracer
     static xyze_long_t  delta_error;
     static xyze_ulong_t advance_dividend;
+    static xyze_bool_t  step_needed;
     static uint32_t     advance_divisor,
                         step_events_completed,  // The number of step events executed in the current block
                         accelerate_until,       // The point from where we need to stop data.acceleration
@@ -356,6 +357,11 @@ class Stepper {
      * Block phase Step
      */
     static uint32_t block_phase_step();
+
+    /**
+     * Pulse tick prepare
+     */
+    FORCE_INLINE static void pulse_tick_prepare();
 
     /**
      * Pulse tick Start

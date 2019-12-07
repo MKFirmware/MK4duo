@@ -26,7 +26,7 @@
  * Copyright (c) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if MAX_COOLER > 0
+#if HAS_COOLERS
 
 #define CODE_M192
 

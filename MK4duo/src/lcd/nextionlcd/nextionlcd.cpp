@@ -139,15 +139,15 @@ NexObject LcdStatus       = NexObject(2,  6);
 NexObject LcdX            = NexObject(2,  7);
 NexObject LcdY            = NexObject(2,  8);
 NexObject LcdZ            = NexObject(2,  9);
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
   NexObject Hotend_deg[4] = { NexObject(2, 11), NexObject(2, 13), NexObject(2, 15), NexObject(2, 17) };
   NexObject Hotend_trg[4] = { NexObject(2, 12), NexObject(2, 14), NexObject(2, 16), NexObject(2, 18) };
 #endif
-#if MAX_BED > 0
+#if HAS_BEDS
   NexObject Bed_deg       = NexObject(2, 19);
   NexObject Bed_trg       = NexObject(2, 20);
 #endif
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
   NexObject Chamber_deg   = NexObject(2, 21);
   NexObject Chamber_trg   = NexObject(2, 22);
 #endif
@@ -446,7 +446,7 @@ void NextionLCD::status_screen_update() {
       #endif
     }
 
-    #if MAX_FAN > 0
+    #if HAS_FAN
       if (PreviousfanSpeed != fans[0]->actual_speed()) {
         setValue(Fanspeed, fans[0]->percent());
         PreviousfanSpeed = fans[0]->actual_speed();
@@ -462,19 +462,19 @@ void NextionLCD::status_screen_update() {
       Previousfeedrate = mechanics.feedrate_percentage;
     }
 
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       for (uint8_t h = 0; h < max_hotends; h++) {
         setValue(Hotend_deg[h], hotends[h]->deg_current());
         setValue(Hotend_trg[h], hotends[h]->deg_target());
       }
     #endif
-    #if MAX_BED > 0
+    #if HAS_BEDS
       if (tempManager.heater.beds) {
         setValue(Bed_deg, beds[0]->deg_current());
         setValue(Bed_trg, beds[0]->deg_target());
       }
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       if (tempManager.heater.chambers) {
         setValue(Chamber_deg, chambers[0]->deg_current());
         setValue(Chamber_trg, chambers[0]->deg_target());
@@ -749,13 +749,13 @@ void NextionLCD::set_status_page() {
   char temp[10] = { 0 };
   const uint8_t max_hotends = MIN(4, tempManager.heater.hotends);
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     for (uint8_t h = 0; h < max_hotends; h++) setValue(Hotend_deg[h], 25);
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     if (tempManager.heater.beds) setValue(Bed_deg, 25);
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     if (tempManager.heater.chambers) setValue(Chamber_deg, 25);
   #endif
   #if HAS_DHT
@@ -791,7 +791,7 @@ void NextionLCD::set_status_page() {
 
   setValue(VSpeed, 100);
 
-  #if MAX_FAN > 0
+  #if HAS_FAN
     sendCommandPGM(PSTR("p[2].b[25].val=1"));
   #endif
 

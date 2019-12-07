@@ -28,7 +28,7 @@
 
 #include "../../../../MK4duo.h"
 
-#if MAX_FAN > 0
+#if HAS_FAN
   Fan* fans[MAX_FAN] = { nullptr };
 #endif
 

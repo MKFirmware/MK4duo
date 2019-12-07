@@ -73,11 +73,10 @@
 // Public Variables
 // --------------------------------------------------------------------------
 
-uint16_t  HAL_min_pulse_cycle     = 0,
-          HAL_min_pulse_tick      = 0,
-          HAL_add_pulse_ticks     = 0;
-
-uint32_t  HAL_frequency_limit[8]  = { 0 };
+hal_timer_t HAL_min_pulse_cycle     = 0,
+            HAL_pulse_high_tick     = 0,
+            HAL_pulse_low_tick      = 0;
+uint32_t    HAL_frequency_limit[8]  = { 0 };
 
 // --------------------------------------------------------------------------
 // Private Variables
@@ -166,15 +165,29 @@ uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
   return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES) * rate + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
 }
 
+hal_timer_t HAL_ns_to_pulse_tick(const hal_timer_t ns) {
+  return (STEPPER_TIMER_TICKS_PER_US) * ns / 1000UL;
+}
+
 void HAL_calc_pulse_cycle() {
-  HAL_min_pulse_cycle = MAX((uint32_t)((F_CPU) / stepper.data.maximum_rate), ((F_CPU) / 500000UL) * MAX((uint32_t)stepper.data.minimum_pulse, 1UL));
 
-  if (stepper.data.minimum_pulse)
-    HAL_min_pulse_tick = (STEPPER_TIMER_TICKS_PER_US) * uint32_t(stepper.data.minimum_pulse) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE));
-  else
-    HAL_min_pulse_tick = ((((STEPPER_TIMER_TICKS_PER_US) + 1) / 2) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE)));
+  const hal_timer_t HAL_min_step_period_ns = 1000000000UL / stepper.data.maximum_rate;
+  hal_timer_t       HAL_min_pulse_high_ns,
+                    HAL_min_pulse_low_ns;
 
-  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (STEPPER_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+  HAL_min_pulse_cycle = MAX((hal_timer_t)((F_CPU) / stepper.data.maximum_rate), ((F_CPU) / 500000UL) * MAX((hal_timer_t)stepper.data.minimum_pulse, 1UL));
+
+  if (stepper.data.minimum_pulse) {
+    HAL_min_pulse_high_ns = hal_timer_t(stepper.data.minimum_pulse) * 1000UL;
+    HAL_min_pulse_low_ns  = MAX((HAL_min_step_period_ns - MIN(HAL_min_step_period_ns, HAL_min_pulse_high_ns)), HAL_min_pulse_high_ns);
+  }
+  else {
+    HAL_min_pulse_high_ns = 500000000UL / stepper.data.maximum_rate;
+    HAL_min_pulse_low_ns  = HAL_min_pulse_high_ns;
+  }
+
+  HAL_pulse_high_tick = HAL_ns_to_pulse_tick(HAL_min_pulse_high_ns - MIN(HAL_min_pulse_high_ns, (TIMER_SETUP_NS)));
+  HAL_pulse_low_tick  = HAL_ns_to_pulse_tick(HAL_min_pulse_low_ns - MIN(HAL_min_pulse_low_ns, (TIMER_SETUP_NS)));
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))       ;
@@ -383,16 +396,16 @@ void HAL::Tick() {
 /** Private Function */
 void HAL::set_current_temp_raw() {
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h]->data.sensor.adc_raw = AnalogInputValues[hotends[h]->data.sensor.pin];
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() beds[h]->data.sensor.adc_raw = AnalogInputValues[beds[h]->data.sensor.pin];
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() chambers[h]->data.sensor.adc_raw = AnalogInputValues[chambers[h]->data.sensor.pin];
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER() coolers[h]->data.sensor.adc_raw = AnalogInputValues[coolers[h]->data.sensor.pin];
   #endif
 

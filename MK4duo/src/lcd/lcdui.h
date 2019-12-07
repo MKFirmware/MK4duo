@@ -133,16 +133,16 @@ class LcdUI {
 
       static int8_t manual_move_e_index;
 
-      #if MAX_HOTEND > 0
+      #if HAS_HOTENDS
         static int16_t preheat_hotend_temp[3];
       #endif
-      #if MAX_BED > 0
+      #if HAS_BEDS
         static int16_t preheat_bed_temp[3];
       #endif
-      #if MAX_CHAMBER > 0
+      #if HAS_CHAMBERS
         static int16_t preheat_chamber_temp[3];
       #endif
-      #if MAX_FAN > 0
+      #if HAS_FAN
         static uint8_t preheat_fan_speed[3];
       #endif
 
@@ -200,22 +200,22 @@ class LcdUI {
 
     static inline void factory_parameters() {
       #if HAS_LCD_MENU
-        #if MAX_HOTEND > 0
+        #if HAS_HOTENDS
           preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
           preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
           preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
         #endif
-        #if MAX_BED > 0
+        #if HAS_BEDS
           preheat_bed_temp[0] = PREHEAT_1_TEMP_BED;
           preheat_bed_temp[1] = PREHEAT_2_TEMP_BED;
           preheat_bed_temp[2] = PREHEAT_3_TEMP_BED;
         #endif
-        #if MAX_CHAMBER > 0
+        #if HAS_CHAMBERS
           preheat_chamber_temp[0] = PREHEAT_1_TEMP_CHAMBER;
           preheat_chamber_temp[1] = PREHEAT_2_TEMP_CHAMBER;
           preheat_chamber_temp[2] = PREHEAT_3_TEMP_CHAMBER;
         #endif
-        #if MAX_FAN > 0
+        #if HAS_FAN
           preheat_fan_speed[0] = PREHEAT_1_FAN_SPEED;
           preheat_fan_speed[1] = PREHEAT_2_FAN_SPEED;
           preheat_fan_speed[2] = PREHEAT_3_FAN_SPEED;
