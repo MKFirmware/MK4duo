@@ -1021,12 +1021,7 @@
 #endif
 
 #define FAN_COUNT       (FAN0_COUNT+FAN1_COUNT+FAN2_COUNT+FAN3_COUNT+FAN4_COUNT+FAN5_COUNT)
-
-#if FAN_COUNT > 0
-  #define FANS_CHANNELS { FAN0_CHANNEL FAN1_CHANNEL FAN2_CHANNEL FAN3_CHANNEL FAN4_CHANNEL FAN5_CHANNEL }
-#else
-  #define FANS_CHANNELS { }
-#endif
+#define FANS_CHANNELS   { FAN0_CHANNEL FAN1_CHANNEL FAN2_CHANNEL FAN3_CHANNEL FAN4_CHANNEL FAN5_CHANNEL }
 
 #if ENABLED(INVERTED_FAN_PINS)
   #define FAN_INVERTED true
@@ -1527,6 +1522,9 @@
   #define Z_STEPPER_COUNT 1
 #endif
 
+#define MAX_DRIVER_XYZ      (X_STEPPER_COUNT + Y_STEPPER_COUNT + Z_STEPPER_COUNT)
+#define MAX_DRIVER          (MAX_DRIVER_XYZ + MAX_DRIVER_E)
+
 /**
  * Define for max valor for Driver, Extruder, heater, fan
  */
@@ -1568,8 +1566,11 @@
   #endif
 #endif // !HAS_LINEAR_EXTRUDER
 
-#define MAX_DRIVER_XYZ      (X_STEPPER_COUNT + Y_STEPPER_COUNT + Z_STEPPER_COUNT)
-#define MAX_DRIVER          (MAX_DRIVER_XYZ + MAX_DRIVER_E)
+#define HAS_HOTENDS         (MAX_HOTEND > 0)
+#define HAS_BEDS            (MAX_BED > 0)
+#define HAS_CHAMBERS        (MAX_CHAMBER > 0)
+#define HAS_COOLERS         (MAX_COOLER > 0)
+#define HAS_FAN             (MAX_FAN > 0)
 
 /**
  * LCD define

@@ -325,25 +325,25 @@ void lcd_line_to_z(const float &z) {
 /**
  * Watch temperature callbacks
  */
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
   void watch_temp_callback_hotend() {
     hotends[MenuItemBase::itemIndex]->set_target_temp(hotends[MenuItemBase::itemIndex]->deg_target());
     hotends[MenuItemBase::itemIndex]->start_watching();
   }
 #endif
-#if MAX_BED > 0
+#if HAS_BEDS
   void watch_temp_callback_bed() {
     beds[MenuItemBase::itemIndex]->set_target_temp(beds[MenuItemBase::itemIndex]->deg_target());
     beds[MenuItemBase::itemIndex]->start_watching();
   }
 #endif
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
   void watch_temp_callback_chamber() {
     chambers[MenuItemBase::itemIndex]->set_target_temp(chambers[MenuItemBase::itemIndex]->deg_target());
     chambers[MenuItemBase::itemIndex]->start_watching();
   }
 #endif
-#if MAX_COOLER > 0
+#if HAS_COOLERS
   void watch_temp_callback_cooler() {
     coolers[0]->set_target_temp(coolers[0]->deg_target());
     coolers[0]->start_watching();

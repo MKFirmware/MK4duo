@@ -1010,13 +1010,13 @@ void LcdUI::draw_status_screen() {
       static uint8_t ledsprev = 0;
       uint8_t leds = 0;
 
-      #if MAX_BED > 0
+      #if HAS_BEDS
         if (beds[0]->deg_target() > 0) leds |= LED_A;
       #endif
 
       if (hotends[0]->deg_target() > 0) leds |= LED_B;
 
-      #if MAX_FAN > 0
+      #if HAS_FAN
         if (0
           #if HAS_FAN0
             || fans[0]->speed
@@ -1037,7 +1037,7 @@ void LcdUI::draw_status_screen() {
             || fans[5]->speed
           #endif
         ) leds |= LED_C;
-      #endif // MAX_FAN > 0
+      #endif // HAS_FAN
 
       #if HOTENDS > 1
         if (tempManager.degTargetHotend(1) > 0) leds |= LED_C;

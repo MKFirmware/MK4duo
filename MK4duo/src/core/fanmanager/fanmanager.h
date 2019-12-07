@@ -87,6 +87,11 @@ class FanManager {
     static void print_parameters();
 
     /**
+     * Report current speed
+     */
+    static void report_speed();
+
+    /**
      * Print Fan data with M106
      */
     static void print_M106(const uint8_t f);

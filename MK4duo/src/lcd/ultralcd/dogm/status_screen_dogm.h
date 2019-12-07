@@ -52,7 +52,7 @@
   //
   // Status Screen Hotends bitmaps
   //
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
 
     #define STATUS_HOTEND1_WIDTH  16
 
@@ -99,7 +99,7 @@
 
       #endif
 
-    #elif MAX_HOTEND > 0
+    #elif HAS_HOTENDS
 
       #if ENABLED(STATUS_HOTEND_ANIM)
 
@@ -381,7 +381,7 @@
 //
 // Default Status Screen Bed bitmaps
 //
-#if !STATUS_BED_WIDTH && MAX_BED > 0
+#if !STATUS_BED_WIDTH && HAS_BEDS
 
   #if ENABLED(STATUS_ALT_BED_BITMAP)
 
@@ -465,7 +465,7 @@
 //
 // Default Status Screen Chamber bitmaps
 //
-#if !STATUS_CHAMBER_WIDTH && MAX_CHAMBER > 0
+#if !STATUS_CHAMBER_WIDTH && HAS_CHAMBERS
 
   #define STATUS_CHAMBER_WIDTH 21
 
@@ -1051,7 +1051,7 @@
         ((STATUS_CHAMBER_WIDTH || STATUS_FAN_WIDTH  ||  STATUS_BED_WIDTH) && STATUS_HOTEND_BITMAPS == 4)
     #define STATUS_HEATERS_X 5
   #else
-    #if MAX_BED > 0 && MAX_HOTEND <= 4
+    #if HAS_BEDS && MAX_HOTEND <= 4
       #define STATUS_HEATERS_X 5
     #else
       #define STATUS_HEATERS_X 8 // Like the included bitmaps

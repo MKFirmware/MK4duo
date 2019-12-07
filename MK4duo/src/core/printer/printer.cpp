@@ -330,7 +330,12 @@ void Printer::check_periodical_actions() {
   planner.check_axes_activity();
 
   if (!isSuspendAutoreport() && isAutoreportTemp()) {
-    tempManager.report_temperatures();
+    #if HAS_HEATER
+      tempManager.report_temperatures();
+    #endif
+    #if HAS_FAN
+      fanManager.report_speed();
+    #endif
     SERIAL_EOL();
   }
 
@@ -491,7 +496,7 @@ void Printer::stop() {
 }
 
 void Printer::zero_fan_speed() {
-  #if MAX_FAN > 0
+  #if HAS_FAN
     LOOP_FAN() fans[f]->speed = 0;
   #endif
 }
@@ -700,7 +705,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(MONITOR_DRIVER_STATUS)
-    tmc.monitor_driver();
+    tmc.monitor_drivers();
   #endif
 
   #if HAS_MMU2
@@ -950,15 +955,15 @@ void Printer::handle_safety_watch() {
     // Update every 0.5s
     if (next_status_led_update_timer.expired(500)) {
       float max_temp = 0.0;
-      #if MAX_CHAMBER > 0
+      #if HAS_CHAMBERS
         LOOP_CHAMBER()
           max_temp = MAX(max_temp, chambers[h]->deg_target(), chambers[h]->deg_current());
       #endif
-      #if MAX_BED > 0
+      #if HAS_BEDS
         LOOP_BED()
           max_temp = MAX(max_temp, beds[h]->deg_target(), beds[h]->deg_current());
       #endif
-      #if MAX_HOTEND > 0
+      #if HAS_HOTENDS
         LOOP_HOTEND()
           max_temp = MAX(max_temp, hotends[h]->deg_current(), hotends[h]->deg_target());
       #endif

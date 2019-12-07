@@ -35,7 +35,9 @@ driver_t driver = { nullptr };
 /** Public Function */
 void Driver::init() {
   if (data.pin.enable != NoPin && data.pin.dir != NoPin && data.pin.step != NoPin) {
-    data.flag.step_status = 0;
+    data.flag.enable_status = 0;
+    data.flag.dir_status    = 0;
+    data.flag.step_status   = 0;
     dir_init();
     enable_init();
     step_init();

@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
 
 #define CODE_M141
 

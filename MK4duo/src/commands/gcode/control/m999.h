@@ -42,13 +42,13 @@ inline void gcode_M999() {
   printer.setRunning(true);
   lcdui.reset_alert_level();
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h]->ResetFault();
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() beds[h]->ResetFault();
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() chambers[h]->ResetFault();
   #endif
 

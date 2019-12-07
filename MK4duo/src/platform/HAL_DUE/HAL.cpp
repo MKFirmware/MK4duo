@@ -63,16 +63,16 @@
 uint8_t MCUSR;
 
 /** Private Parameters */
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
   ADCAveragingFilter HAL::HOTENDsensorFilters[MAX_HOTEND];
 #endif
-#if MAX_BED > 0
+#if HAS_BEDS
   ADCAveragingFilter HAL::BEDsensorFilters[MAX_BED];
 #endif
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
   ADCAveragingFilter HAL::CHAMBERsensorFilters[MAX_CHAMBER];
 #endif
-#if MAX_COOLER > 0
+#if HAS_COOLERS
   ADCAveragingFilter HAL::COOLERsensorFilters[MAX_COOLER];
 #endif
 
@@ -258,28 +258,28 @@ void HAL::analogStart() {
   ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
   pmc_enable_periph_clk(ID_ADC);  // enable adc clock
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       if (WITHIN(hotends[h]->data.sensor.pin, 0, 15)) {
         AnalogInEnablePin(hotends[h]->data.sensor.pin, true);
       }
     }
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() {
       if (WITHIN(beds[h]->data.sensor.pin, 0, 15)) {
         AnalogInEnablePin(beds[h]->data.sensor.pin, true);
       }
     }
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       if (WITHIN(chambers[h]->data.sensor.pin, 0, 15)) {
         AnalogInEnablePin(chambers[h]->data.sensor.pin, true);
       }
     }
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       if (WITHIN(coolers[h]->data.sensor.pin, 0, 15)) {
         AnalogInEnablePin(coolers[h]->data.sensor.pin, true);
@@ -569,7 +569,7 @@ void HAL::Tick() {
   // Read analog or SPI values
   if (adc_get_status(ADC)) { // conversion finished?
 
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       LOOP_HOTEND() {
         if (WITHIN(hotends[h]->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(HOTENDsensorFilters[h]);
@@ -579,7 +579,7 @@ void HAL::Tick() {
         }
       }
     #endif
-    #if MAX_BED > 0
+    #if HAS_BEDS
       LOOP_BED() {
         if (WITHIN(beds[h]->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
@@ -589,7 +589,7 @@ void HAL::Tick() {
         }
       }
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       LOOP_CHAMBER() {
         if (WITHIN(chambers[h]->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
@@ -599,7 +599,7 @@ void HAL::Tick() {
         }
       }
     #endif
-    #if MAX_COOLER > 0
+    #if HAS_COOLERS
       LOOP_COOLER() {
         if (WITHIN(coolers[h]->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);

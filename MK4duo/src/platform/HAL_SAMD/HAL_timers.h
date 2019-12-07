@@ -123,51 +123,45 @@ typedef struct {
 #define CYCLES_PER_US               ((F_CPU) / 1000000UL) // 84
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES           ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
-#define ISR_BASE_CYCLES               752UL
+
 #define HAL_TIMER_TYPE_MAX  0xFFFFFFFF
 
-// Stepper Loop base cycles
-#define ISR_LOOP_BASE_CYCLES          4UL
+// Estimate the amount of time the ISR will take to execute
+#define TIMER_CYCLES                34UL
 
-// To start the step pulse, in the worst case takes
-#define ISR_START_STEPPER_CYCLES      13UL
+// The base ISR takes 752 cycles
+#define ISR_BASE_CYCLES            752UL
+
+// Stepper Loop base cycles
+#define ISR_LOOP_BASE_CYCLES         4UL
 
 // And each stepper (start + stop pulse) takes in worst case
-#define ISR_STEPPER_CYCLES            16UL
+#define ISR_STEPPER_CYCLES          16UL
 
 // For each stepper, we add its time
 #if HAS_X_STEP
-  #define ISR_START_X_STEPPER_CYCLES  ISR_START_STEPPER_CYCLES
   #define ISR_X_STEPPER_CYCLES        ISR_STEPPER_CYCLES
 #else
-  #define ISR_START_X_STEPPER_CYCLES  0UL
   #define ISR_X_STEPPER_CYCLES        0UL
 #endif
 #if HAS_Y_STEP
-  #define ISR_START_Y_STEPPER_CYCLES  ISR_START_STEPPER_CYCLES
   #define ISR_Y_STEPPER_CYCLES        ISR_STEPPER_CYCLES
 #else
-  #define ISR_START_Y_STEPPER_CYCLES  0UL
   #define ISR_Y_STEPPER_CYCLES        0UL
 #endif
 #if HAS_Z_STEP
-  #define ISR_START_Z_STEPPER_CYCLES  ISR_START_STEPPER_CYCLES
   #define ISR_Z_STEPPER_CYCLES        ISR_STEPPER_CYCLES
 #else
-  #define ISR_START_Z_STEPPER_CYCLES  0UL
   #define ISR_Z_STEPPER_CYCLES        0UL
 #endif
-// Calculate the minimum time to start all stepper pulses in the ISR loop
-#define MIN_ISR_START_LOOP_CYCLES     (ISR_START_X_STEPPER_CYCLES + ISR_START_Y_STEPPER_CYCLES + ISR_START_Z_STEPPER_CYCLES + ISR_START_E_STEPPER_CYCLES + ISR_START_MIXING_STEPPER_CYCLES)
-#define ISR_START_E_STEPPER_CYCLES    ISR_START_STEPPER_CYCLES
+
 #define ISR_E_STEPPER_CYCLES          ISR_STEPPER_CYCLES
+
 // If linear advance is disabled, then the loop also handles them
 #if DISABLED(LIN_ADVANCE) && ENABLED(COLOR_MIXING_EXTRUDER)
-  #define ISR_START_MIXING_STEPPER_CYCLES ((MIXING_STEPPERS) * 13UL)
-  #define ISR_MIXING_STEPPER_CYCLES       ((MIXING_STEPPERS) * 16UL)
+  #define ISR_MIXING_STEPPER_CYCLES   ((MIXING_STEPPERS) * 16UL)
 #else
-  #define ISR_START_MIXING_STEPPER_CYCLES 0UL
-  #define ISR_MIXING_STEPPER_CYCLES       0UL
+  #define ISR_MIXING_STEPPER_CYCLES   0UL
 #endif
 // And the total minimum loop time is, without including the base
 #define MIN_ISR_LOOP_CYCLES           (ISR_X_STEPPER_CYCLES + ISR_Y_STEPPER_CYCLES + ISR_Z_STEPPER_CYCLES + ISR_E_STEPPER_CYCLES + ISR_MIXING_STEPPER_CYCLES)
@@ -245,11 +239,10 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC7, 1, TC7_IRQn, 0 },  // 7 - Pin TC 3 - 10
 };
 
-
-extern uint32_t HAL_min_pulse_cycle,
-                HAL_min_pulse_tick,
-                HAL_add_pulse_ticks,
-                HAL_frequency_limit[8];
+extern hal_timer_t  HAL_min_pulse_cycle,
+                    HAL_pulse_high_tick,
+                    HAL_pulse_low_tick,
+                    HAL_frequency_limit[8];
 
 // --------------------------------------------------------------------------
 // Public functions

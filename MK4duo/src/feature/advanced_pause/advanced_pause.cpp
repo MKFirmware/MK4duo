@@ -166,7 +166,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
 
   LOOP_HOTEND() hotends[h]->start_idle_timer(nozzle_timeout);
 
-  #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+  #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
     LOOP_BED() beds[h]->start_idle_timer(bed_timeout);
   #endif
 
@@ -205,7 +205,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
       while (printer.isWaitForUser()) {
 
         if (!bed_timed_out) {
-          #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+          #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
             LOOP_BED() bed_timed_out |= beds[h]->isIdle();
           #endif
         }
@@ -221,7 +221,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
       host_action.prompt_do(PROMPT_INFO, PSTR("Reheating"));
 
       // Re-enable the bed if they timed out
-      #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+      #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
         if (bed_timed_out) LOOP_BED() beds[h]->reset_idle_timer();
       #endif
 
@@ -236,7 +236,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
 
       LOOP_HOTEND() hotends[h]->start_idle_timer(nozzle_timeout);
 
-      #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+      #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
         LOOP_BED() beds[h]->start_idle_timer(bed_timeout);
       #endif
 
@@ -288,7 +288,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   bool  nozzle_timed_out  = false,
         bed_timed_out     = false;
 
-  #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+  #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
     LOOP_BED() {
       bed_timed_out |= beds[h]->isIdle();
       beds[h]->reset_idle_timer();

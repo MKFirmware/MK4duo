@@ -99,7 +99,7 @@ void menu_info_thermistors() {
 
   START_SCREEN();
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       STATIC_ITEM_P(PSTR("Hotend"), SS_INVERT);
       VALUE_ITEM(MSG_INFO_MIN_TEMP, i16tostr3left(hotends[h]->data.temp.min), SS_LEFT);
@@ -107,7 +107,7 @@ void menu_info_thermistors() {
     }
   #endif
 
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() {
       STATIC_ITEM_P(PSTR("Bed"), SS_INVERT);
       VALUE_ITEM(MSG_INFO_MIN_TEMP, i16tostr3left(beds[h]->data.temp.min), SS_LEFT);
@@ -115,7 +115,7 @@ void menu_info_thermistors() {
     }
   #endif
 
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       STATIC_ITEM_P(PSTR("Chamber"), SS_INVERT);
       VALUE_ITEM(MSG_INFO_MIN_TEMP, i16tostr3left(chambers[h]->data.temp.min), SS_LEFT);

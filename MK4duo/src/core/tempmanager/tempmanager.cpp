@@ -69,16 +69,16 @@ void TempManager::init() {
     paused = false;
   #endif
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND()   hotends[h]->init();
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED()      beds[h]->init();
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER()  chambers[h]->init();
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER()   coolers[h]->init();
   #endif
 
@@ -93,7 +93,7 @@ void TempManager::init() {
 
 void TempManager::create_object() {
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       if (!hotends[h]) {
         hotends[h] = new Heater(IS_HOTEND, HOTEND_CHECK_INTERVAL, HOTEND_HYSTERESIS, WATCH_HOTEND_PERIOD, WATCH_HOTEND_INCREASE);
@@ -104,7 +104,7 @@ void TempManager::create_object() {
     }
   #endif
 
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() {
       if (!beds[h]) {
         beds[h] = new Heater(IS_BED, BED_CHECK_INTERVAL, BED_HYSTERESIS, WATCH_BED_PERIOD, WATCH_BED_INCREASE);
@@ -115,7 +115,7 @@ void TempManager::create_object() {
     }
   #endif
 
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       if (!chambers[h]) {
         chambers[h] = new Heater(IS_CHAMBER, CHAMBER_CHECK_INTERVAL, CHAMBER_HYSTERESIS, WATCH_CHAMBER_PERIOD, WATCH_CHAMBER_INCREASE);
@@ -126,7 +126,7 @@ void TempManager::create_object() {
     }
   #endif
 
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       if (!coolers[h]) {
         coolers[h] = new Heater(IS_COOLER, COOLER_CHECK_INTERVAL, COOLER_HYSTERESIS, WATCH_COOLER_PERIOD, WATCH_COOLER_INCREASE);
@@ -148,16 +148,16 @@ void TempManager::factory_parameters() {
 
   create_object();
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND()   if (hotends[h])   hotends_factory_parameters(h);
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED()      if (beds[h])      beds_factory_parameters(h);
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER()  if (chambers[h])  chambers_factory_parameters(h);
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER()   if (coolers[h])   coolers_factory_parameters(h);
   #endif
 
@@ -222,16 +222,16 @@ void TempManager::change_number_heater(const HeatertypeEnum type, const uint8_t 
 
 void TempManager::set_output_pwm() {
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h]->set_output_pwm();
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() beds[h]->set_output_pwm();
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() chambers[h]->set_output_pwm();
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER() coolers[h]->set_output_pwm();
   #endif
 
@@ -256,7 +256,7 @@ void TempManager::spin() {
     if (emergency_parser.killed_by_M112) printer.kill(PSTR("M112"));
   #endif
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       // Update Current TempManager
       hotends[h]->update_current_temperature();
@@ -264,7 +264,7 @@ void TempManager::spin() {
     }
   #endif
 
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() {
       // Update Current TempManager
       beds[h]->update_current_temperature();
@@ -272,7 +272,7 @@ void TempManager::spin() {
     } // LOOP_BED
   #endif
 
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       // Update Current TempManager
       chambers[h]->update_current_temperature();
@@ -280,7 +280,7 @@ void TempManager::spin() {
     } // LOOP_CHAMBER
   #endif
 
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       // Update Current TempManager
       coolers[h]->update_current_temperature();
@@ -352,25 +352,25 @@ void TempManager::disable_all_heaters() {
     planner.autotemp_enabled = false;
   #endif
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       hotends[h]->set_target_temp(0);
       hotends[h]->start_watching();
     }
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED() {
       beds[h]->set_target_temp(0);
       beds[h]->start_watching();
     }
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       chambers[h]->set_target_temp(0);
       chambers[h]->start_watching();
     }
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       coolers[h]->set_target_temp(0);
       coolers[h]->start_watching();
@@ -396,16 +396,16 @@ void TempManager::disable_all_heaters() {
  * Check if there are heaters Active
  */
 bool TempManager::heaters_isActive() {
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND()   if (hotends[h]->isActive())   return true;
   #endif
-  #if MAX_BED > 0
+  #if HAS_BEDS
     LOOP_BED()      if (beds[h]->isActive())      return true;
   #endif
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER()  if (chambers[h]->isActive())  return true;
   #endif
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     LOOP_COOLER()   if (coolers[h]->isActive())   return true;
   #endif
   return false;
@@ -417,7 +417,7 @@ bool TempManager::heaters_isActive() {
  */
 #define MAX_TEMP_RANGE 10
 
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
 
   /**
    * Calc min & max temp of all hotends
@@ -436,7 +436,7 @@ bool TempManager::heaters_isActive() {
 
 #endif
 
-#if MAX_BED > 0
+#if HAS_BEDS
 
   int16_t TempManager::bed_mintemp_all() {
     int16_t mintemp = 9999;
@@ -452,7 +452,7 @@ bool TempManager::heaters_isActive() {
 
 #endif
 
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
 
   int16_t TempManager::chamber_mintemp_all() {
     int16_t mintemp = 9999;
@@ -468,7 +468,7 @@ bool TempManager::heaters_isActive() {
 
 #endif
 
-#if MAX_COOLER > 0
+#if HAS_COOLERS
 
   int16_t TempManager::cooler_mintemp_all() {
     int16_t mintemp = 9999;
@@ -488,7 +488,7 @@ bool TempManager::heaters_isActive() {
 
   void TempManager::getTemperature_SPI() {
 
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       LOOP_HOTEND() {
         if (false) {}
         #if HAS_MAX31855
@@ -501,7 +501,7 @@ bool TempManager::heaters_isActive() {
         #endif
       }
     #endif
-    #if MAX_BED > 0
+    #if HAS_BEDS
       LOOP_BED() {
         if (false) {}
         #if HAS_MAX31855
@@ -514,7 +514,7 @@ bool TempManager::heaters_isActive() {
         #endif
       }
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       LOOP_CHAMBER() {
         if (false) {}
         #if HAS_MAX31855
@@ -569,28 +569,28 @@ bool TempManager::heaters_isActive() {
 
 void TempManager::report_temperatures(const bool showRaw/*=false*/) {
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     if (heater.hotends > 0) {
       print_heater_state(hotends[toolManager.active_hotend()], false, showRaw);
       SERIAL_MV(MSG_HOST_AT ":", hotends[toolManager.active_hotend()]->pwm_value);
     }
   #endif
 
-  #if MAX_BED > 0
+  #if HAS_BEDS
     if (heater.beds > 0) {
       print_heater_state(beds[0], false, showRaw);
       SERIAL_MV(MSG_HOST_BAT ":", beds[0]->pwm_value);
     }
   #endif
 
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     if (heater.chambers > 0) {
       print_heater_state(chambers[0], false, showRaw);
       SERIAL_MV(MSG_HOST_CAT ":", chambers[0]->pwm_value);
     }
   #endif
 
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     if (heater.coolers > 0) {
       print_heater_state(coolers[0], false, showRaw);
       SERIAL_MV(MSG_HOST_CAT ":", coolers[0]->pwm_value);
@@ -647,7 +647,7 @@ void TempManager::report_temperatures(const bool showRaw/*=false*/) {
 }
 
 /** Private Function */
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
   void TempManager::hotends_factory_parameters(const uint8_t h) {
 
     Heater        *heat;
@@ -709,7 +709,7 @@ void TempManager::report_temperatures(const bool showRaw/*=false*/) {
   }
 #endif
 
-#if MAX_BED > 0
+#if HAS_BEDS
   void TempManager::beds_factory_parameters(const uint8_t h) {
 
     Heater        *heat;
@@ -765,7 +765,7 @@ void TempManager::report_temperatures(const bool showRaw/*=false*/) {
   }
 #endif
 
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
   void TempManager::chambers_factory_parameters(const uint8_t h) {
 
     Heater        *heat;
@@ -821,7 +821,7 @@ void TempManager::report_temperatures(const bool showRaw/*=false*/) {
   }
 #endif
 
-#if MAX_COOLER > 0
+#if HAS_COOLERS
   void TempManager::coolers_factory_parameters(const uint8_t h) {
 
     Heater        *heat;
@@ -881,28 +881,28 @@ void TempManager::print_heater_state(Heater* act, const bool print_ID, const boo
 
   SERIAL_CHR(' ');
 
-  #if MAX_HOTEND > 0
+  #if HAS_HOTENDS
     if (act->type == IS_HOTEND) {
       SERIAL_CHR('T');
       if (print_ID) SERIAL_VAL(act->data.ID);
     }
   #endif
 
-  #if MAX_BED > 0
+  #if HAS_BEDS
     if (act->type == IS_BED) {
       SERIAL_CHR('B');
       if (print_ID) SERIAL_VAL(act->data.ID);
     }
   #endif
 
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     if (act->type == IS_CHAMBER) {
       SERIAL_CHR('C');
       if (print_ID) SERIAL_VAL(act->data.ID);
     }
   #endif
 
-  #if MAX_COOLER > 0
+  #if HAS_COOLERS
     if (act->type == IS_COOLER) SERIAL_CHR('W');
   #endif
 

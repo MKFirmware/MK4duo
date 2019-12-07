@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 02-12-2019
+* Revision 07-12-2019
 *
 * Version EEPROM MKV78
 *
@@ -32,9 +32,9 @@
 *    F[int] Set number fan
 *
 * M563: Set Tools heater assignment
-*   T[tools]  - Set Tool
-*   D[int]    - Set Driver for tool
-*   H[bool]   - Set Hotend for tool
+*   T[int]  Set Tool
+*   D[int]  Set Driver for tool
+*   H[int]  Set Hotend for tool
 *
 * M890: Run User GCode
 *   S[int]    - Run 1 - 5 user gcode
@@ -46,6 +46,7 @@
 * Add Linear advanced K-Factor for Extruder
 *
 * Fix JUNCTION_DEVIATION
+* Fix BABYSTEPPING
 *
 * Fix and clear code
 

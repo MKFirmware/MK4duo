@@ -541,16 +541,16 @@ void lcd_move_z();
 void lcd_line_to_z(const float &z);
 void lcd_draw_homing();
 
-#if MAX_HOTEND > 0
+#if HAS_HOTENDS
   void watch_temp_callback_hotend();
 #endif
-#if MAX_BED > 0
+#if HAS_BEDS
   void watch_temp_callback_bed();
 #endif
-#if MAX_CHAMBER > 0
+#if HAS_CHAMBERS
   void watch_temp_callback_chamber();
 #endif
-#if MAX_COOLER > 0
+#if HAS_COOLERS
   void watch_temp_callback_cooler();
 #endif
 

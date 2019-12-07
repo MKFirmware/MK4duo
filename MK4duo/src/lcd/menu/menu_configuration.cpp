@@ -294,16 +294,16 @@ void menu_tool_change() {
   void _menu_configuration_preheat_settings(const uint8_t material) {
     START_MENU();
     BACK_ITEM(MSG_CONFIGURATION);
-    #if MAX_FAN > 0
+    #if HAS_FAN
       EDIT_ITEM(percent, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
     #endif
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       EDIT_ITEM(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], tempManager.hotend_mintemp_all(), tempManager.hotend_maxtemp_all());
     #endif
-    #if MAX_BED > 0
+    #if HAS_BEDS
       EDIT_ITEM(int3, MSG_BED, &lcdui.preheat_bed_temp[material], tempManager.bed_mintemp_all(), tempManager.bed_maxtemp_all());
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       EDIT_ITEM(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], tempManager.chamber_mintemp_all(), tempManager.chamber_maxtemp_all());
     #endif
     #if ENABLED(EEPROM_SETTINGS)

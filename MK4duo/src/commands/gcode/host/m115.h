@@ -117,7 +117,7 @@ inline void gcode_M115() {
   #endif
 
   // CHAMBER_TEMPERATURE (M141, M191)
-  #if MAX_CHAMBER > 0
+  #if HAS_CHAMBERS
     SERIAL_CAP("CHAMBER_TEMPERATURE:1");
   #else
     SERIAL_CAP("CHAMBER_TEMPERATURE:0");

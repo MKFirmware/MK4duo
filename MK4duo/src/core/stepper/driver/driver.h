@@ -46,14 +46,14 @@
 union driver_flag_t {
   bool all;
   struct {
-    bool  enable      : 1;
-    bool  dir         : 1;
-    bool  step        : 1;
-    bool  step_status : 1;
-    bool  bit_4       : 1;
-    bool  bit_5       : 1;
-    bool  bit_6       : 1;
-    bool  bit_7       : 1;
+    bool  enable        : 1;
+    bool  dir           : 1;
+    bool  step          : 1;
+    bool  enable_status : 1;
+    bool  dir_status    : 1;
+    bool  step_status   : 1;
+    bool  bit_6         : 1;
+    bool  bit_7         : 1;
   };
   driver_flag_t() { all = false; }
 };
@@ -121,12 +121,13 @@ class Driver {
           return tmc->toff(state == isEnable() ? chopper_timing.toff : 0);
       #endif
       HAL::digitalWrite(data.pin.enable, state);
+      data.flag.enable_status = state;
     }
     FORCE_INLINE bool enable_read() {
       #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
         if (tmc) return tmc->isEnabled();
       #endif
-      return HAL::digitalRead(data.pin.enable);
+      return data.flag.enable_status;
     }
 
     /**
@@ -137,9 +138,10 @@ class Driver {
     }
     FORCE_INLINE void dir_write(const bool state) {
       HAL::digitalWrite(data.pin.dir, state);
+      data.flag.dir_status = state;
     }
     FORCE_INLINE bool dir_read() {
-      return HAL::digitalRead(data.pin.dir);
+      return data.flag.dir_status;
     }
 
     /**
@@ -154,6 +156,7 @@ class Driver {
         if (tmc) return step_toggle(state);
       #endif
       HAL::digitalWrite(data.pin.step, state);
+      data.flag.step_status = state;
     }
     FORCE_INLINE void step_toggle(const bool state) {
       if (state) {
@@ -162,7 +165,7 @@ class Driver {
       }
     }
     FORCE_INLINE bool step_read() {
-      return HAL::digitalRead(data.pin.step);
+      return data.flag.step_status;
     }
 
 };

@@ -59,12 +59,10 @@
 #include "../../../MK4duo.h"
 #include "HAL_timers.h"
 
-uint32_t  HAL_min_pulse_cycle     = 0,
-          HAL_min_pulse_tick      = 0,
-          HAL_add_pulse_ticks     = 0,
-          HAL_min_isr_frequency   = 0,
-          HAL_frequency_limit[8]  = { 0 };
-
+hal_timer_t HAL_min_pulse_cycle     = 0,
+            HAL_pulse_high_tick     = 0,
+            HAL_pulse_low_tick      = 0,
+            HAL_frequency_limit[8]  = { 0 };
 
 /*
   Timer_clock1: Prescaler 2 -> 42MHz
@@ -81,53 +79,46 @@ uint32_t  HAL_min_pulse_cycle     = 0,
   \return             1  Interrupt is enabled.
   \note    IRQn must not be negative.
  */
-__STATIC_INLINE uint32_t __NVIC_GetEnableIRQ(IRQn_Type IRQn)
-{
-    if ((int32_t)(IRQn) >= 0)
-    {
-        return((uint32_t)(((NVIC->ISER[(((uint32_t)(int32_t)IRQn) >> 5UL)] & (1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL))) != 0UL) ? 1UL : 0UL));
-    }
-    else
-    {
-        return(0U);
-    }
+__STATIC_INLINE uint32_t __NVIC_GetEnableIRQ(IRQn_Type IRQn) {
+  if ((int32_t)(IRQn) >= 0)
+    return ((uint32_t)(((NVIC->ISER[(((uint32_t)(int32_t)IRQn) >> 5UL)] & (1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL))) != 0UL) ? 1UL : 0UL));
+  else
+    return (0U);
 }
 
 
-bool tcIsSyncing()
-{
+bool tcIsSyncing() {
   return TC5->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY;
 }
 
 void HAL_timer_start(const uint8_t timer_num) { /* moet nog iets met freq */
 
-    GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID( GCM_TC4_TC5 )) ;
-    while (GCLK->STATUS.bit.SYNCBUSY);
-    
-    TC5->COUNT16.CTRLA.reg = TC_CTRLA_SWRST;
-    while (tcIsSyncing());
-    while (TC5->COUNT16.CTRLA.bit.SWRST);
+  GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID( GCM_TC4_TC5 )) ;
+  while (GCLK->STATUS.bit.SYNCBUSY);
 
-    TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg &= ~(TC_CTRLA_ENABLE);       //disable TC module
-    TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |=TC_CTRLA_MODE_COUNT16;
-    TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_WAVEGEN_MFRQ;
-    TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_PRESCALER_DIV2;
-    TimerConfig[timer_num].pTimerRegs->COUNT16.CC[0].reg = VARIANT_MCK / 2/ 100;
-    TimerConfig[timer_num].pTimerRegs->COUNT16.INTENSET.reg = TC_INTFLAG_MC0;
-    TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_ENABLE;
-    TimerConfig[timer_num].pTimerRegs->COUNT16.INTFLAG.reg = 0xFF;
-    while (tcIsSyncing());
-    
-    NVIC_DisableIRQ(TimerConfig[timer_num].IRQ_Id);
-    NVIC_ClearPendingIRQ(TimerConfig[timer_num].IRQ_Id);
-    NVIC_SetPriority(TimerConfig[timer_num].IRQ_Id, 0);
-    NVIC_EnableIRQ(TimerConfig[timer_num].IRQ_Id);
-    
+  TC5->COUNT16.CTRLA.reg = TC_CTRLA_SWRST;
+  while (tcIsSyncing());
+  while (TC5->COUNT16.CTRLA.bit.SWRST);
+
+  TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg &= ~(TC_CTRLA_ENABLE);       // disable TC module
+  TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |=TC_CTRLA_MODE_COUNT16;
+  TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_WAVEGEN_MFRQ;
+  TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_PRESCALER_DIV2;
+  TimerConfig[timer_num].pTimerRegs->COUNT16.CC[0].reg = VARIANT_MCK / 2/ 100;
+  TimerConfig[timer_num].pTimerRegs->COUNT16.INTENSET.reg = TC_INTFLAG_MC0;
+  TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_ENABLE;
+  TimerConfig[timer_num].pTimerRegs->COUNT16.INTFLAG.reg = 0xFF;
+  while (tcIsSyncing());
+
+  NVIC_DisableIRQ(TimerConfig[timer_num].IRQ_Id);
+  NVIC_ClearPendingIRQ(TimerConfig[timer_num].IRQ_Id);
+  NVIC_SetPriority(TimerConfig[timer_num].IRQ_Id, 0);
+  NVIC_EnableIRQ(TimerConfig[timer_num].IRQ_Id);
+
 }
 
 void HAL_timer_enable_interrupt(const uint8_t timer_num) {
-    NVIC_EnableIRQ(TimerConfig[timer_num].IRQ_Id);
-    
+  NVIC_EnableIRQ(TimerConfig[timer_num].IRQ_Id);
   /*const tTimerConfig *pConfig = &TimerConfig[timer_num];
   TcCount16* TC = (TcCount16*) TC3;
   TC->CTRLA.reg |= TC_CTRLA_ENABLE;
@@ -135,27 +126,40 @@ void HAL_timer_enable_interrupt(const uint8_t timer_num) {
 }
 
 void HAL_timer_disable_interrupt (const uint8_t timer_num) {
-    NVIC_DisableIRQ(TimerConfig[timer_num].IRQ_Id);
+  NVIC_DisableIRQ(TimerConfig[timer_num].IRQ_Id);
 }
 
 bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
-    return __NVIC_GetEnableIRQ(TimerConfig[timer_num].IRQ_Id)==1;
-
+  return __NVIC_GetEnableIRQ(TimerConfig[timer_num].IRQ_Id) == 1;
 }
 
-uint32_t HAL_isr_execution_cycle(const uint32_t rate) {
+hal_timer_t HAL_isr_execution_cycle(const hal_timer_t rate) {
   return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES * rate) + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
 }
 
+hal_timer_t HAL_ns_to_pulse_tick(const hal_timer_t ns) {
+  return (STEPPER_TIMER_TICKS_PER_US) * ns / 1000UL;
+}
+
 void HAL_calc_pulse_cycle() {
-  HAL_min_pulse_cycle = MAX((uint32_t)((F_CPU) / stepper.data.maximum_rate), ((F_CPU) / 500000UL) * MAX((uint32_t)stepper.data.minimum_pulse, 1UL));
 
-  if (stepper.data.minimum_pulse)
-    HAL_min_pulse_tick = (STEPPER_TIMER_TICKS_PER_US) * uint32_t(stepper.data.minimum_pulse) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE));
-  else
-    HAL_min_pulse_tick = ((((STEPPER_TIMER_TICKS_PER_US) + 1) / 2) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE)));
+  const hal_timer_t HAL_min_step_period_ns = 1000000000UL / stepper.data.maximum_rate;
+  hal_timer_t       HAL_min_pulse_high_ns,
+                    HAL_min_pulse_low_ns;
 
-  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (STEPPER_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+  HAL_min_pulse_cycle = MAX((hal_timer_t)((F_CPU) / stepper.data.maximum_rate), ((F_CPU) / 500000UL) * MAX((hal_timer_t)stepper.data.minimum_pulse, 1UL));
+
+  if (stepper.data.minimum_pulse) {
+    HAL_min_pulse_high_ns = hal_timer_t(stepper.data.minimum_pulse) * 1000UL;
+    HAL_min_pulse_low_ns  = MAX((HAL_min_step_period_ns - MIN(HAL_min_step_period_ns, HAL_min_pulse_high_ns)), HAL_min_pulse_high_ns);
+  }
+  else {
+    HAL_min_pulse_high_ns = 500000000UL / stepper.data.maximum_rate;
+    HAL_min_pulse_low_ns  = HAL_min_pulse_high_ns;
+  }
+
+  HAL_pulse_high_tick = HAL_ns_to_pulse_tick(HAL_min_pulse_high_ns - MIN(HAL_min_pulse_high_ns, (TIMER_SETUP_NS)));
+  HAL_pulse_low_tick  = HAL_ns_to_pulse_tick(HAL_min_pulse_low_ns - MIN(HAL_min_pulse_low_ns, (TIMER_SETUP_NS)));
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execution_cycle(1))   >> 0;

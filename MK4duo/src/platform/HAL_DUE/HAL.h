@@ -235,16 +235,16 @@ class HAL {
 
   private: /** Private Parameters */
 
-    #if MAX_HOTEND > 0
+    #if HAS_HOTENDS
       static ADCAveragingFilter HOTENDsensorFilters[MAX_HOTEND];
     #endif
-    #if MAX_BED > 0
+    #if HAS_BEDS
       static ADCAveragingFilter BEDsensorFilters[MAX_BED];
     #endif
-    #if MAX_CHAMBER > 0
+    #if HAS_CHAMBERS
       static ADCAveragingFilter CHAMBERsensorFilters[MAX_CHAMBER];
     #endif
-    #if MAX_COOLER > 0
+    #if HAS_COOLERS
       static ADCAveragingFilter COOLERsensorFilters[MAX_COOLER];
     #endif
 

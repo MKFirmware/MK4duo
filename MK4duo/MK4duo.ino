@@ -293,7 +293,7 @@
  * M563 - Set Tools Driver Hotend assignment
  *          T[tools]  - Set Tool
  *          D[int]    - Set Driver for tool
- *          H[bool]   - Set Hotend for tool
+ *          H[int]    - Set Hotend for tool
  * M569 - Stepper driver control X[bool] Y[bool] Z[bool] T[extruders] E[bool] set direction,
  *          D[long] set direction delay, P[int] set minimum pulse, R[long] set maximum rate, Q[bool] Enable/Disable double/quad stepping.
  * M575 - Change serial baud rate P[Port index] B[Baudrate]

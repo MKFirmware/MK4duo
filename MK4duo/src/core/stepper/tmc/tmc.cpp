@@ -495,26 +495,30 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
-  void TMC_Stepper::monitor_driver() {
+  void TMC_Stepper::monitor_drivers() {
+
     static short_timer_t next_poll_timer(millis());
+
+    // Poll TMC drivers at the configured interval
     bool need_update_error_counters = next_poll_timer.expired(MONITOR_DRIVER_STATUS_INTERVAL_MS);
-    bool need_debug_reporting = false;
-    if (need_update_error_counters) {
+
+    #if ENABLED(TMC_DEBUG)
+      static short_timer_t next_debug_reporting_timer(millis());
+      bool need_debug_reporting = next_debug_reporting_timer.expired(report_status_interval);
+    #else
+      constexpr bool need_debug_reporting = false;
+    #endif
+
+    if (need_update_error_counters || need_debug_reporting) {
+      LOOP_DRV_XYZ()
+        if (driver[d] && driver[d]->tmc) monitor_driver(driver[d], need_update_error_counters, need_debug_reporting);
+      LOOP_DRV_EXT()
+        if (driver.e[d] && driver.e[d]->tmc) monitor_driver(driver.e[d], need_update_error_counters, need_debug_reporting);
       #if ENABLED(TMC_DEBUG)
-        static short_timer_t next_debug_reporting_timer(millis());
-        if (next_debug_reporting_timer.expired(report_status_interval))
-          need_debug_reporting = true;
+        if (need_debug_reporting) SERIAL_EOL();
       #endif
-      if (need_update_error_counters || need_debug_reporting) {
-        LOOP_DRV_XYZ()
-          if (driver[d] && driver[d]->tmc) monitor_driver(driver[d], need_update_error_counters, need_debug_reporting);
-        LOOP_DRV_EXT()
-          if (driver.e[d] && driver.e[d]->tmc) monitor_driver(driver.e[d], need_update_error_counters, need_debug_reporting);
-        #if ENABLED(TMC_DEBUG)
-          if (need_debug_reporting) SERIAL_EOL();
-        #endif
-      }
     }
+
   }
 
 #endif // ENABLED(MONITOR_DRIVER_STATUS)
@@ -1316,17 +1320,17 @@ bool TMC_Stepper::test_connection(Driver* drv) {
           #endif
         #endif
         SERIAL_CHR('|');
-        if (drv->tmc->error_count)      SERIAL_CHR('E');  // Error
-        if (data.is_ot)           SERIAL_CHR('O');  // Over-temperature
-        if (data.is_otpw)         SERIAL_CHR('W');  // over-temperature pre-Warning
+        if (drv->tmc->error_count)    SERIAL_CHR('E');  // Error
+        if (data.is_ot)               SERIAL_CHR('O');  // Over-temperature
+        if (data.is_otpw)             SERIAL_CHR('W');  // over-temperature pre-Warning
         #if ENABLED(TMC_DEBUG)
-          if (data.is_stall)      SERIAL_CHR('G');  // stallGuard
-          if (data.is_stealth)    SERIAL_CHR('T');  // stealthChop
-          if (data.is_standstill) SERIAL_CHR('I');  // standstIll
+          if (data.is_stall)          SERIAL_CHR('G');  // stallGuard
+          if (data.is_stealth)        SERIAL_CHR('T');  // stealthChop
+          if (data.is_standstill)     SERIAL_CHR('I');  // standstIll
         #endif
-        if (drv->tmc->flag_otpw)        SERIAL_CHR('F');  // otpw Flag
+        if (drv->tmc->flag_otpw)      SERIAL_CHR('F');  // otpw Flag
         SERIAL_CHR('|');
-        if (drv->tmc->otpw_count > 0)   SERIAL_VAL(drv->tmc->otpw_count);
+        if (drv->tmc->otpw_count > 0) SERIAL_VAL(drv->tmc->otpw_count);
         SERIAL_CHR('\t');
       }
     #endif

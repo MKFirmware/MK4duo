@@ -92,6 +92,15 @@ void FanManager::set_output_pwm() {
 
 void FanManager::print_parameters() { LOOP_FAN() if (fans[f]) print_M106(f); }
 
+void FanManager::report_speed() {
+  #if HAS_FAN
+    LOOP_FAN() {
+      SERIAL_MV(" F", int(f));
+      SERIAL_MV(":", fans[f]->speed);
+    }
+  #endif
+}
+
 void FanManager::print_M106(const uint8_t f) {
 
   bool found_auto = false;
