@@ -259,7 +259,7 @@ void AutoBedLevel::refresh_bed_level() {
 #endif
 
 // Get the Z adjustment for non-linear bed leveling
-float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
+float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
 
   static float  z1, d2, z3, d4, L, D;
 

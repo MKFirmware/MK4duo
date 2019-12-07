@@ -93,7 +93,7 @@
 
 // If linear advance is disabled, then the loop also handles them
 #if DISABLED(LIN_ADVANCE) && ENABLED(COLOR_MIXING_EXTRUDER)
- #define ISR_MIXING_STEPPER_CYCLES    ((MIXING_STEPPERS) * 16UL)
+  #define ISR_MIXING_STEPPER_CYCLES   ((MIXING_STEPPERS) * 16UL)
 #else
   #define ISR_MIXING_STEPPER_CYCLES   0UL
 #endif
@@ -130,6 +130,7 @@ extern hal_timer_t  HAL_min_pulse_cycle,
                     HAL_pulse_high_tick,
                     HAL_pulse_low_tick,
                     HAL_frequency_limit[8];
+extern bool         HAL_timer_is_active;
 
 // ------------------------
 // Hardware Timer
@@ -156,7 +157,7 @@ FORCE_INLINE bool HAL_timer_initialized() {
 }
 
 FORCE_INLINE bool HAL_timer_interrupt_is_enabled() {
-  return HAL_timer_initialized() && MK_step_timer->hasInterrupt();
+  return HAL_timer_initialized() && HAL_timer_is_active;
 }
 
 FORCE_INLINE hal_timer_t HAL_timer_get_current_count(const uint8_t) {

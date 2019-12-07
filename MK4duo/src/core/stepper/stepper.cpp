@@ -1164,8 +1164,6 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
   // No other ISR should ever interrupt this!
   void Stepper::babystep(const AxisEnum axis, const bool direction) {
 
-    hal_timer_t pulse_tick_end;
-
     DISABLE_ISRS();
 
     switch (axis) {
@@ -1184,8 +1182,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
               HAL::delayNanoseconds(data.direction_delay);
             start_X_step();
             start_Y_step();
-            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+            HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_X_step();
             stop_Y_step();
             set_X_dir(old_X_dir);
@@ -1201,8 +1198,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
               HAL::delayNanoseconds(data.direction_delay);
             start_X_step();
             start_Z_step();
-            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+            HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_X_step();
             stop_Z_step();
             set_X_dir(old_X_dir);
@@ -1214,8 +1210,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             if (data.direction_delay >= 50)
               HAL::delayNanoseconds(data.direction_delay);
             start_X_step();
-            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+            HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_X_step();
             set_X_dir(old_X_dir);
           #endif
@@ -1233,8 +1228,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
               HAL::delayNanoseconds(data.direction_delay);
             start_X_step();
             start_Y_step();
-            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+            HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_X_step();
             stop_Y_step();
             set_X_dir(old_X_dir);
@@ -1250,8 +1244,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
               HAL::delayNanoseconds(data.direction_delay);
             start_Y_step();
             start_Z_step();
-            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+            HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_Y_step();
             stop_Z_step();
             set_Y_dir(old_Y_dir);
@@ -1263,8 +1256,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             if (data.direction_delay >= 50)
               HAL::delayNanoseconds(data.direction_delay);
             start_Y_step();
-            pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-            while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+            HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_Y_step();
             set_Y_dir(old_Y_dir);
           #endif
@@ -1285,8 +1277,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             HAL::delayNanoseconds(data.direction_delay);
           start_X_step();
           start_Z_step();
-          pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+          HAL::delayNanoseconds(HAL_pulse_high_tick);
           stop_X_step();
           stop_Z_step();
           set_X_dir(old_X_dir);
@@ -1302,8 +1293,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             HAL::delayNanoseconds(data.direction_delay);
           start_Y_step();
           start_Z_step();
-          pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+          HAL::delayNanoseconds(HAL_pulse_high_tick);
           stop_Y_step();
           stop_Z_step();
           set_Y_dir(old_Y_dir);
@@ -1315,8 +1305,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           if (data.direction_delay >= 50)
             HAL::delayNanoseconds(data.direction_delay);
           start_Z_step();
-          pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+          HAL::delayNanoseconds(HAL_pulse_high_tick);
           stop_Z_step();
           set_Z_dir(old_Z_dir);
         #else // DELTA
@@ -1342,8 +1331,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           start_Y_step();
           start_Z_step();
 
-          pulse_tick_end = HAL_timer_get_current_count(STEPPER_TIMER_NUM) + HAL_pulse_high_tick;
-          while (HAL_timer_get_current_count(STEPPER_TIMER_NUM) < pulse_tick_end) { /* nada */ }
+          HAL::delayNanoseconds(HAL_pulse_high_tick);
 
           stop_X_step();
           stop_Y_step();
@@ -1364,7 +1352,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
     ENABLE_ISRS();
   }
 
-#endif //BABYSTEPPING
+#endif // BABYSTEPPING
 
 /** Private Function */
 void Stepper::driver_factory_parameters(Driver* act, const uint8_t index) {
