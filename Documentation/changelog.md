@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 07-12-2019
+* Revision 15-12-2019
 *
 * Version EEPROM MKV78
 *
@@ -47,6 +47,7 @@
 *
 * Fix JUNCTION_DEVIATION
 * Fix BABYSTEPPING
+* Fix M569 code for extruder
 *
 * Fix and clear code
 
