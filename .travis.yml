@@ -220,3 +220,19 @@ script:
   - pin_set FIL_RUNOUT_0_PIN ORIG_X_MAX_PIN
   - build_mk4duo
   - restore_configs
+
+  # Test 1 extruders and heated bed on basic RAMPS 1.4
+  # Test MECH_DELTA
+  # Test SDSUPPORT EEPROM_SETTINGS
+  # Test LIN_ADVANCE JUNCTION_DEVIATION
+  # Display REPRAP_DISCOUNT_SMART_CONTROLLER
+  - opt_set_basic MOTHERBOARD BOARD_RAMPS_13_HFB
+  - opt_set_basic MECHANISM MECH_DELTA
+  - opt_set_temp TEMP_SENSOR_HE0 1
+  - opt_set_temp TEMP_SENSOR_BED0 1
+  - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
+  - opt_enable_feature LIN_ADVANCE JUNCTION_DEVIATION
+  - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
+  - build_mk4duo
+  - restore_configs
+ 
