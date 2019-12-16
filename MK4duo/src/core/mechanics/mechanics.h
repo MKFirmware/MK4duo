@@ -324,15 +324,7 @@ class Mechanics {
     #endif
 
     #if HAS_LINEAR_E_JERK
-      FORCE_INLINE static void recalculate_max_e_jerk() {
-        LOOP_EXTRUDER() {
-          extruders[e]->data.max_jerk = SQRT(SQRT(0.5) *
-            data.junction_deviation_mm *
-            extruders[e]->data.max_acceleration_mm_per_s2 *
-            RECIPROCAL(1.0 - SQRT(0.5))
-          );
-        }
-      }
+      static void recalculate_max_e_jerk();
     #endif
 
   protected: /** Protected Function */
