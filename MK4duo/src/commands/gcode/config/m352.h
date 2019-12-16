@@ -46,7 +46,7 @@
  */
 inline void gcode_M352() {
 
-  if (commands.get_target_driver(352)) return;
+  if (commands.get_target_tool(352)) return;
   
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M352 report.
@@ -70,14 +70,14 @@ inline void gcode_M352() {
   }
 
   if (parser.seenval('T')) {
-    const uint8_t i = toolManager.extruder.target;
-    if (driver.e[i]) {
-      if (parser.seen('E')) driver.e[i]->data.pin.enable   = parser.value_pin();
-      if (parser.seen('D')) driver.e[i]->data.pin.dir      = parser.value_pin();
-      if (parser.seen('S')) driver.e[i]->data.pin.step     = parser.value_pin();
-      if (parser.seen('L')) driver.e[i]->data.flag.enable  = parser.value_bool();
-      if (parser.seen('M')) driver.e[i]->data.flag.step    = parser.value_bool();
-      driver.e[i]->init();
+    const uint8_t d = extruders[toolManager.extruder.target]->get_driver();
+    if (driver.e[d]) {
+      if (parser.seen('E')) driver.e[d]->data.pin.enable   = parser.value_pin();
+      if (parser.seen('D')) driver.e[d]->data.pin.dir      = parser.value_pin();
+      if (parser.seen('S')) driver.e[d]->data.pin.step     = parser.value_pin();
+      if (parser.seen('L')) driver.e[d]->data.flag.enable  = parser.value_bool();
+      if (parser.seen('M')) driver.e[d]->data.flag.step    = parser.value_bool();
+      driver.e[d]->init();
     }
   }
 

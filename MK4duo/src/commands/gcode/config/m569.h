@@ -43,7 +43,7 @@
  */
 inline void gcode_M569() {
 
-  if (commands.get_target_driver(569)) return;
+  if (commands.get_target_tool(569)) return;
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M569 report.
@@ -55,8 +55,13 @@ inline void gcode_M569() {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? toolManager.extruder.target : 0);
-      if (driver[i]) driver[i]->setDir(parser.value_bool());
+      if (i == E_AXIS) {
+        const uint8_t d = extruders[toolManager.extruder.target]->get_driver();
+        if (driver.e[d]) driver.e[d]->setDir(parser.value_bool());
+      }
+      else {
+        if (driver[i]) driver[i]->setDir(parser.value_bool());
+      }
     }
   }
 
