@@ -44,7 +44,7 @@
  */
 void plan_arc(
   const xyze_pos_t &cart,   // Destination position
-  const ab_float_t &offset, // Center of rotation relative to current_position
+  const ab_float_t &offset, // Center of rotation relative to position
   const uint8_t clockwise   // Clockwise?
 ) {
   #if ENABLED(CNC_WORKSPACE_PLANES)
@@ -64,14 +64,14 @@ void plan_arc(
 
   const float radius = HYPOT(rvec.a, rvec.b),
               #if ENABLED(AUTO_BED_LEVELING_UBL)
-                start_L  = mechanics.current_position[l_axis],
+                start_L  = mechanics.position[l_axis],
               #endif
-              center_P = mechanics.current_position[p_axis] - rvec.a,
-              center_Q = mechanics.current_position[q_axis] - rvec.b,
+              center_P = mechanics.position[p_axis] - rvec.a,
+              center_Q = mechanics.position[q_axis] - rvec.b,
               rt_X = cart[p_axis] - center_P,
               rt_Y = cart[q_axis] - center_Q,
-              linear_travel = cart[l_axis] - mechanics.current_position[l_axis],
-              extruder_travel = cart.e - mechanics.current_position.e;
+              linear_travel = cart[l_axis] - mechanics.position[l_axis],
+              extruder_travel = cart.e - mechanics.position.e;
 
   // CCW angle of rotation between position and target from the circle center. Only one atan2() trig computation required.
   float angular_travel = ATAN2(rvec.a * rt_Y - rvec.b * rt_X, rvec.a * rt_X + rvec.b * rt_Y);
@@ -85,7 +85,7 @@ void plan_arc(
   if (clockwise) angular_travel -= RADIANS(360);
 
   // Make a circle if the angular rotation is 0
-  if (angular_travel == 0 && mechanics.current_position[p_axis] == cart[p_axis] && mechanics.current_position[q_axis] == cart[q_axis]) {
+  if (angular_travel == 0 && mechanics.position[p_axis] == cart[p_axis] && mechanics.position[q_axis] == cart[q_axis]) {
     angular_travel = RADIANS(360);
     #if ENABLED(MIN_ARC_SEGMENTS)
       min_segments = MIN_ARC_SEGMENTS;
@@ -134,10 +134,10 @@ void plan_arc(
               cos_T = 1 - 0.5f * sq(theta_per_segment); // Small angle approximation
 
   // Initialize the linear axis
-  raw[l_axis] = mechanics.current_position[l_axis];
+  raw[l_axis] = mechanics.position[l_axis];
 
   // Initialize the extruder axis
-  raw[E_AXIS] = mechanics.current_position.e;
+  raw[E_AXIS] = mechanics.position.e;
 
   const feedrate_t fr_mm_s = MMS_SCALED(mechanics.feedrate_mm_s);
 
@@ -225,7 +225,7 @@ void plan_arc(
   #if ENABLED(AUTO_BED_LEVELING_UBL)
     raw[l_axis] = start_L;
   #endif
-  mechanics.current_position = raw;
+  mechanics.position = raw;
 
 }
 
@@ -292,7 +292,7 @@ void gcode_G2_G3(const bool clockwise) {
     if (parser.seenval('R')) {
       const float r = parser.value_linear_units();
       if (r) {
-        const xy_pos_t  p1 = mechanics.current_position,
+        const xy_pos_t  p1 = mechanics.position,
                         p2 = mechanics.destination;
         if (p1 != p2) {
           const xy_pos_t d = p2 - p1, m = (p1 + p2) * 0.5f;       // XY distance and midpoint
@@ -317,7 +317,7 @@ void gcode_G2_G3(const bool clockwise) {
         if (!WITHIN(circles_to_do, 0, 100))
           SERIAL_LM(ER, MSG_HOST_ERR_ARC_ARGS);
         while (circles_to_do--)
-          plan_arc(mechanics.current_position, arc_offset, clockwise);
+          plan_arc(mechanics.position, arc_offset, clockwise);
       #endif
 
       // Send an arc to the planner

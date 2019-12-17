@@ -37,7 +37,7 @@
     // Get direction of move and retract
     float retract_mm[XYZ];
     LOOP_XYZ(i) {
-      float dist = mechanics.destination[i] - mechanics.current_position[i];
+      float dist = mechanics.destination[i] - mechanics.position[i];
       retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.home_bump_mm[(AxisEnum)i] * (dist > 0 ? -1 : 1);
     }
 
@@ -52,7 +52,7 @@
     printer.setG38Move(false);
 
     endstops.hit_on_purpose();
-    mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+    mechanics.set_position_from_steppers_for_axis(ALL_AXES);
     mechanics.sync_plan_position();
 
     // Only do remaining moves if target was hit
@@ -61,7 +61,7 @@
       G38_pass_fail = true;
 
       // Move away by the retract distance
-      mechanics.destination = mechanics.current_position;
+      mechanics.destination = mechanics.position;
       LOOP_XYZ(i) mechanics.destination[i] += retract_mm[i];
       endstops.setEnabled(false);
       mechanics.prepare_move_to_destination();
@@ -78,7 +78,7 @@
       planner.synchronize();
       printer.setG38Move(false);
 
-      mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+      mechanics.set_position_from_steppers_for_axis(ALL_AXES);
       mechanics.sync_plan_position();
     }
 
@@ -101,7 +101,7 @@
 
     // If any axis has enough movement, do the move
     LOOP_XYZ(i)
-      if (ABS(mechanics.destination[i] - mechanics.current_position[i]) >= G38_MINIMUM_MOVE) {
+      if (ABS(mechanics.destination[i] - mechanics.position[i]) >= G38_MINIMUM_MOVE) {
         if (!parser.seenval('F')) mechanics.feedrate_mm_s = mechanics.homing_feedrate_mm_s[i];
         // If G38.2 fails throw an error
         if (!G38_run_probe() && is_38_2) {

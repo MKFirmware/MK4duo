@@ -39,6 +39,10 @@
 #include "../../../MK4duo.h"
 #include "sanitycheck.h"
 
+// Check the integrity of data offsets.
+// Can be disabled for production build.
+//#define DEBUG_EEPROM_READWRITE
+
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
   float new_z_fade_height;
 #endif
@@ -51,12 +55,8 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV78"
+#define EEPROM_VERSION "MKV79"
 #define EEPROM_OFFSET 100
-
-// Check the integrity of data offsets.
-// Can be disabled for production build.
-//#define DEBUG_EEPROM_READWRITE
 
 typedef struct EepromDataStruct {
 
@@ -257,13 +257,6 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // Volumetric & Filament Size
-  //
-  #if ENABLED(VOLUMETRIC_EXTRUSION)
-    bool            volumetric_enabled;
-  #endif
-
-  //
   // IDLE oozing
   //
   #if ENABLED(IDLE_OOZING_PREVENT)
@@ -299,7 +292,7 @@ uint16_t EEPROM::datasize() { return sizeof(eepromDataStruct); }
  */
 void EEPROM::post_process() {
 
-  mechanics.stored_position[0] = mechanics.current_position;
+  mechanics.stored_position[0] = mechanics.position;
 
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
@@ -360,11 +353,11 @@ void EEPROM::post_process() {
   #endif
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
-  // and init stepper.count[], planner.position[] with current_position
+  // and init stepper.count[], planner.position[] with position
   planner.refresh_positioning();
 
-  if (mechanics.stored_position[0] != mechanics.current_position)
-    mechanics.report_current_position();
+  if (mechanics.stored_position[0] != mechanics.position)
+    mechanics.report_position();
 
 }
 
@@ -656,14 +649,6 @@ void EEPROM::post_process() {
     #if ENABLED(FWRETRACT)
       EEPROM_WRITE(fwretract.data);
       EEPROM_WRITE(fwretract.autoretract_enabled);
-    #endif
-
-    //
-    // Volumetric & Filament Size
-    //
-    #if ENABLED(VOLUMETRIC_EXTRUSION)
-      const bool volumetric_enabled = printer.isVolumetric();
-      EEPROM_WRITE(volumetric_enabled);
     #endif
 
     //
@@ -1077,15 +1062,6 @@ void EEPROM::post_process() {
       #if ENABLED(FWRETRACT)
         EEPROM_READ(fwretract.data);
         EEPROM_READ(fwretract.autoretract_enabled);
-      #endif
-
-      //
-      // Volumetric & Filament Size
-      //
-      #if ENABLED(VOLUMETRIC_EXTRUSION)
-        bool volumetric_enabled;
-        EEPROM_READ(volumetric_enabled);
-        if (!flag.validating) printer.setVolumetric(volumetric_enabled);
       #endif
 
       //
@@ -1505,6 +1481,27 @@ void EEPROM::reset() {
     toolManager.print_M563();
 
     /**
+     * Print Tool volumetric extrusion
+     */
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
+      toolManager.print_M200();
+    #endif
+
+    /**
+     * Print Tool change filament swap
+     */
+    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+      toolManager.print_M217();
+    #endif
+
+    /**
+     * Linear Advance
+     */
+    #if ENABLED(LIN_ADVANCE)
+      toolManager.print_M900();
+    #endif
+
+    /**
      * Print heaters parameters
      */
     #if HAS_HOTENDS
@@ -1548,13 +1545,6 @@ void EEPROM::reset() {
      */
     #if HAS_AD8495 || HAS_AD595
       LOOP_HOTEND() hotends[h]->print_M595();
-    #endif
-
-    /**
-     * Print Tools data
-     */
-    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-      toolManager.print_M217();
     #endif
 
     /**
@@ -1638,9 +1628,11 @@ void EEPROM::reset() {
             for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
               SERIAL_SMV(CFG, "  G29 S3 I", (int)px);
               SERIAL_MV(" J", (int)iy);
-              SERIAL_EMV(" Z", LINEAR_UNIT(mbl.data.z_values[px][iy]), 3);
+              SERIAL_MV(" Z", LINEAR_UNIT(mbl.data.z_values[px][iy]), 5);
+              SERIAL_EOL();
             }
           }
+          SERIAL_LMV(CFG, "  G29 S4 Z", LINEAR_UNIT(mbl.data.z_offset), 5);
         }
 
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
@@ -1737,10 +1729,6 @@ void EEPROM::reset() {
       filamentrunout.print_M412();
     #endif
 
-    #if ENABLED(VOLUMETRIC_EXTRUSION)
-      toolManager.print_M200();
-    #endif // ENABLED(VOLUMETRIC_EXTRUSION)
-
     /**
      * Driver Pins M352
      */
@@ -1789,13 +1777,6 @@ void EEPROM::reset() {
       tmc.print_M940();
 
     #endif // HAS_TRINAMIC
-
-    /**
-     * Linear Advance
-     */
-    #if ENABLED(LIN_ADVANCE)
-      toolManager.print_M900();
-    #endif
 
     /**
      * Hysteresis Feature

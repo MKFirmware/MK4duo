@@ -139,7 +139,7 @@ inline void gcode_G34() {
     if (mechanics.axis_unhomed_error()) mechanics.home();
 
     // Move the Z coordinate realm towards the positive - dirty trick
-    mechanics.current_position.z -= z_probe * 0.5f;
+    mechanics.position.z -= z_probe * 0.5f;
 
     float last_z_align_move[Z_STEPPER_COUNT] = ARRAY_N(Z_STEPPER_COUNT, 10000.0f, 10000.0f, 10000.0f),
           z_measured[G34_PROBE_COUNT] = { 0 },
@@ -279,7 +279,7 @@ inline void gcode_G34() {
         }
 
         // Do a move to correct part of the misalignment for the current stepper
-        mechanics.do_blocking_move_to_z(amplification * z_align_move + mechanics.current_position.z);
+        mechanics.do_blocking_move_to_z(amplification * z_align_move + mechanics.position.z);
       }
 
       // Back to normal stepper operations

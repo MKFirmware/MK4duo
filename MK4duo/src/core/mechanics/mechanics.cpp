@@ -48,7 +48,7 @@ int16_t           Mechanics::feedrate_percentage  = 100;
 
 xyz_ulong_t       Mechanics::max_acceleration_steps_per_s2;
 
-xyze_pos_t        Mechanics::current_position,
+xyze_pos_t        Mechanics::position,
                   Mechanics::destination,
                   Mechanics::stored_position[NUM_POSITON_SLOTS];
 
@@ -88,22 +88,22 @@ int8_t Mechanics::get_homedir(const AxisEnum axis) {
 }
 
 /**
- * Set the current_position for an axis based on
+ * Set the position for an axis based on
  * the stepper positions, removing any leveling that
  * may have been applied.
  *
  * To prevent small shifts in axis position always call
  * sync_plan_position after updating axes with this.
  *
- * To keep hosts in sync, always call report_current_position
- * after updating the current_position.
+ * To keep hosts in sync, always call report_position
+ * after updating the position.
  */
-void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
+void Mechanics::set_position_from_steppers_for_axis(const AxisEnum axis) {
 
   mechanics.get_cartesian_from_steppers();
 
   #if HAS_POSITION_MODIFIERS
-    xyze_pos_t pos = { cartesian_position.x, cartesian_position.y, cartesian_position.z, current_position.e };
+    xyze_pos_t pos = { cartesian_position.x, cartesian_position.y, cartesian_position.z, position.e };
     planner.unapply_modifiers(pos
       #if HAS_LEVELING
         , true
@@ -113,17 +113,25 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
   #endif
 
   if (axis == ALL_AXES)
-    current_position = cartesian_position;
+    position = cartesian_position;
   else
-    current_position[axis] = cartesian_position[axis];
+    position[axis] = cartesian_position[axis];
 }
 
 /**
  * Move the planner to the current position from wherever it last moved
  * (or from wherever it has been told it is located).
  */
-void Mechanics::line_to_current_position(const feedrate_t &fr_mm_s/*=feedrate_mm_s*/) {
-  planner.buffer_line(current_position, fr_mm_s, toolManager.extruder.active);
+void Mechanics::line_to_position(const feedrate_t &fr_mm_s/*=feedrate_mm_s*/) {
+  planner.buffer_line(position, fr_mm_s, toolManager.extruder.active);
+}
+
+/**
+ * Move the planner to the destination from wherever it last moved
+ * (or from wherever it has been told it is located).
+ */
+void Mechanics::line_to_destination(const feedrate_t &fr_mm_s/*=feedrate_mm_s*/) {
+  planner.buffer_line(destination, fr_mm_s, toolManager.extruder.active);
 }
 
 /**
@@ -149,7 +157,7 @@ void Mechanics::prepare_move_to_destination() {
     ) return;
   }
 
-  current_position = destination;
+  position = destination;
 }
 
 void Mechanics::setup_for_endstop_or_probe_move() {
@@ -172,12 +180,12 @@ void Mechanics::clean_up_after_endstop_or_probe_move() {
    * since Arduino works with limited precision real numbers).
    */
   void Mechanics::plan_cubic_move(const float offset[4]) {
-    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), toolManager.extruder.active);
+    Bezier::cubic_b_spline(position, destination, offset, MMS_SCALED(feedrate_mm_s), toolManager.extruder.active);
 
     // As far as the parser is concerned, the position is now == destination. In reality the
     // motion control system might still be processing the action and the real tool position
     // in any intermediate location.
-    current_position = destination;
+    position = destination;
   }
 
 #endif // G5_BEZIER
@@ -185,27 +193,27 @@ void Mechanics::clean_up_after_endstop_or_probe_move() {
 /**
  * sync_plan_position
  *
- * Set the planner/stepper positions directly from current_position with
+ * Set the planner/stepper positions directly from position with
  * no kinematic translation. Used for homing axes and cartesian/core syncing.
  */
 void Mechanics::sync_plan_position() {
-  if (printer.debugFeature()) DEBUG_POS("sync_plan_position", current_position);
-  planner.set_position_mm(current_position);
+  if (printer.debugFeature()) DEBUG_POS("sync_plan_position", position);
+  planner.set_position_mm(position);
 }
 void Mechanics::sync_plan_position_e() {
-  if (printer.debugFeature()) DEBUG_EMV("sync_plan_position_e", current_position.e);
-  planner.set_e_position_mm(current_position.e);
+  if (printer.debugFeature()) DEBUG_EMV("sync_plan_position_e", position.e);
+  planner.set_e_position_mm(position.e);
 }
 
 /**
- * Report current position to host
+ * Report position to host
  */
-void Mechanics::report_current_position() {
-  const xyz_pos_t lpos = current_position.asLogical();
+void Mechanics::report_position() {
+  const xyz_pos_t lpos = position.asLogical();
   SERIAL_MV( "X:", lpos.x);
   SERIAL_MV(" Y:", lpos.y);
   SERIAL_MV(" Z:", lpos.z);
-  SERIAL_EMV(" E:", current_position.e);
+  SERIAL_EMV(" E:", position.e);
 
   //stepper.report_positions();
 }

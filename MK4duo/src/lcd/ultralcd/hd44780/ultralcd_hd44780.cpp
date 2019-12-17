@@ -565,7 +565,7 @@ void LcdUI::draw_status_message(const bool blink) {
         lcd_put_u8str(ftostr12ns(filament_width_meas));
         lcd_put_u8str_P(PSTR(" V"));
         lcd_put_u8str(i8tostr3(100.0 * (
-          printer.isVolumetric()
+          toolManager.isVolumetric()
             ? toolManager.volumetric_area_nominal / toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
             : toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
         )));
@@ -791,9 +791,9 @@ void LcdUI::draw_status_screen() {
 
           #else
 
-            _draw_axis_value(X_AXIS, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position.x)), blink);
+            _draw_axis_value(X_AXIS, ftostr4sign(LOGICAL_X_POSITION(mechanics.position.x)), blink);
             lcd_put_wchar(' ');
-            _draw_axis_value(Y_AXIS, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position.y)), blink);
+            _draw_axis_value(Y_AXIS, ftostr4sign(LOGICAL_Y_POSITION(mechanics.position.y)), blink);
 
           #endif
 
@@ -802,7 +802,7 @@ void LcdUI::draw_status_screen() {
       #endif // LCD_WIDTH >= 20
 
       lcd_moveto(LCD_WIDTH - 8, 1);
-      _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position.z)), blink);
+      _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.position.z)), blink);
 
       #if HAS_LEVELING && !HAS_TEMP_BED0
         lcd_put_wchar(bedlevel.flag.leveling_active || blink ? '_' : ' ');
@@ -861,7 +861,7 @@ void LcdUI::draw_status_screen() {
     // Z Coordinate
     //
     lcd_moveto(LCD_WIDTH - 9, 0);
-    _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position.z)), blink);
+    _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.position.z)), blink);
 
     #if HAS_LEVELING && (HOTENDS > 1 || !HAS_TEMP_BED0)
       lcd_put_wchar(LCD_WIDTH - 1, 0, bedlevel.flag.leveling_active || blink ? '_' : ' ');

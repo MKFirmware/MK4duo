@@ -95,7 +95,7 @@ class Extruder {
     inline uint8_t get_hotend() { return data.hotend; }
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
-      FORCE_INLINE void set_filament_size(const float &v) { filament_size = v; }
+      FORCE_INLINE void set_filament_size(const float &v) { data.filament_size = v; }
     #endif
 
     #if ENABLED(TOOL_CHANGE_FIL_SWAP)

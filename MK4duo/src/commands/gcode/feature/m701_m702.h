@@ -66,7 +66,7 @@ inline void gcode_M701() {
 
   // Lift Z axis
   if (park_point.z > 0)
-    mechanics.do_blocking_move_to_z(MIN(mechanics.current_position.z + park_point.z, Z_MAX_BED), NOZZLE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_z(MIN(mechanics.position.z + park_point.z, Z_MAX_BED), NOZZLE_PARK_Z_FEEDRATE);
 
   // Load filament
   #if HAS_MMU2
@@ -90,7 +90,7 @@ inline void gcode_M701() {
 
   // Restore Z axis
   if (park_point.z > 0)
-    mechanics.do_blocking_move_to_z(MAX(mechanics.current_position.z - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_z(MAX(mechanics.position.z - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
   #if DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed
@@ -140,7 +140,7 @@ inline void gcode_M702() {
 
   // Lift Z axis
   if (park_point.z > 0)
-    mechanics.do_blocking_move_to_z(MIN(mechanics.current_position.z + park_point.z, Z_MAX_BED), NOZZLE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_z(MIN(mechanics.position.z + park_point.z, Z_MAX_BED), NOZZLE_PARK_Z_FEEDRATE);
 
   // Unload filament
   #if HAS_MMU2
@@ -166,7 +166,7 @@ inline void gcode_M702() {
 
   // Restore Z axis
   if (park_point.z > 0)
-    mechanics.do_blocking_move_to_z(MAX(mechanics.current_position.z - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_z(MAX(mechanics.position.z - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
   #if DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed

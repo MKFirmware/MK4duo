@@ -47,7 +47,7 @@ inline void gcode_T(const uint8_t tool_id) {
     DEBUG_MV(">>> T(", tool_id);
     DEBUG_CHR(')');
     DEBUG_EOL();
-    DEBUG_POS("BEFORE", mechanics.current_position);
+    DEBUG_POS("BEFORE", mechanics.position);
   }
 
   #if ENABLED(CNCROUTER)
@@ -87,7 +87,7 @@ inline void gcode_T(const uint8_t tool_id) {
   }
 
   if (printer.debugFeature()) {
-    DEBUG_POS("AFTER", mechanics.current_position);
+    DEBUG_POS("AFTER", mechanics.position);
     DEBUG_MV("<<< T(", tool_id);
     DEBUG_CHR(')');
     DEBUG_EOL();

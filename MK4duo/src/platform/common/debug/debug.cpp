@@ -95,9 +95,9 @@ void Debug::log_machine_info() {
       #endif
       #if ABL_PLANAR
         const xyz_pos_t diff = {
-          planner.get_axis_position_mm(X_AXIS) - mechanics.current_position.x,
-          planner.get_axis_position_mm(Y_AXIS) - mechanics.current_position.y,
-          planner.get_axis_position_mm(Z_AXIS) - mechanics.current_position.z
+          planner.get_axis_position_mm(X_AXIS) - mechanics.position.x,
+          planner.get_axis_position_mm(Y_AXIS) - mechanics.position.y,
+          planner.get_axis_position_mm(Z_AXIS) - mechanics.position.z
         };
         DEBUG_MSG("ABL Adjustment X");
         if (diff.x > 0) DEBUG_CHR('+');
@@ -111,15 +111,15 @@ void Debug::log_machine_info() {
       #else
         #if ENABLED(AUTO_BED_LEVELING_UBL)
           DEBUG_MSG("UBL Adjustment Z");
-          const float rz = ubl.get_z_correction(mechanics.current_position.x, mechanics.current_position.y);
+          const float rz = ubl.get_z_correction(mechanics.position.x, mechanics.position.y);
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
           DEBUG_MSG("ABL Adjustment Z");
-          const float rz = abl.bilinear_z_offset(mechanics.current_position);
+          const float rz = abl.bilinear_z_offset(mechanics.position);
         #endif
         DEBUG_VAL(ftostr43sign(rz, '+'));
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           if (bedlevel.z_fade_height) {
-            DEBUG_MV(" (", ftostr43sign(rz * bedlevel.fade_scaling_factor_for_z(mechanics.current_position.z)));
+            DEBUG_MV(" (", ftostr43sign(rz * bedlevel.fade_scaling_factor_for_z(mechanics.position.z)));
             DEBUG_MSG("+)");
           }
         #endif
@@ -135,7 +135,7 @@ void Debug::log_machine_info() {
     DEBUG_SM(DEB, " Mesh Bed Leveling");
     if (bedlevel.flag.leveling_active) {
       DEBUG_EM(" (enabled)");
-      DEBUG_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(mechanics.current_position
+      DEBUG_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(mechanics.position
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           , 1.0
         #endif
@@ -143,8 +143,8 @@ void Debug::log_machine_info() {
       DEBUG_CHR('+');
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         if (bedlevel.z_fade_height) {
-          DEBUG_MV(" (", ftostr43sign(mbl.get_z(mechanics.current_position,
-            bedlevel.fade_scaling_factor_for_z(mechanics.current_position.z))));
+          DEBUG_MV(" (", ftostr43sign(mbl.get_z(mechanics.position,
+            bedlevel.fade_scaling_factor_for_z(mechanics.position.z))));
           DEBUG_MSG("+)");
         }
       #endif

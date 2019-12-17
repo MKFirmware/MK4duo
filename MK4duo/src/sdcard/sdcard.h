@@ -174,17 +174,17 @@ class SDCard {
     static void getfilename(uint16_t nr, PGM_P const match=nullptr);
     static void getAbsFilename(char * name);
     static void startFileprint();
-    static void openAndPrintFile(const char * name);
+    static void openAndPrintFile(const char * const path);
     static void stop_print();
     static void write_command(char * buf);
     static void print_status();
-    static void startWrite(char * filename, const bool silent=false);
-    static void deleteFile(char * filename);
+    static void startWrite(const char * const path, const bool silent=false);
+    static void deleteFile(const char * const path);
     static void finishWrite();
-    static void makeDirectory(char * filename);
+    static void makeDirectory(const char * const path);
     static void closeFile();
     static void printingHasFinished();
-    static void chdir(PGM_P relpath);
+    static void chdir(const char * const relpath);
     static void reset_default();
     static void beginautostart();
     static void checkautostart();
@@ -193,7 +193,7 @@ class SDCard {
 
     static void printEscapeChars(PGM_P s);
 
-    static bool selectFile(PGM_P filename, const bool silent=false);
+    static bool selectFile(const char * const path, const bool silent=false);
 
     static int8_t updir();
     static uint16_t getnrfilenames();
@@ -266,6 +266,8 @@ class SDCard {
     #endif
 
   private: /** Private Function */
+
+    static void openFailed(const char * const path);
 
     static void lsDive(SdFile parent, PGM_P const match = NULL);
     static void parsejson(SdFile &parser_file);

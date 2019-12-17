@@ -286,7 +286,7 @@
  *                                                                     *
  ***********************************************************************/
 //#define VOLUMETRIC_EXTRUSION
-//#define VOLUMETRIC_DEFAULT_ON
+#define VOLUMETRIC_DEFAULT_ON false
 /***********************************************************************/
 
 
@@ -537,7 +537,7 @@
 
 
 /*****************************************************************************************
- ****************** Extruder Advance Linear Pressure Control *****************************
+ ******************** Extruder Advance Linear Pressure Control ***************************
  *****************************************************************************************
  *                                                                                       *
  * Linear Pressure Control v1.5                                                          *
@@ -558,7 +558,11 @@
 //#define LIN_ADVANCE
 
 // Unit: mm compression per 1mm/s extruder speed
-#define LIN_ADVANCE_K 0.22
+#define LIN_ADVANCE_K         0.22
+
+// Only parameter for test mode
+#define LIN_ADVANCE_K_START   0
+#define LIN_ADVANCE_K_FACTOR  0.02
 /*****************************************************************************************/
 
 
@@ -1972,7 +1976,7 @@
  * machine's topology, to park the nozzle when idle or when receiving the G27           *
  * command.                                                                             *
  *                                                                                      *
- * The "P" paramenter controls what is the action applied to the Z axis:                *
+ * The "P" parameter controls what is the action applied to the Z axis:                 *
  *    P0: (Default) If current Z-pos is lower than Z-park then the nozzle will          *
  *        be raised to reach Z-park height.                                             *
  *                                                                                      *

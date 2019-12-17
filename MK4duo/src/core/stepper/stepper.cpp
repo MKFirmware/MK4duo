@@ -1857,7 +1857,7 @@ FORCE_INLINE void Stepper::pulse_tick_prepare() {
   #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
     delta_error.e += advance_dividend.e;
     if ((step_needed.e = (delta_error.e >= 0))) {
-      count_position[E_AXIS] += count_direction.e;
+      count_position.e += count_direction.e;
       #if ENABLED(LIN_ADVANCE)
         delta_error.e -= advance_divisor;
         // Don't step E here - But remember the number of steps to perform

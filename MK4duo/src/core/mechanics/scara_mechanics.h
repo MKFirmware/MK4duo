@@ -69,7 +69,7 @@ class Scara_Mechanics : public Mechanics {
      * The result is in the current coordinate space with
      * leveling applied. The coordinates need to be run through
      * unapply_leveling to obtain the "ideal" coordinates
-     * suitable for current_position.x, etc.
+     * suitable for position.x, etc.
      */
     static void get_cartesian_from_steppers();
 
@@ -84,8 +84,8 @@ class Scara_Mechanics : public Mechanics {
     #endif
 
     /**
-     *  Plan a move to (X, Y, Z) and set the current_position.x
-     *  The final current_position.x may not be the one that was requested
+     *  Plan a move to (X, Y, Z) and set the position.x
+     *  The final position.x may not be the one that was requested
      */
     static void do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s=0.0);
     static void do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s=0.0);
@@ -128,7 +128,7 @@ class Scara_Mechanics : public Mechanics {
      * Set an axis' current position to its home position (after homing).
      *
      * SCARA should wait until all XY homing is done before setting the XY
-     * current_position.x to home, because neither X nor Y is at home until
+     * position.x to home, because neither X nor Y is at home until
      * both are at home. Z can however be homed individually.
      *
      * Callers must sync the planner position after calling this!
@@ -139,14 +139,14 @@ class Scara_Mechanics : public Mechanics {
     static bool position_is_reachable_by_probe(const float &rx, const float &ry);
 
     /**
-     * Calculate delta, start a line, and set current_position.x to destination
+     * Calculate delta, start a line, and set position.x to destination
      */
     static void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
 
     /**
      * Report current position to host
      */
-    static void report_current_position_detail();
+    static void report_position_detail();
 
     /**
      * Print mechanics parameters in memory

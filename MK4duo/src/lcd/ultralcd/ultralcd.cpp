@@ -563,7 +563,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
         if (manual_move_axis == E_AXIS) toolManager.extruder.active = manual_move_e_index;
 
         // Set movement on a single axis
-        mechanics.destination = mechanics.current_position;
+        mechanics.destination = mechanics.position;
         mechanics.destination[manual_move_axis] += manual_move_offset;
 
         // Reset for the next move
@@ -583,7 +583,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
 
       #else
 
-        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), toolManager.extruder.active);
+        planner.buffer_line(mechanics.position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), toolManager.extruder.active);
         manual_move_axis = (int8_t)NO_AXIS;
 
       #endif

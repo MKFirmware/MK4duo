@@ -147,15 +147,15 @@ class Mechanics {
     static xyz_ulong_t        max_acceleration_steps_per_s2;
 
     /**
-     * Cartesian Current Position
+     * Current Position
      *   Used to track the native machine position as moves are queued.
-     *   Used by 'line_to_current_position' to do a move after changing it.
+     *   Used by 'line_to_position' to do a move after changing it.
      *   Used by 'sync_plan_position' to update 'planner.position'.
      */
-    static xyze_pos_t current_position;
+    static xyze_pos_t position;
 
     /**
-     * Cartesian Stored Position
+     * Stored Position
      *   Used to save native machine position as moves are queued.
      *   Used by G60 for stored.
      *   Used by G61 for move to.
@@ -168,7 +168,7 @@ class Mechanics {
     static xyz_pos_t cartesian_position;
 
     /**
-     * Cartesian Destination
+     * Destination
      *   The destination for a move, filled in by G-code movement commands,
      *   and expected by functions like 'prepare_move_to_destination'.
      *   Set with 'get_destination' or 'set_destination_to_current'.
@@ -232,23 +232,29 @@ class Mechanics {
     FORCE_INLINE static bool isHomedAll() { return home_flag.XHomed && home_flag.YHomed && home_flag.ZHomed; }
 
     /**
-     * Set the current_position.x for an axis based on
+     * Set the position for an axis based on
      * the stepper positions, removing any leveling that
      * may have been applied.
      *
      * To prevent small shifts in axis position always call
      * sync_plan_position_mech_specific after updating axes with this.
      *
-     * To keep hosts in sync, always call report_current_position
-     * after updating the current_position.x.
+     * To keep hosts in sync, always call report_position
+     * after updating the position
      */
-    static void set_current_from_steppers_for_axis(const AxisEnum axis);
+    static void set_position_from_steppers_for_axis(const AxisEnum axis);
 
     /**
      * Move the planner to the current position from wherever it last moved
      * (or from wherever it has been told it is located).
      */
-    static void line_to_current_position(const feedrate_t &fr_mm_s=feedrate_mm_s);
+    static void line_to_position(const feedrate_t &fr_mm_s=feedrate_mm_s);
+
+    /**
+     * Move the planner to the destination from wherever it last moved
+     * (or from wherever it has been told it is located).
+     */
+    static void line_to_destination(const feedrate_t &fr_mm_s=feedrate_mm_s);
 
     /**
      * Prepare a single move and get ready for the next one
@@ -278,16 +284,16 @@ class Mechanics {
     /**
      * sync_plan_position
      *
-     * Set the planner/stepper positions directly from current_position.x with
+     * Set the planner/stepper positions directly from position with
      * no kinematic translation. Used for homing axes and cartesian/core syncing.
      */
     static void sync_plan_position();
     static void sync_plan_position_e();
 
     /**
-     * Report current position to host
+     * Report position to host
      */
-    static void report_current_position();
+    static void report_position();
 
     FORCE_INLINE static void report_xyz(const xyze_pos_t &pos) { report_xyze(pos, 3); }
 
@@ -316,7 +322,7 @@ class Mechanics {
        * position and the software endstops to retain the same
        * relative distance to the new home.
        *
-       * Since this changes the current_position.x, code should
+       * Since this changes the position.x, code should
        * call sync_plan_position soon after this.
        */
       static void update_workspace_offset(const AxisEnum axis);

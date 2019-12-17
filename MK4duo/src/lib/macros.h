@@ -118,7 +118,7 @@
 // Macros to inch mode support
 #if ENABLED(INCH_MODE_SUPPORT)
   #define LINEAR_UNIT(N)      ((N) / parser.linear_unit_factor)
-  #define VOLUMETRIC_UNIT(N)  ((N) / (printer.isVolumetric() ? parser.volumetric_unit_factor : parser.linear_unit_factor))
+  #define VOLUMETRIC_UNIT(N)  ((N) / (toolManager.isVolumetric() ? parser.volumetric_unit_factor : parser.linear_unit_factor))
 #else
   #define LINEAR_UNIT(N)      N
   #define VOLUMETRIC_UNIT(N)  N

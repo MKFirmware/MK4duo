@@ -58,7 +58,7 @@
   #if ENABLED(UBL_DEVEL_DEBUGGING)
 
     static void debug_echo_axis(const AxisEnum axis) {
-      if (mechanics.current_position[axis] == mechanics.destination[axis])
+      if (mechanics.position[axis] == mechanics.destination[axis])
         SERIAL_MSG("-------------");
       else
         SERIAL_VAL(mechanics.destination.x, 6);
@@ -70,12 +70,12 @@
       // ignore the status of the bedlevel.flag.g26_debug
       if (*title != '!' && !bedlevel.flag.g26_debug) return;
 
-      const float de = mechanics.destination.e - mechanics.current_position.e;
+      const float de = mechanics.destination.e - mechanics.position.e;
 
       if (de == 0.0) return; // Printing moves only
 
-      const float dx = mechanics.destination.x - mechanics.current_position.x,
-                  dy = mechanics.destination.y - mechanics.current_position.y,
+      const float dx = mechanics.destination.x - mechanics.position.x,
+                  dy = mechanics.destination.y - mechanics.position.y,
                   xy_dist = HYPOT(dx, dy);
 
       if (xy_dist == 0.0) return;
@@ -83,10 +83,10 @@
       const float fpmm = de / xy_dist;
       SERIAL_MV("   fpmm=", fpmm, 6);
 
-      SERIAL_MV("    current=( ", mechanics.current_position.x, 6);
-      SERIAL_MV(", ", mechanics.current_position.y, 6);
-      SERIAL_MV(", ", mechanics.current_position.z, 6);
-      SERIAL_MV(", ", mechanics.current_position.e, 6);
+      SERIAL_MV("    current=( ", mechanics.position.x, 6);
+      SERIAL_MV(", ", mechanics.position.y, 6);
+      SERIAL_MV(", ", mechanics.position.z, 6);
+      SERIAL_MV(", ", mechanics.position.e, 6);
       SERIAL_MSG(" )   destination=( ");
       debug_echo_axis(X_AXIS); SERIAL_MSG(", ");
       debug_echo_axis(Y_AXIS); SERIAL_MSG(", ");
@@ -118,7 +118,7 @@
     bedlevel.set_bed_leveling_enabled(false);
     storage_slot = -1;
     ZERO(z_values);
-    if (was_enabled) mechanics.report_current_position();
+    if (was_enabled) mechanics.report_position();
   }
 
   void unified_bed_leveling::invalidate() {
@@ -187,7 +187,7 @@
     // Add XY_PROBE_OFFSET_FROM_EXTRUDER because probe_pt() subtracts these when
     // moving to the xy position to be measured. This ensures better agreement between
     // the current Z position after G28 and the mesh values.
-    const xy_int8_t curr = closest_indexes(xy_pos_t(mechanics.current_position) + xy_pos_t(probe.data.offset));
+    const xy_int8_t curr = closest_indexes(xy_pos_t(mechanics.position) + xy_pos_t(probe.data.offset));
 
     if (!lcd) SERIAL_EOL();
     for (int8_t j = GRID_MAX_POINTS_Y - 1; j >= 0; j--) {

@@ -35,6 +35,7 @@
  *
  *  T<tools>    Set extruder
  *  K<factor>   Set advance K factor
+ *  S<bool>     Set Test Linear Advance
  */
 inline void gcode_M900() {
 
@@ -49,13 +50,18 @@ inline void gcode_M900() {
   #endif
 
   if (parser.seenval('K')) {
-    const float newK = parser.floatval('K');
+    const float newK = parser.value_float();
     if (WITHIN(newK, 0, 10)) {
       planner.synchronize();
       extruders[toolManager.extruder.target]->data.advance_K = newK;
     }
     else
       SERIAL_EM("?K value out of range (0-10).");
+  }
+
+  if (parser.seenval('S')) {
+    toolManager.setTestLinAdvance(parser.value_bool());
+    toolManager.setup_test_linadvance();
   }
 
 }

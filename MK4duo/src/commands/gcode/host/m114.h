@@ -34,12 +34,12 @@
 inline void gcode_M114() {
 
   if (parser.seen('D')) {
-    mechanics.report_current_position_detail();
+    mechanics.report_position_detail();
     return;
   }
 
   planner.synchronize();
-  mechanics.report_current_position();
+  mechanics.report_position();
 
   if (parser.seen('S')) stepper.report_positions();
 }

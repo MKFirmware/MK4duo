@@ -87,7 +87,7 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
   // Did Z change since the last call?
   if (save_restart_timer.expired((SD_RESTART_FILE_SAVE_TIME) * 1000) || force_save
-      || mechanics.current_position.z > job_info.axis_position_mm.z
+      || mechanics.position.z > job_info.axis_position_mm.z
   ) {
 
     if (!++job_info.valid_head) ++job_info.valid_head; // non-zero in sequence
@@ -340,7 +340,7 @@ void Restart::write_job() {
     SERIAL_EMV(" Valid Foot:", (int)job_info.valid_foot);
     if (job_info.valid_head) {
       if (job_info.valid_head == job_info.valid_foot) {
-        SERIAL_MSG("current_position.x");
+        SERIAL_MSG("position.x");
         LOOP_XYZE(i) SERIAL_MV(": ", job_info.axis_position_mm[i]);
         SERIAL_EOL();
         SERIAL_MSG("target_temperature");

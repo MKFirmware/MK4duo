@@ -162,7 +162,7 @@ inline void gcode_M165() {
       echo_zt(mixer.gradient.end_vtool, mixer.gradient.end_z);
 
       mixer.update_mix_from_gradient();
-      SERIAL_MV(" ; Current Z", mechanics.current_position.z);
+      SERIAL_MV(" ; Current Z", mechanics.position.z);
       echo_mix();
     }
 

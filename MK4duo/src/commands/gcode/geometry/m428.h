@@ -32,7 +32,7 @@
 
   /**
    * M428: Set home_offset based on the distance between the
-   *       current_position.x and the nearest "reference point."
+   *       position.x and the nearest "reference point."
    *       If an axis is past center its Endstop position
    *       is the reference-point. Otherwise it uses 0. This allows
    *       the Z offset to be set near the bed when using a max Endstop.
@@ -46,9 +46,9 @@
 
     xyz_pos_t diff;
     LOOP_XYZ(i) {
-      diff[i] = mechanics.axis_home_pos(AxisEnum(i)) - mechanics.current_position[i];
+      diff[i] = mechanics.axis_home_pos(AxisEnum(i)) - mechanics.position[i];
       if (WITHIN(diff[i], -20, 20) && mechanics.get_homedir((AxisEnum)i) > 0)
-        diff[i] = -mechanics.current_position[i];
+        diff[i] = -mechanics.position[i];
       if (!WITHIN(diff[i], -20, 20)) {
         SERIAL_LM(ER, MSG_HOST_ERR_M428_TOO_FAR);
         LCD_ALERTMESSAGEPGM_P(PSTR("Err: Too far!"));
@@ -58,7 +58,7 @@
     }
 
     LOOP_XYZ(i) mechanics.set_home_offset((AxisEnum)i, diff[i]);
-    mechanics.report_current_position();
+    mechanics.report_position();
     LCD_MESSAGEPGM(MSG_OFFSETS_APPLIED);
     sound.feedback();
   }

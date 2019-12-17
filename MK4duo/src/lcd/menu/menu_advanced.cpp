@@ -42,20 +42,20 @@ void menu_tmc();
 
     #if ENABLED(LIN_ADVANCE)
       LOOP_EXTRUDER()
-        EDIT_ITEM_N(float52, e, MSG_ADVANCE_K, &extruders[e]->data.advance_K, 0, 999);
+        EDIT_ITEM_N(float52, e, MSG_ADVANCE_K, &extruders[e]->data.advance_K, 0, 10);
     #endif
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
 
-      editable.state = printer.isVolumetric();
+      editable.state = toolManager.isVolumetric();
       EDIT_ITEM(bool, MSG_VOLUMETRIC_ENABLED, &editable.state, []{
-        printer.setVolumetric(editable.state);
+        toolManager.setVolumetric(editable.state);
         toolManager.calculate_volumetric_multipliers;
       });
 
-      if (printer.isVolumetric()) {
+      if (toolManager.isVolumetric()) {
         LOOP_EXTRUDER()
-          EDIT_ITEM_FAST_N(float43, e, MSG_FILAMENT_DIAM, &toolManager.data.filament_size[e], 1.5f, 3.5f, toolManager.calculate_volumetric_multipliers);
+          EDIT_ITEM_FAST_N(float43, e, MSG_FILAMENT_DIAM, &extruders[e]->data.filament_size, 1.5f, 3.5f, toolManager.calculate_volumetric_multipliers);
       }
 
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)

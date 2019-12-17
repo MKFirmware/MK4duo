@@ -57,7 +57,7 @@ inline void gcode_G61() {
       mechanics.destination[i] = parser.value_axis_units((AxisEnum)i) + mechanics.stored_position[slot][i];
     }
     else {
-      mechanics.destination[i] = mechanics.current_position[i];
+      mechanics.destination[i] = mechanics.position[i];
     }
     SERIAL_MV(" ", axis_codes[i]);
     SERIAL_MV(":", mechanics.destination[i]);

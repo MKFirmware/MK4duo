@@ -53,7 +53,7 @@ inline void gcode_M206() {
     if (parser.seen('P')) mechanics.set_home_offset(Y_AXIS, parser.value_float()); // Psi
   #endif
 
-  mechanics.report_current_position();
+  mechanics.report_position();
 }
 
 #endif // ENABLED(WORKSPACE_OFFSETS)

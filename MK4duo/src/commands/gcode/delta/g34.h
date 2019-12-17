@@ -37,7 +37,7 @@
 
     if (mechanics.axis_unhomed_error()) return;
 
-    mechanics.data.height -= mechanics.current_position.z;
+    mechanics.data.height -= mechanics.position.z;
     mechanics.recalc_delta_settings();
     SERIAL_EMV("  New delta height:", mechanics.data.height, 3);
     sound.feedback();

@@ -47,7 +47,6 @@ union various_flag_t {
   struct {
     bool  Running           : 1;
     bool  PosSaved          : 1;
-    bool  Volumetric        : 1;
     bool  WaitForUser       : 1;
     bool  WaitForHeatUp     : 1;
     bool  AllowColdExtrude  : 1;
@@ -56,6 +55,7 @@ union various_flag_t {
     bool  G38Move           : 1;
     bool  statistics_loaded : 1;
     bool  RFID              : 1;
+    bool  bit10             : 1;
     bool  bit11             : 1;
     bool  bit12             : 1;
     bool  bit13             : 1;
@@ -177,10 +177,6 @@ class Printer {
     // Various flag bit 1 PosSaved
     FORCE_INLINE static void setPosSaved(const bool onoff) { various_flag.PosSaved = onoff; }
     FORCE_INLINE static bool isPosSaved() { return various_flag.PosSaved; }
-
-    // Various flag bit 2 Volumetric
-    FORCE_INLINE static void setVolumetric(const bool onoff) { various_flag.Volumetric = onoff; }
-    FORCE_INLINE static bool isVolumetric() { return various_flag.Volumetric; }
 
     // Various flag bit 3 WaitForUser
     FORCE_INLINE static void setWaitForUser(const bool onoff) { various_flag.WaitForUser = onoff; }

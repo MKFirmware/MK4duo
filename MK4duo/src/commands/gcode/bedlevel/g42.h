@@ -45,7 +45,7 @@ inline void gcode_G42() {
       return;
     }
 
-    mechanics.destination = mechanics.current_position;
+    mechanics.destination = mechanics.position;
 
     if (hasI) mechanics.destination.x = _GET_MESH_X(ix);
     if (hasJ) mechanics.destination.y = _GET_MESH_Y(iy);

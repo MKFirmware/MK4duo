@@ -309,7 +309,7 @@ void TempManager::spin() {
       const float nom_meas_ratio = 1.0 + 0.01f * measurement_delay[meas_shift_index],
                   ratio_2 = sq(nom_meas_ratio);
 
-      toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = printer.isVolumetric()
+      toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = toolManager.isVolumetric()
         ? ratio_2 / CIRCLE_AREA(filament_width_nominal * 0.5f)  // Volumetric uses a true volumetric multiplier
         : ratio_2;                                              // Linear squares the ratio, which scales the volume
 

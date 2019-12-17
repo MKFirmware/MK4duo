@@ -174,14 +174,14 @@ void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
     #endif
 
     if (flag.leveling_active) {      // leveling from on to off
-      // change unleveled current_position.x to physical current_position.x without moving steppers.
-      apply_leveling(mechanics.current_position);
+      // change unleveled position.x to physical position.x without moving steppers.
+      apply_leveling(mechanics.position);
       flag.leveling_active = false;  // disable only AFTER calling apply_leveling
     }
     else {                          // leveling from off to on
       flag.leveling_active = true;  // enable BEFORE calling unapply_leveling, otherwise ignored
-      // change physical current_position.x to unleveled current_position.x without moving steppers.
-      unapply_leveling(mechanics.current_position);
+      // change physical position.x to unleveled position.x without moving steppers.
+      unapply_leveling(mechanics.position);
     }
 
     mechanics.sync_plan_position();
@@ -202,10 +202,10 @@ void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
     force_fade_recalc();
 
     if (leveling_was_active) {
-      const xyz_pos_t oldpos = mechanics.current_position;
+      const xyz_pos_t oldpos = mechanics.position;
       set_bed_leveling_enabled();
-      if (do_report && oldpos != mechanics.current_position)
-        mechanics.report_current_position();
+      if (do_report && oldpos != mechanics.position)
+        mechanics.report_position();
     }
   }
 
@@ -304,14 +304,14 @@ void Bedlevel::reset() {
   void Bedlevel::manual_goto_xy(const xy_pos_t &pos) {
 
     #if MANUAL_PROBE_HEIGHT > 0
-      const float prev_z = mechanics.current_position.z;
+      const float prev_z = mechanics.position.z;
       mechanics.do_blocking_move_to_xy_z(pos, MANUAL_PROBE_HEIGHT);
       mechanics.do_blocking_move_to_z(prev_z);
     #else
       mechanics.do_blocking_move_to_xy(pos);
     #endif
 
-    mechanics.current_position = pos;
+    mechanics.position = pos;
 
     #if ENABLED(LCD_BED_LEVELING)
       lcdui.wait_for_bl_move = false;

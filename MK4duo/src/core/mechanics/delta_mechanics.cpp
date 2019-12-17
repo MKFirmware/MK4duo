@@ -111,7 +111,7 @@ void Delta_Mechanics::factory_parameters() {
  * The result is in the current coordinate space with
  * leveling applied. The coordinates need to be run through
  * unapply_leveling to obtain the "ideal" coordinates
- * suitable for current_position, etc.
+ * suitable for position, etc.
  */
 void Delta_Mechanics::get_cartesian_from_steppers() {
   InverseTransform(
@@ -136,12 +136,12 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
     const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
 
     // Get the cartesian distances moved in XYZE
-    const xyze_float_t difference = destination - current_position;
+    const xyze_float_t difference = destination - position;
 
     // If the move is only in Z/E don't split up the move
     if (!difference.x && !difference.y) {
       planner.buffer_line(destination, _feedrate_mm_s, toolManager.extruder.active);
-      return false; // caller will update current_position
+      return false; // caller will update position
     }
 
     // Fail if attempting move outside printable radius
@@ -182,7 +182,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
     //*/
 
     // Get the current position as starting point
-    xyze_pos_t raw = current_position;
+    xyze_pos_t raw = position;
 
     // Calculate and execute the segments
     while (--numLines) {
@@ -199,7 +199,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
     planner.buffer_line(destination, _feedrate_mm_s, toolManager.extruder.active, cartesian_segment_mm);
 
-    return false; // caller will update current_position.x
+    return false; // caller will update position.x
 
   }
 
@@ -224,7 +224,7 @@ void Delta_Mechanics::internal_move_to_destination(const feedrate_t &fr_mm_s/*=0
 }
 
 /**
- *  Plan a move to (X, Y, Z) and set the current_position
+ *  Plan a move to (X, Y, Z) and set the position
  */
 void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s/*=0.0f*/) {
 
@@ -237,37 +237,37 @@ void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const 
 
   REMEMBER(fr, feedrate_mm_s, xy_feedrate);
 
-  destination = current_position;          // sync destination at the start
+  destination = position;          // sync destination at the start
 
   if (printer.debugFeature()) DEBUG_POS("set_destination_to_current", destination);
 
   // when in the danger zone
-  if (current_position.z > delta_clip_start_height) {
+  if (position.z > delta_clip_start_height) {
     if (rz > delta_clip_start_height) {   // staying in the danger zone
       destination.set(rx, ry, rz);        // move directly (uninterpolated)
       prepare_uninterpolated_move_to_destination(); // set_current_to_destination
-      if (printer.debugFeature()) DEBUG_POS("danger zone move", current_position);
+      if (printer.debugFeature()) DEBUG_POS("danger zone move", position);
       return;
     }
     destination.z = delta_clip_start_height;
     prepare_uninterpolated_move_to_destination(); // set_current_to_destination
-    if (printer.debugFeature()) DEBUG_POS("zone border move", current_position);
+    if (printer.debugFeature()) DEBUG_POS("zone border move", position);
   }
 
-  if (rz > current_position.z) {    // raising?
+  if (rz > position.z) {    // raising?
     destination.z = rz;
     prepare_uninterpolated_move_to_destination(z_feedrate);   // set_current_to_destination
-    if (printer.debugFeature()) DEBUG_POS("z raise move", current_position);
+    if (printer.debugFeature()) DEBUG_POS("z raise move", position);
   }
 
   destination.set(rx, ry);
   prepare_move_to_destination();         // set_current_to_destination
-  if (printer.debugFeature()) DEBUG_POS("xy move", current_position);
+  if (printer.debugFeature()) DEBUG_POS("xy move", position);
 
-  if (rz < current_position.z) {    // lowering?
+  if (rz < position.z) {    // lowering?
     destination.z = rz;
     prepare_uninterpolated_move_to_destination(z_feedrate);   // set_current_to_destination
-    if (printer.debugFeature()) DEBUG_POS("z lower move", current_position);
+    if (printer.debugFeature()) DEBUG_POS("z lower move", position);
   }
 
   if (printer.debugFeature()) DEBUG_EM("<<< do_blocking_move_to");
@@ -276,7 +276,7 @@ void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const 
 
 }
 void Delta_Mechanics::do_blocking_move_to(const xy_pos_t &raw, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
+  do_blocking_move_to(raw.x, raw.y, position.z, fr_mm_s);
 }
 void Delta_Mechanics::do_blocking_move_to(const xyz_pos_t &raw, const feedrate_t &fr_mm_s/*=0.0f*/) {
   do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
@@ -286,20 +286,20 @@ void Delta_Mechanics::do_blocking_move_to(const xyze_pos_t &raw, const feedrate_
 }
 
 void Delta_Mechanics::do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(rx, current_position.y, current_position.z, fr_mm_s);
+  do_blocking_move_to(rx, position.y, position.z, fr_mm_s);
 }
 void Delta_Mechanics::do_blocking_move_to_y(const float &ry, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(current_position.x, ry, current_position.z, fr_mm_s);
+  do_blocking_move_to(position.x, ry, position.z, fr_mm_s);
 }
 void Delta_Mechanics::do_blocking_move_to_z(const float &rz, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(current_position.x, current_position.y, rz, fr_mm_s);
+  do_blocking_move_to(position.x, position.y, rz, fr_mm_s);
 }
 
 void Delta_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(rx, ry, current_position.z, fr_mm_s);
+  do_blocking_move_to(rx, ry, position.z, fr_mm_s);
 }
 void Delta_Mechanics::do_blocking_move_to_xy(const xy_pos_t &raw, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
+  do_blocking_move_to(raw.x, raw.y, position.z, fr_mm_s);
 }
 
 void Delta_Mechanics::do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedrate_t &fr_mm_s/*=0.0f*/) {
@@ -426,7 +426,7 @@ void Delta_Mechanics::recalc_delta_settings() {
 /**
  * Home Delta
  */
-void Delta_Mechanics::home(const bool report_position/*=true*/) {
+void Delta_Mechanics::home(const bool report/*=true*/) {
 
   if (printer.debugSimulation()) {
     LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
@@ -477,12 +477,12 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   bool come_back = parser.boolval('B');
   REMEMBER(fr, feedrate_mm_s);
-  stored_position[0] = current_position;
+  stored_position[0] = position;
 
-  if (printer.debugFeature()) DEBUG_POS(">>> home", current_position);
+  if (printer.debugFeature()) DEBUG_POS(">>> home", position);
 
   // Init the current position of all carriages to 0,0,0
-  current_position.reset();
+  position.reset();
   destination.reset();
   sync_plan_position();
 
@@ -533,7 +533,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   sync_plan_position();
 
-  if (printer.debugFeature()) DEBUG_POS("<<< home", current_position);
+  if (printer.debugFeature()) DEBUG_POS("<<< home", position);
 
   endstops.setNotHoming();
 
@@ -586,7 +586,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   lcdui.refresh();
 
-  if (report_position) report_current_position();
+  if (report) report_position();
 
   if (printer.debugFeature()) DEBUG_EM("<<< G28");
 
@@ -664,7 +664,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
  * Set an axis' current position to its home position (after homing).
  *
  * DELTA should wait until all homing is done before setting the XYZ
- * current_position.x to home, because homing is a single operation.
+ * position.x to home, because homing is a single operation.
  * In the case where the axis positions are already known and previously
  * homed, DELTA could home to X or Y individually by moving either one
  * to the center. However, homing Z always homes XY and Z.
@@ -680,14 +680,14 @@ void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
   setAxisHomed(axis, true);
 
-  current_position[axis] = (axis == C_AXIS ? data.height : 0.0f);
+  position[axis] = (axis == C_AXIS ? data.height : 0.0f);
 
   #if ENABLED(BABYSTEPPING) && ENABLED(BABYSTEP_DISPLAY_TOTAL)
     babystep.reset_total(axis);
   #endif
 
   if (printer.debugFeature()) {
-    DEBUG_POS("", current_position);
+    DEBUG_POS("", position);
     DEBUG_MC("<<< set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
@@ -705,15 +705,15 @@ bool Delta_Mechanics::position_is_reachable_by_probe(const float &rx, const floa
 }
 
 // Report detail current position to host
-void Delta_Mechanics::report_current_position_detail() {
+void Delta_Mechanics::report_position_detail() {
 
   SERIAL_MSG("\nLogical:");
-  report_xyz(current_position.asLogical());
+  report_xyz(position.asLogical());
 
   SERIAL_MSG("Raw:    ");
-  report_xyz(current_position);
+  report_xyz(position);
 
-  xyze_pos_t leveled = current_position;
+  xyze_pos_t leveled = position;
 
   #if HAS_LEVELING
     SERIAL_MSG("Leveled:");
@@ -872,7 +872,7 @@ void Delta_Mechanics::report_current_position_detail() {
 
   void Delta_Mechanics::nextion_gfx_clear() {
     nexlcd.gfx_clear(data.print_radius * 2, data.print_radius * 2, data.height);
-    nexlcd.gfx_cursor_to(current_position);
+    nexlcd.gfx_cursor_to(position);
   }
 
 #endif
@@ -929,7 +929,7 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
 }
 
 /**
- * Buffer a fast move without interpolation. Set current_position to destination
+ * Buffer a fast move without interpolation. Set position to destination
  */
 void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_t &fr_mm_s/*=0.0f*/) {
 
@@ -939,11 +939,11 @@ void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_
     // ubl segmented line will do z-only moves in single segment
     ubl.line_to_destination_segmented(MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s));
   #else
-    if (current_position == destination) return;
+    if (position == destination) return;
     planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), toolManager.extruder.active);
   #endif
 
-  current_position = destination;
+  position = destination;
 }
 
 void Delta_Mechanics::Set_clip_start_height() {
