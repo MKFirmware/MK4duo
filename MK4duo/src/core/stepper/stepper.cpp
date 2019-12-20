@@ -255,12 +255,12 @@ void Stepper::create_ext_driver() {
   LOOP_DRV_EXT() {
     if (!driver.e[d]) {
       driver.e[d] = new Driver(drv_e_label[d]);
-      driver_factory_parameters(driver.e[d], d + MAX_DRIVER_XYZ);
+      driver_factory_parameters(driver.e[d], d + 7);
       SERIAL_SM(ECHO, "Create driver ");
       driver.e[d]->printLabel(); SERIAL_EOL();
       driver.e[d]->init();
       #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-        externaldac.set_driver_current(d + MAX_DRIVER_XYZ, driver.e[d]->data.ma);
+        externaldac.set_driver_current(d + 7, driver.e[d]->data.ma);
       #endif
     }
   }
