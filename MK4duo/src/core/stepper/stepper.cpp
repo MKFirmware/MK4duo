@@ -323,7 +323,7 @@ void Stepper::factory_parameters() {
   create_driver();
 
   LOOP_DRV_ALL_XYZ()  if (driver[d]) driver_factory_parameters(driver[d], d);
-  LOOP_DRV_EXT()      if (driver[d]) driver_factory_parameters(driver.e[d], d + XYZ);
+  LOOP_DRV_EXT()      if (driver[d]) driver_factory_parameters(driver.e[d], d + 7);
 
   #if HAS_TRINAMIC
     tmc.factory_parameters();
