@@ -108,7 +108,7 @@
         }
         else {
           // Save Z for the previous mesh position
-          mbl.set_zigzag_z(mbl_probe_index - 1, mechanics.current_position.z);
+          mbl.set_zigzag_z(mbl_probe_index - 1, mechanics.position.z);
           #if HAS_SOFTWARE_ENDSTOPS
             endstops.setSoftEndstop(enable_soft_endstops);
           #endif
@@ -126,8 +126,8 @@
         }
         else {
           // One last "return to the bed" (as originally coded) at completion
-          mechanics.current_position.z = MANUAL_PROBE_HEIGHT;
-          mechanics.line_to_current_position();
+          mechanics.position.z = MANUAL_PROBE_HEIGHT;
+          mechanics.line_to_position();
           planner.synchronize();
 
           // After recording the last point, activate the mbl and home
@@ -139,8 +139,8 @@
           bedlevel.set_bed_leveling_enabled(true);
 
           #if ENABLED(MESH_G28_REST_ORIGIN)
-            mechanics.current_position.z = 0;
-            mechanics.line_to_current_position(mechanics.homing_feedrate_mm_s.z);
+            mechanics.position.z = 0;
+            mechanics.line_to_position(mechanics.homing_feedrate_mm_s.z);
             planner.synchronize();
           #endif
 
@@ -208,7 +208,7 @@
       SERIAL_EMV(" of ", int(GRID_MAX_POINTS));
     }
 
-    mechanics.report_current_position();
+    mechanics.report_position();
   }
 
 #endif // ENABLED(MESH_BED_LEVELING)

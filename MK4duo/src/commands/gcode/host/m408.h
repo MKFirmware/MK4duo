@@ -55,10 +55,10 @@
     else
       SERIAL_MSG("0, 0, 0");
 
-    SERIAL_MV("],\"extr\":[", mechanics.current_position.e);
-    SERIAL_MV("],\"xyz\":[", mechanics.current_position.x); // X AXIS
-    SERIAL_MV(",", mechanics.current_position.y);           // Y AXIS
-    SERIAL_MV(",", mechanics.current_position.z);           // Z AXIS
+    SERIAL_MV("],\"extr\":[", mechanics.position.e);
+    SERIAL_MV("],\"xyz\":[", mechanics.position.x); // X AXIS
+    SERIAL_MV(",", mechanics.position.y);           // Y AXIS
+    SERIAL_MV(",", mechanics.position.z);           // Z AXIS
 
     SERIAL_MV("]},\"currentTool\":", toolManager.extruder.active);
 
@@ -163,7 +163,7 @@
         SERIAL_MSG("\"printer.currentLayer\":");
         #if HAS_SD_SUPPORT
           if (IS_SD_PRINTING() && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
-            SERIAL_VAL((int) (mechanics.current_position.z / card.layerHeight));
+            SERIAL_VAL((int) (mechanics.position.z / card.layerHeight));
           }
           else SERIAL_VAL(0);
         #else
@@ -173,7 +173,7 @@
         firstOccurrence = true;
         LOOP_EXTRUDER() {
           if (!firstOccurrence) SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.current_position.e * toolManager.flow_percentage[e]);
+          SERIAL_VAL(mechanics.position.e * toolManager.flow_percentage[e]);
           firstOccurrence = false;
         }
         SERIAL_MSG("],");

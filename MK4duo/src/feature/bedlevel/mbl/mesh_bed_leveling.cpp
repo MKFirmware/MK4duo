@@ -47,7 +47,7 @@ void mesh_bed_leveling::factory_parameters() {
  */
 void mesh_bed_leveling::line_to_destination(const feedrate_t &scaled_fr_mm_s, uint8_t x_splits/*=0xFF*/, uint8_t y_splits/*=0xFF*/) {
   // Get current and destination cells for this line
-  xy_int8_t scel = cell_indexes(mechanics.current_position), ecel = cell_indexes(mechanics.destination);
+  xy_int8_t scel = cell_indexes(mechanics.position), ecel = cell_indexes(mechanics.destination);
   NOMORE(scel.x, GRID_MAX_POINTS_X - 2);
   NOMORE(scel.y, GRID_MAX_POINTS_Y - 2);
   NOMORE(ecel.x, GRID_MAX_POINTS_X - 2);
@@ -55,12 +55,12 @@ void mesh_bed_leveling::line_to_destination(const feedrate_t &scaled_fr_mm_s, ui
 
   // Start and end in the same cell? No split needed.
   if (scel == ecel) {
-    line_to_destination(scaled_fr_mm_s);
-    mechanics.current_position = mechanics.destination;
+    mechanics.line_to_destination(scaled_fr_mm_s);
+    mechanics.position = mechanics.destination;
     return;
   }
 
-  #define MBL_SEGMENT_END(A) (mechanics.current_position.A + (mechanics.destination.A - mechanics.current_position.A) * normalized_dist)
+  #define MBL_SEGMENT_END(A) (mechanics.position.A + (mechanics.destination.A - mechanics.position.A) * normalized_dist)
 
   float normalized_dist;
   xyze_pos_t end;
@@ -73,7 +73,7 @@ void mesh_bed_leveling::line_to_destination(const feedrate_t &scaled_fr_mm_s, ui
     CBI(x_splits, gcx);
     end = mechanics.destination;
     mechanics.destination.x = data.index_to_xpos[gcx];
-    normalized_dist = (mechanics.destination.x - mechanics.current_position.x) / (end.x - mechanics.current_position.x);
+    normalized_dist = (mechanics.destination.x - mechanics.position.x) / (end.x - mechanics.position.x);
     mechanics.destination.y = MBL_SEGMENT_END(y);
   }
   // Crosses on the Y and not already split on this Y?
@@ -82,14 +82,14 @@ void mesh_bed_leveling::line_to_destination(const feedrate_t &scaled_fr_mm_s, ui
     CBI(y_splits, gcy);
     end = mechanics.destination;
     mechanics.destination.y = data.index_to_ypos[gcy];
-    normalized_dist = (mechanics.destination.y - mechanics.current_position.y) / (end.y - mechanics.current_position.y);
+    normalized_dist = (mechanics.destination.y - mechanics.position.y) / (end.y - mechanics.position.y);
     mechanics.destination.x = MBL_SEGMENT_END(x);
   }
   else {
     // Must already have been split on these border(s)
     // This should be a rare case.
-    line_to_destination(scaled_fr_mm_s);
-    mechanics.current_position = mechanics.destination;
+    mechanics.line_to_destination(scaled_fr_mm_s);
+    mechanics.position = mechanics.destination;
     return;
   }
 
@@ -101,7 +101,7 @@ void mesh_bed_leveling::line_to_destination(const feedrate_t &scaled_fr_mm_s, ui
 
   // Restore destination from stack
   mechanics.destination = end;
-  line_to_destination(scaled_fr_mm_s, x_splits, y_splits);  
+  line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
 }
 
 void mesh_bed_leveling::report_mesh() {

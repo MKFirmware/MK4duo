@@ -36,24 +36,24 @@ void _lcd_goto_next_corner() {
   mechanics.do_blocking_move_to_z(LEVEL_CORNERS_Z_HOP, MMM_TO_MMS(manual_feedrate_mm_m.z));
   switch (bed_corner) {
     case 0:
-      mechanics.current_position.set(X_MIN_BED + LEVEL_CORNERS_INSET, Y_MIN_BED + LEVEL_CORNERS_INSET);
+      mechanics.position.set(X_MIN_BED + LEVEL_CORNERS_INSET, Y_MIN_BED + LEVEL_CORNERS_INSET);
       break;
     case 1:
-      mechanics.current_position.x = X_MAX_BED - (LEVEL_CORNERS_INSET);
+      mechanics.position.x = X_MAX_BED - (LEVEL_CORNERS_INSET);
       break;
     case 2:
-      mechanics.current_position.y = Y_MAX_BED - (LEVEL_CORNERS_INSET);
+      mechanics.position.y = Y_MAX_BED - (LEVEL_CORNERS_INSET);
       break;
     case 3:
-      mechanics.current_position.x = X_MIN_BED + (LEVEL_CORNERS_INSET);
+      mechanics.position.x = X_MIN_BED + (LEVEL_CORNERS_INSET);
       break;
     #if ENABLED(LEVEL_CENTER_TOO)
       case 4:
-        mechanics.current_position.set(X_CENTER, Y_CENTER);
+        mechanics.position.set(X_CENTER, Y_CENTER);
         break;
     #endif
   }
-  mechanics.line_to_current_position(MMM_TO_MMS(manual_feedrate_mm_m.x));
+  mechanics.line_to_position(MMM_TO_MMS(manual_feedrate_mm_m.x));
   mechanics.do_blocking_move_to_z(LEVEL_CORNERS_HEIGHT, MMM_TO_MMS(manual_feedrate_mm_m.z));
   if (++bed_corner > 3
     #if ENABLED(LEVEL_CENTER_TOO)

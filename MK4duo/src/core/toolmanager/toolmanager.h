@@ -30,10 +30,12 @@
 #include "extruder/extruder.h"
 
 struct tool_data_t {
-  uint8_t total     : 4;
-  uint8_t active    : 4;
-  uint8_t previous  : 4;
-  uint8_t target    : 4;
+  uint8_t total       : 4;
+  uint8_t active      : 4;
+  uint8_t previous    : 4;
+  uint8_t target      : 4;
+  bool    volumetric  : 1;
+  bool    LA_test     : 1;
 };
 
 class ToolManager {
@@ -100,19 +102,24 @@ class ToolManager {
     static void print_M563();
 
     #if ENABLED(LIN_ADVANCE)
+      static void setup_test_linadvance();
+      static void test_linadvance();
       static void print_M900();
+
+      FORCE_INLINE static void setTestLinAdvance(const bool onoff) { extruder.LA_test = onoff; }
+      FORCE_INLINE static bool IsTestLinAdvance() { return extruder.LA_test; }
     #endif
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static void print_M200();
+      static void calculate_volumetric_multipliers();
+
+      FORCE_INLINE static void setVolumetric(const bool onoff) { extruder.volumetric = onoff; }
+      FORCE_INLINE static bool isVolumetric() { return extruder.volumetric; }
     #endif
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(const bool retracting);
-    #endif
-
-    #if ENABLED(VOLUMETRIC_EXTRUSION)
-      static void calculate_volumetric_multipliers();
     #endif
 
     #if ENABLED(EXT_SOLENOID)

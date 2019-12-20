@@ -42,8 +42,8 @@
  */
 inline void gcode_G30() {
 
-  const float xpos = parser.linearval('X', mechanics.current_position.x + probe.data.offset.x),
-              ypos = parser.linearval('Y', mechanics.current_position.y + probe.data.offset.y);
+  const float xpos = parser.linearval('X', mechanics.position.x + probe.data.offset.x),
+              ypos = parser.linearval('Y', mechanics.position.y + probe.data.offset.y);
 
   // Don't allow G30 without homing first
   if (mechanics.axis_unhomed_error()) return;
@@ -86,7 +86,7 @@ inline void gcode_G30() {
     if (raise_after == PROBE_PT_STOW) probe.move_z_after_probing();
   #endif
 
-  mechanics.report_current_position();
+  mechanics.report_position();
 }
 
 #endif // HAS_BED_PROBE

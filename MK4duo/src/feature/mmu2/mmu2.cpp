@@ -614,7 +614,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         SERIAL_EM("MMU not responding");
 
         resume_hotend_temp = hotends[0]->deg_target();
-        COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position.x);
+        COPY_ARRAY(mechanics.stored_position[0], mechanics.position.x);
 
         if (move_axes && mechanics.isHomedAll())
           Nozzle::park(2);
@@ -748,8 +748,8 @@ void MMU2::set_runout_valid(const bool valid) {
     mechanics.axis_relative_modes[E_AXIS] = true;
 
     stepper.enable_E(0);
-    mechanics.current_position.e -= MMU2_FILAMENTCHANGE_EJECT_FEED;
-    planner.buffer_line(mechanics.current_position, 2500 / 60, toolManager.extruder.active);
+    mechanics.position.e -= MMU2_FILAMENTCHANGE_EJECT_FEED;
+    planner.buffer_line(mechanics.position, 2500 / 60, toolManager.extruder.active);
     planner.synchronize();
     command(MMU_CMD_E0 + index);
     manage_response(false, false);
@@ -840,8 +840,8 @@ void MMU2::set_runout_valid(const bool valid) {
         DEBUG_EV(fr);
       #endif
 
-      mechanics.current_position.e += es;
-      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(fr), toolManager.extruder.active);
+      mechanics.position.e += es;
+      planner.buffer_line(mechanics.position, MMM_TO_MMS(fr), toolManager.extruder.active);
       planner.synchronize();
 
       step++;

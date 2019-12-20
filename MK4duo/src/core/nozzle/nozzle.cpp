@@ -118,13 +118,13 @@ void Nozzle::factory_parameters() {
       end = middle;
     }
     else {
-      if (!TEST(cleans, X_AXIS))  start.x = end.x = mechanics.current_position.x;
-      if (!TEST(cleans, X_AXIS))  start.y = end.y = mechanics.current_position.y;
+      if (!TEST(cleans, X_AXIS))  start.x = end.x = mechanics.position.x;
+      if (!TEST(cleans, X_AXIS))  start.y = end.y = mechanics.position.y;
     }
-    if (!TEST(cleans, Z_AXIS))    start.z = end.z = mechanics.current_position.z;
+    if (!TEST(cleans, Z_AXIS))    start.z = end.z = mechanics.position.z;
 
     #if MECH(DELTA)
-      if (mechanics.current_position.z > mechanics.delta_clip_start_height)
+      if (mechanics.position.z > mechanics.delta_clip_start_height)
         mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
     #endif
 
@@ -150,11 +150,11 @@ void Nozzle::factory_parameters() {
         break;
 
       case 2: // Raise by Z-park height
-        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position.z + park_p.z, Z_MAX_BED), fr_z);
+        mechanics.do_blocking_move_to_z(MIN(mechanics.position.z + park_p.z, Z_MAX_BED), fr_z);
         break;
 
       default: // Raise to Z-park height if lower
-        mechanics.do_blocking_move_to_z(MAX(park_p.z, mechanics.current_position.z), fr_z);
+        mechanics.do_blocking_move_to_z(MAX(park_p.z, mechanics.position.z), fr_z);
     }
 
     mechanics.do_blocking_move_to_xy(park_p.x, park_p.y, fr_xy);
@@ -169,7 +169,7 @@ void Nozzle::factory_parameters() {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      const xyz_pos_t initial = mechanics.current_position;
+      const xyz_pos_t initial = mechanics.position;
     #endif
 
     // Move to the starting point
@@ -200,7 +200,7 @@ void Nozzle::factory_parameters() {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      const xyz_pos_t initial = mechanics.current_position;
+      const xyz_pos_t initial = mechanics.position;
     #endif
 
     #if ENABLED(NOZZLE_CLEAN_NO_Z)
@@ -244,7 +244,7 @@ void Nozzle::factory_parameters() {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      const xyz_pos_t initial = mechanics.current_position;
+      const xyz_pos_t initial = mechanics.position;
     #endif
 
     #if ENABLED(NOZZLE_CLEAN_NO_Z)

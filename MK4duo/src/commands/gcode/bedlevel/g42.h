@@ -45,7 +45,7 @@ inline void gcode_G42() {
       return;
     }
 
-    mechanics.destination = mechanics.current_position;
+    mechanics.destination = mechanics.position;
 
     if (hasI) mechanics.destination.x = _GET_MESH_X(ix);
     if (hasJ) mechanics.destination.y = _GET_MESH_Y(iy);
@@ -62,9 +62,9 @@ inline void gcode_G42() {
 
     // SCARA kinematic has "safe" XY raw moves
     #if IS_SCARA
-      mechanics.prepare_uninterpolated_move_to_destination();
+      mechanics.prepare_uninterpolated_move_to_destination(fr_mm_s);
     #else
-      mechanics.prepare_internal_move_to_destination();
+      mechanics.prepare_internal_move_to_destination(fr_mm_s);
     #endif
 
   }

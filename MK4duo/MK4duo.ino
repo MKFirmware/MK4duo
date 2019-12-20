@@ -273,7 +273,7 @@
  * M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL)
  *          Z[height] for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M421 - Set a single Z coordinate in the Mesh Leveling grid. X[units] Y[units] Z[units] (Requires MESH_BED_LEVELING, AUTO_BED_LEVELING_BILINEAR, or AUTO_BED_LEVELING_UBL)
- * M428 - Set the home_offset logically based on the current_position
+ * M428 - Set the home_offset logically based on the position
  * M450 - Report Printer Mode
  * M451 - Select FFF Printer Mode
  * M452 - Select Laser Printer Mode

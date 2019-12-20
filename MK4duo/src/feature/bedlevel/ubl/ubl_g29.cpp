@@ -380,7 +380,7 @@
           restore_ubl_active_state_and_leave();
         }
         mechanics.do_blocking_move_to_xy(0.5f * (MESH_MAX_X - (MESH_MIN_X)), 0.5f * (MESH_MAX_Y - (MESH_MIN_Y)));
-        mechanics.report_current_position();
+        mechanics.report_position();
         probe_deployed = true;
       }
 
@@ -420,7 +420,7 @@
             const xy_pos_t near = g29_pos + probe.data.offset;
             probe_entire_mesh(near, parser.seen('T'), parser.seen('E'), parser.seen('U'));
 
-            mechanics.report_current_position();
+            mechanics.report_position();
             probe_deployed = true;
           } break;
 
@@ -471,7 +471,7 @@
 
             SERIAL_EM("G29 P2 finished.");
 
-            mechanics.report_current_position();
+            mechanics.report_position();
 
           #else // !HAS_LCD_MENU && !HAS_NEXTION_LCD
 
@@ -790,7 +790,7 @@
         printer.idle();
         printer.reset_move_timer();  // Keep steppers powered
         if (encoder_diff) {
-          mechanics.do_blocking_move_to_z(mechanics.current_position.z + float(encoder_diff) * multiplier);
+          mechanics.do_blocking_move_to_z(mechanics.position.z + float(encoder_diff) * multiplier);
           encoder_diff = 0;
         }
       }
@@ -799,7 +799,7 @@
     float unified_bed_leveling::measure_point_with_encoder() {
       PRINTER_KEEPALIVE(PausedforUser);
       move_z_with_encoder(0.01f);
-      return mechanics.current_position.z;
+      return mechanics.position.z;
     }
 
     static void echo_and_take_a_measurement() { SERIAL_EM(" and take a measurement."); }
@@ -817,7 +817,7 @@
       echo_and_take_a_measurement();
 
       const float z1 = measure_point_with_encoder();
-      mechanics.do_blocking_move_to_z(mechanics.current_position.z + SIZE_OF_LITTLE_RAISE);
+      mechanics.do_blocking_move_to_z(mechanics.position.z + SIZE_OF_LITTLE_RAISE);
       planner.synchronize();
 
       SERIAL_MSG("Remove shim");
@@ -826,7 +826,7 @@
 
       const float z2 = measure_point_with_encoder();
 
-      mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT);
+      mechanics.do_blocking_move_to_z(mechanics.position.z + Z_PROBE_BETWEEN_HEIGHT);
 
       const float thickness = ABS(z1 - z2);
 
@@ -848,7 +848,7 @@
       lcdui.capture();
 
       save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
-      mechanics.do_blocking_move_to_xy_z(mechanics.current_position, z_clearance);
+      mechanics.do_blocking_move_to_xy_z(mechanics.position, z_clearance);
 
       lcdui.return_to_status();
 
@@ -891,7 +891,7 @@
           return restore_ubl_active_state_and_leave();
         }
 
-        z_values[lpos.x][lpos.y] = mechanics.current_position.z - thick;
+        z_values[lpos.x][lpos.y] = mechanics.position.z - thick;
         if (g29_verbose_level > 2) {
           SERIAL_MSG("Mesh Point Measured at: ");
           SERIAL_VAL(z_values[lpos.x][lpos.y], 6);
@@ -1077,9 +1077,9 @@
     }
 
     xy_seen.x = parser.seenval('X');
-    float sx = xy_seen.x ? parser.value_float() : mechanics.current_position.x;
+    float sx = xy_seen.x ? parser.value_float() : mechanics.position.x;
     xy_seen.y = parser.seenval('Y');
-    float sy = xy_seen.y ? parser.value_float() : mechanics.current_position.y;
+    float sy = xy_seen.y ? parser.value_float() : mechanics.position.y;
 
     if (xy_seen.x != xy_seen.y) {
       SERIAL_EM("Both X & Y locations must be specified.\n");
@@ -1254,7 +1254,7 @@
 
           // Reachable. Check if it's the best_so_far location to the nozzle.
 
-          const xy_pos_t diff = mechanics.current_position - mpos;
+          const xy_pos_t diff = mechanics.position - mpos;
           const float distance = (ref - mpos).magnitude() + diff.magnitude() * 0.1f;
 
           // factor in the distance from the current location for the normal case

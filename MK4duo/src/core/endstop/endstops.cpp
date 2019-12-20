@@ -883,15 +883,15 @@ void Endstops::update_software_endstops(const AxisEnum axis) {
         soft_endstop.max.x = dual_max_x;
       }
       else if (mechanics.dxc_is_duplicating()) {
-        // In Duplication Mode, T0 can move as far left as X_MIN_POS
+        // In Duplication Mode, T0 can move as far left as X1_MIN_POS
         // but not so far to the right that T1 would move past the end
-        soft_endstop.min.x = mechanics.data.base_pos.min.x;
-        soft_endstop.max.x = MIN(mechanics.data.base_pos.max.x, dual_max_x - mechanics.duplicate_extruder_x_offset);
+        soft_endstop.min.x = X1_MIN_POS;
+        soft_endstop.max.x = MIN(X1_MAX_POS, dual_max_x - mechanics.duplicate_extruder_x_offset);
       }
       else {
-        // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
-        soft_endstop.min[axis] = mechanics.data.base_pos.min[axis];
-        soft_endstop.max[axis] = mechanics.data.base_pos.max[axis];
+        // In other modes, T0 can move from X1_MIN_POS to X1_MAX_POS
+        soft_endstop.min[axis] = X1_MIN_POS;
+        soft_endstop.max[axis] = X1_MAX_POS;
       }
     }
 

@@ -46,7 +46,7 @@ extern int8_t manual_move_axis;
 #endif
 
 //
-// Tell lcdui.update() to start a move to current_position.x" after a short delay.
+// Tell lcdui.update() to start a move to position.x" after a short delay.
 //
 inline void manual_move_to_current(AxisEnum axis, const int8_t eindex=-1) {
   if (axis == E_AXIS) lcdui.manual_move_e_index = eindex >= 0 ? eindex : toolManager.extruder.active;
@@ -63,8 +63,8 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
   if (lcdui.encoderPosition && !lcdui.processing_manual_move) {
 
     // Start with no limits to movement
-    float min = mechanics.current_position[axis] - 1000,
-          max = mechanics.current_position[axis] + 1000;
+    float min = mechanics.position[axis] - 1000,
+          max = mechanics.position[axis] + 1000;
 
     // Limit to software endstops, if enabled
     #if HAS_SOFTWARE_ENDSTOPS && !MECH(DELTA)
@@ -101,7 +101,7 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
       // Delta limits XY based on the current offset from center
       // This assumes the center is 0,0
       if (axis != Z_AXIS) {
-        max = SQRT(sq((float)(mechanics.data.print_radius)) - sq(mechanics.current_position[Y_AXIS - axis]));
+        max = SQRT(sq((float)(mechanics.data.print_radius)) - sq(mechanics.position[Y_AXIS - axis]));
         min = -max;
       }
 
@@ -112,15 +112,15 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
     #if IS_KINEMATIC
       manual_move_offset += diff;
       if (int32_t(lcdui.encoderPosition < 0))
-        NOLESS(manual_move_offset, min - mechanics.current_position[axis]);
+        NOLESS(manual_move_offset, min - mechanics.position[axis]);
       else
-        NOMORE(manual_move_offset, max - mechanics.current_position[axis]);
+        NOMORE(manual_move_offset, max - mechanics.position[axis]);
     #else
-      mechanics.current_position[axis] += diff;
+      mechanics.position[axis] += diff;
       if (int32_t(lcdui.encoderPosition < 0))
-        NOLESS(mechanics.current_position[axis], min);
+        NOLESS(mechanics.position[axis], min);
       else
-        NOMORE(mechanics.current_position[axis], max);
+        NOMORE(mechanics.position[axis], max);
     #endif
 
     manual_move_to_current(axis);
@@ -128,7 +128,7 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
   }
   lcdui.encoderPosition = 0;
   if (lcdui.should_draw()) {
-    const float pos = NATIVE_TO_LOGICAL(lcdui.processing_manual_move ? mechanics.destination[axis] : mechanics.current_position[axis]
+    const float pos = NATIVE_TO_LOGICAL(lcdui.processing_manual_move ? mechanics.destination[axis] : mechanics.position[axis]
       #if IS_KINEMATIC
         + manual_move_offset
       #endif
@@ -148,7 +148,7 @@ void lcd_move_e(const int8_t eindex=-1) {
       #if IS_KINEMATIC
         manual_move_offset += diff;
       #else
-        mechanics.current_position.e += diff;
+        mechanics.position.e += diff;
       #endif
       manual_move_to_current(E_AXIS, eindex);
       lcdui.refresh(LCDVIEW_REDRAW_NOW);
@@ -157,7 +157,7 @@ void lcd_move_e(const int8_t eindex=-1) {
   }
   if (lcdui.should_draw()) {
     MenuItemBase::init(eindex);
-    MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_MOVE_E), ftostr41sign(mechanics.current_position.e
+    MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_MOVE_E), ftostr41sign(mechanics.position.e
       #if IS_KINEMATIC
         + manual_move_offset
       #endif
@@ -242,7 +242,7 @@ void menu_move() {
   ) {
     if (true
       #if MECH(DELTA)
-        && mechanics.current_position.z <= mechanics.delta_clip_start_height
+        && mechanics.position.z <= mechanics.delta_clip_start_height
       #endif
     ) {
       SUBMENU(MSG_MOVE_X, []{ _menu_move_distance(X_AXIS, lcd_move_x); });

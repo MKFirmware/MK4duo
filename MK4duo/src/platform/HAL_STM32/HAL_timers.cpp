@@ -47,7 +47,7 @@ hal_timer_t HAL_isr_execuiton_cycle(const hal_timer_t rate) {
 }
 
 hal_timer_t HAL_ns_to_pulse_tick(const hal_timer_t ns) {
-  return (STEPPER_TIMER_TICKS_PER_US) * ns / 1000UL;
+  return (ns + STEPPER_TIMER_PULSE_TICK_NS / 2) / STEPPER_TIMER_PULSE_TICK_NS;
 }
 
 void HAL_calc_pulse_cycle() {

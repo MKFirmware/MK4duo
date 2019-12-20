@@ -271,13 +271,13 @@ void LcdUI::draw_status_screen() {
       #endif
       heat_bits = new_bits;
     #endif
-    strcpy(xstring, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position.x)));
-    strcpy(ystring, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position.y)));
-    strcpy(zstring, ftostr52sp (LOGICAL_Z_POSITION(mechanics.current_position.z)));
+    strcpy(xstring, ftostr4sign(LOGICAL_X_POSITION(mechanics.position.x)));
+    strcpy(ystring, ftostr4sign(LOGICAL_Y_POSITION(mechanics.position.y)));
+    strcpy(zstring, ftostr52sp (LOGICAL_Z_POSITION(mechanics.position.z)));
     #if HAS_LCD_FILAMENT_SENSOR
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, i16tostr3(100.0 * (
-          printer.isVolumetric()
+          toolManager.isVolumetric()
             ? toolManager.volumetric_area_nominal / toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
             : toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
         )

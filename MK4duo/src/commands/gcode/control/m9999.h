@@ -39,9 +39,6 @@ inline void gcode_M9999() { initiateReset(1000); }
 
 #define CODE_M9999
 
-#include <bootloader.h>
-#include <backup.h>
-
 /**
  * M9999: DFU mode software in STM32
  */

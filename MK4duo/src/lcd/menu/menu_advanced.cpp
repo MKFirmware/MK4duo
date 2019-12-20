@@ -42,20 +42,20 @@ void menu_tmc();
 
     #if ENABLED(LIN_ADVANCE)
       LOOP_EXTRUDER()
-        EDIT_ITEM_N(float52, e, MSG_ADVANCE_K, &extruders[e]->data.advance_K, 0, 999);
+        EDIT_ITEM_N(float52, e, MSG_ADVANCE_K, &extruders[e]->data.advance_K, 0, 10);
     #endif
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
 
-      editable.state = printer.isVolumetric();
+      editable.state = toolManager.isVolumetric();
       EDIT_ITEM(bool, MSG_VOLUMETRIC_ENABLED, &editable.state, []{
-        printer.setVolumetric(editable.state);
+        toolManager.setVolumetric(editable.state);
         toolManager.calculate_volumetric_multipliers;
       });
 
-      if (printer.isVolumetric()) {
+      if (toolManager.isVolumetric()) {
         LOOP_EXTRUDER()
-          EDIT_ITEM_FAST_N(float43, e, MSG_FILAMENT_DIAM, &toolManager.data.filament_size[e], 1.5f, 3.5f, toolManager.calculate_volumetric_multipliers);
+          EDIT_ITEM_FAST_N(float43, e, MSG_FILAMENT_DIAM, &extruders[e]->data.filament_size, 1.5f, 3.5f, toolManager.calculate_volumetric_multipliers);
       }
 
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
@@ -133,7 +133,7 @@ void menu_advanced_temperature() {
           EDIT_ITEM_N(float3, h, MSG_PID_C, &hotends[h]->data.pid.Kc, 1, 9990);
         #endif
         EDIT_ITEM_FAST_N(int3, h, MSG_PID_AUTOTUNE, &autotune_temp[h], 150, hotends[h]->data.temp.max - 10, []{
-          sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), int(MenuItemBase::itemIndex), autotune_temp[MenuItemBase::itemIndex]);
+          sprintf_P(cmd, PSTR("M303 U1 H%d S%d"), int(MenuItemBase::itemIndex), autotune_temp[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
       }
@@ -148,7 +148,7 @@ void menu_advanced_temperature() {
         EDIT_ITEM_N(float52, h, MSG_BED_PID_I, &beds[h]->data.pid.Ki, 0.01f, 9990);
         EDIT_ITEM_N(float52, h, MSG_BED_PID_D, &beds[h]->data.pid.Kd, 1, 9990);
         EDIT_ITEM_FAST_N(int3, h, MSG_PID_BED_AUTOTUNE, &autotune_temp_bed[h], 30, beds[h]->data.temp.max - 10, []{
-          sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), MenuItemBase::itemIndex, autotune_temp_bed[MenuItemBase::itemIndex]);
+          sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), int(MenuItemBase::itemIndex), autotune_temp_bed[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
       }
@@ -163,7 +163,7 @@ void menu_advanced_temperature() {
         EDIT_ITEM_N(float52, h, MSG_CHAMBER_PID_I, &chambers[h]->data.pid.Ki, 0.01f, 9990);
         EDIT_ITEM_N(float52, h, MSG_CHAMBER_PID_D, &chambers[h]->data.pid.Kd, 1, 9990);
         EDIT_ITEM_FAST_N(int3, h, MSG_PID_CHAMBER_AUTOTUNE, &autotune_temp_chamber[h], 30, chambers[h]->data.temp.max - 10, []{
-          sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), MenuItemBase::itemIndex, autotune_temp_chamber[MenuItemBase::itemIndex]);
+          sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), int(MenuItemBase::itemIndex), autotune_temp_chamber[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
       }

@@ -171,12 +171,12 @@ void Printer::setup() {
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on data.home_offset
-    mechanics.current_position = mechanics.data.home_offset;
+    mechanics.position = mechanics.data.home_offset;
   #else
-    mechanics.current_position.reset();
+    mechanics.position.reset();
   #endif
 
-  // Vital to init stepper/planner equivalent for current_position
+  // Vital to init stepper/planner equivalent for position
   mechanics.sync_plan_position();
 
   // Initialize stepper. This enables interrupts!
@@ -305,13 +305,6 @@ void Printer::loop() {
 void Printer::factory_parameters() {
   various_flag.all = 0x0000;
 
-  #if ENABLED(VOLUMETRIC_EXTRUSION)
-    #if ENABLED(VOLUMETRIC_DEFAULT_ON)
-      setVolumetric(true);
-    #else
-      setVolumetric(false);
-    #endif
-  #endif
   #if HAS_SERVOS
     #if HAS_DONDOLO
       servo[DONDOLO_SERVO_INDEX].angle[0] = DONDOLO_SERVOPOS_E0;
@@ -370,7 +363,7 @@ void Printer::safe_delay(millis_l time) {
 void Printer::quickstop_stepper() {
   planner.quick_stop();
   planner.synchronize();
-  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.set_position_from_steppers_for_axis(ALL_AXES);
   mechanics.sync_plan_position();
 }
 
@@ -671,10 +664,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       && extruder_runout_timer.expired((EXTRUDER_RUNOUT_SECONDS) * 1000)
       && !planner.has_blocks_queued()
     ) {
-      const float olde = mechanics.current_position.e;
-      mechanics.current_position.e += EXTRUDER_RUNOUT_EXTRUDE;
-      mechanics.line_to_current_position(MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED));
-      mechanics.current_position.e = olde;
+      const float olde = mechanics.position.e;
+      mechanics.position.e += EXTRUDER_RUNOUT_EXTRUDE;
+      mechanics.line_to_position(MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED));
+      mechanics.position.e = olde;
       planner.set_e_position_mm(olde);
       planner.synchronize();
     }
@@ -682,9 +675,9 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (delayed_move_timer.expired(1000, false) && isRunning()) {
+    if (mechanics.delayed_move_timer.expired(1000, false) && isRunning()) {
       // travel moves have been received so enact them
-      mechanics.destination = mechanics.current_position;
+      mechanics.destination = mechanics.position;
       mechanics.prepare_move_to_destination();
     }
   #endif

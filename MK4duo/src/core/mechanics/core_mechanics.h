@@ -56,7 +56,7 @@ class Core_Mechanics: public Mechanics {
      * The result is in the current coordinate space with
      * leveling applied. The coordinates need to be run through
      * unapply_leveling to obtain the "ideal" coordinates
-     * suitable for current_position.x, etc.
+     * suitable for position.x, etc.
      */
     static void get_cartesian_from_steppers();
 
@@ -70,7 +70,7 @@ class Core_Mechanics: public Mechanics {
     }
 
     /**
-     *  Plan a move to (X, Y, Z) and set the current_position
+     *  Plan a move to (X, Y, Z) and set the position
      */
     static void do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s=0.0f);
     static void do_blocking_move_to(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0.0f);
@@ -84,10 +84,10 @@ class Core_Mechanics: public Mechanics {
     static void do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s=0.0f);
     static void do_blocking_move_to_xy(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0.0f);
     FORCE_INLINE static void do_blocking_move_to_xy(const xyz_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
+      do_blocking_move_to(raw.x, raw.y, position.z, fr_mm_s);
     }
     FORCE_INLINE static void do_blocking_move_to_xy(const xyze_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
+      do_blocking_move_to(raw.x, raw.y, position.z, fr_mm_s);
     }
 
     static void do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedrate_t &fr_mm_s=0.0f);
@@ -114,7 +114,7 @@ class Core_Mechanics: public Mechanics {
      * When a mesh-based leveling system is active, moves are segmented
      * according to the configuration of the leveling system.
      *
-     * Returns true if current_position[] was set to destination[]
+     * Returns true if position[] was set to destination[]
      */
     static bool prepare_move_to_destination_mech_specific();
 
@@ -155,7 +155,7 @@ class Core_Mechanics: public Mechanics {
     /**
      * Report current position to host
      */
-    static void report_current_position_detail();
+    static void report_position_detail();
 
     /**
      * Print mechanics parameters in memory

@@ -38,12 +38,12 @@ mechanics_data_t Cartesian_Mechanics::data;
 #if ENABLED(DUAL_X_CARRIAGE)
   DualXModeEnum Cartesian_Mechanics::dual_x_carriage_mode           = DEFAULT_DUAL_X_CARRIAGE_MODE;
   float         Cartesian_Mechanics::inactive_extruder_x_pos        = X2_MAX_POS,
-                Cartesian_Mechanics::raised_parked_position[XYZE],
                 Cartesian_Mechanics::duplicate_extruder_x_offset    = DEFAULT_DUPLICATION_X_OFFSET;
+  xyz_pos_t     Cartesian_Mechanics::raised_parked_position;
   int16_t       Cartesian_Mechanics::duplicate_extruder_temp_offset = 0;
   bool          Cartesian_Mechanics::active_extruder_parked         = false,
                 Cartesian_Mechanics::extruder_duplication_enabled   = false,
-                Cartesian_Mechanics::scaled_duplication_mode        = false;
+                Cartesian_Mechanics::mirrored_duplication_mode      = false;
   short_timer_t Cartesian_Mechanics::delayed_move_timer;
 #endif
 
@@ -56,8 +56,7 @@ void Cartesian_Mechanics::factory_parameters() {
   static const float    tmp_step[]          PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
                         tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE;
 
-  static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
-                        tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+  static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION;
 
   LOOP_XYZ(axis) {
     data.axis_steps_per_mm[axis]          = pgm_read_float(&tmp_step[axis < COUNT(tmp_step) ? axis : COUNT(tmp_step) - 1]);
@@ -93,7 +92,7 @@ void Cartesian_Mechanics::factory_parameters() {
  * The result is in the current coordinate space with
  * leveling applied. The coordinates need to be run through
  * unapply_leveling to obtain the "ideal" coordinates
- * suitable for current_position.x, etc.
+ * suitable for position.x, etc.
  */
 void Cartesian_Mechanics::get_cartesian_from_steppers() {
   cartesian_position.set(planner.get_axis_position_mm(X_AXIS), planner.get_axis_position_mm(Y_AXIS), planner.get_axis_position_mm(Z_AXIS));
@@ -111,7 +110,7 @@ void Cartesian_Mechanics::internal_move_to_destination(const feedrate_t &fr_mm_s
 }
 
 /**
- *  Plan a move to (X, Y, Z) and set the current_position
+ *  Plan a move to (X, Y, Z) and set the position
  */
 void Cartesian_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s /*=0.0f*/) {
 
@@ -121,18 +120,18 @@ void Cartesian_Mechanics::do_blocking_move_to(const float rx, const float ry, co
                     xy_feedrate = fr_mm_s ? fr_mm_s : feedrate_t(XY_PROBE_FEEDRATE_MM_S);
 
   // If Z needs to raise, do it before moving XY
-  if (current_position.z < rz) {
-    current_position.z = rz;
-    line_to_current_position(z_feedrate);
+  if (position.z < rz) {
+    position.z = rz;
+    line_to_position(z_feedrate);
   }
 
-  current_position.set(rx, ry);
-  line_to_current_position(xy_feedrate);
+  position.set(rx, ry);
+  line_to_position(xy_feedrate);
 
   // If Z needs to lower, do it after moving XY
-  if (current_position.z > rz) {
-    current_position.z = rz;
-    line_to_current_position(z_feedrate);
+  if (position.z > rz) {
+    position.z = rz;
+    line_to_position(z_feedrate);
   }
 
   if (printer.debugFeature()) DEBUG_EM("<<< do_blocking_move_to");
@@ -141,7 +140,7 @@ void Cartesian_Mechanics::do_blocking_move_to(const float rx, const float ry, co
 
 }
 void Cartesian_Mechanics::do_blocking_move_to(const xy_pos_t &raw, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
+  do_blocking_move_to(raw.x, raw.y, position.z, fr_mm_s);
 }
 void Cartesian_Mechanics::do_blocking_move_to(const xyz_pos_t &raw, const feedrate_t &fr_mm_s/*=0.0f*/) {
   do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
@@ -151,20 +150,20 @@ void Cartesian_Mechanics::do_blocking_move_to(const xyze_pos_t &raw, const feedr
 }
 
 void Cartesian_Mechanics::do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(rx, current_position.y, current_position.z, fr_mm_s);
+  do_blocking_move_to(rx, position.y, position.z, fr_mm_s);
 }
 void Cartesian_Mechanics::do_blocking_move_to_y(const float &ry, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(current_position.x, ry, current_position.z, fr_mm_s);
+  do_blocking_move_to(position.x, ry, position.z, fr_mm_s);
 }
 void Cartesian_Mechanics::do_blocking_move_to_z(const float &rz, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(current_position.x, current_position.y, rz, fr_mm_s);
+  do_blocking_move_to(position.x, position.y, rz, fr_mm_s);
 }
 
 void Cartesian_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(rx, ry, current_position.z, fr_mm_s);
+  do_blocking_move_to(rx, ry, position.z, fr_mm_s);
 }
 void Cartesian_Mechanics::do_blocking_move_to_xy(const xy_pos_t &raw, const feedrate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
+  do_blocking_move_to(raw.x, raw.y, position.z, fr_mm_s);
 }
 
 void Cartesian_Mechanics::do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedrate_t &fr_mm_s/*=0.0f*/) {
@@ -236,7 +235,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   bool come_back = parser.boolval('B');
   REMEMBER(fr, feedrate_mm_s);
-  stored_position[0] = current_position;
+  stored_position[0] = position;
 
   const bool  homeX = TEST(axis_bits, X_AXIS),
               homeY = TEST(axis_bits, Y_AXIS),
@@ -246,7 +245,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
               doY       = home_all || homeY,
               doZ       = home_all || homeZ;
 
-  destination = current_position;
+  destination = position;
 
   #if Z_HOME_DIR > 0  // If homing away from BED do Z first
     if (doZ) homeaxis(Z_AXIS);
@@ -258,7 +257,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
   if (z_homing_height && (doX || doY)) {
     // Raise Z before homing any other axes and z is not already high enough (never lower z)
     destination.z = z_homing_height;
-    if (destination.z > current_position.z) {
+    if (destination.z > position.z) {
       if (printer.debugFeature()) DEBUG_EMV("Raise Z (before homing) to ", destination.z);
       do_blocking_move_to_z(destination.z);
     }
@@ -281,14 +280,14 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
       homeaxis(X_AXIS);
 
       // Remember this extruder's position for later tool change
-      inactive_extruder_x_pos = current_position.x;
+      inactive_extruder_x_pos = position.x;
 
       // Home the 1st (left) extruder
       toolManager.extruder.active = 0;
       homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
-      raised_parked_position, current_position;
+      raised_parked_position = position;
       delayed_move_timer.stop();
       active_extruder_parked = true;
     #else
@@ -344,17 +343,17 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
       homeaxis(X_AXIS);
 
       // Remember this extruder's position for later tool change
-      inactive_extruder_x_pos = current_position.x;
+      inactive_extruder_x_pos = position.x;
 
       // Home the 1st (left) extruder
       toolManager.extruder.active = 0;
       homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
-      COPY_ARRAY(raised_parked_position, current_position.x);
+      raised_parked_position = position;
       delayed_move_timer.stop();
       active_extruder_parked = true;
-      extruder_duplication_enabled  = false;
+      extruder_duplication_enabled  = DXC_saved_duplication_state;
       dual_x_carriage_mode          = DXC_saved_mode;
       stepper.set_directions();
     }
@@ -389,7 +388,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   lcdui.refresh();
 
-  report_current_position();
+  report_position();
 
   if (printer.debugFeature()) DEBUG_EM("<<< G28");
 
@@ -475,14 +474,14 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
  * When a mesh-based leveling system is active, moves are segmented
  * according to the configuration of the leveling system.
  *
- * Returns true if current_position[] was set to destination[]
+ * Returns true if position[] was set to destination[]
  */
 bool Cartesian_Mechanics::prepare_move_to_destination_mech_specific() {
 
   const float scaled_fr_mm_s = MMS_SCALED(feedrate_mm_s);
 
   #if ENABLED(LASER) && ENABLED(LASER_FIRE_E)
-    if (current_position.e < destination.e && ((current_position.x != destination.x) || (current_position.y != destination.y)))
+    if (position.e < destination.e && ((position.x != destination.x) || (position.y != destination.y)))
       laser.status = LASER_ON;
     else
       laser.status = LASER_OFF;
@@ -498,11 +497,11 @@ bool Cartesian_Mechanics::prepare_move_to_destination_mech_specific() {
          * For MBL and ABL-BILINEAR only segment moves when X or Y are involved.
          * Otherwise fall through to do a direct single move.
          */
-        if (current_position.x != destination.x || current_position.y != destination.y) {
+        if (xy_pos_t(position) != xy_pos_t(destination)) {
           #if ENABLED(MESH_BED_LEVELING)
             mbl.line_to_destination(scaled_fr_mm_s);
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            abl.bilinear_line_to_destination(scaled_fr_mm_s);
+            abl.line_to_destination(scaled_fr_mm_s);
           #endif
           return true;
         }
@@ -538,19 +537,19 @@ void Cartesian_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     if (axis == X_AXIS && (toolManager.extruder.active == 1 || dxc_is_duplicating())) {
-      current_position.x = x_home_pos(toolManager.extruder.active);
+      position.x = x_home_pos(toolManager.extruder.active);
       return;
     }
   #endif
 
-  current_position[axis] = axis_home_pos(axis);
+  position[axis] = axis_home_pos(axis);
 
   /**
    * Z Probe Z Homing? Account for the probe's Z offset.
    */
   #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS) {
-      current_position.z -= probe.data.offset.z;
+      position.z -= probe.data.offset.z;
       if (printer.debugFeature()) {
         DEBUG_EM("*** Z HOMED WITH PROBE ***");
         DEBUG_EMV("zprobe_zoffset = ", probe.data.offset.z);
@@ -567,7 +566,7 @@ void Cartesian_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
       DEBUG_MC("> data.home_offset[", axis_codes[axis]);
       DEBUG_EMV("] = ", data.home_offset[axis]);
     #endif
-    DEBUG_POS("", current_position);
+    DEBUG_POS("", position);
     DEBUG_MC("<<< set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
@@ -644,15 +643,15 @@ bool Cartesian_Mechanics::position_is_reachable_by_probe(const float &rx, const 
 }
 
 // Report detail current position to host
-void Cartesian_Mechanics::report_current_position_detail() {
+void Cartesian_Mechanics::report_position_detail() {
 
   SERIAL_MSG("\nLogical:");
-  report_xyz(current_position.asLogical());
+  report_xyz(position.asLogical());
 
   SERIAL_MSG("Raw:    ");
-  report_xyz(current_position);
+  report_xyz(position);
 
-  xyze_pos_t leveled = current_position;
+  xyze_pos_t leveled = position;
 
   #if HAS_LEVELING
     SERIAL_MSG("Leveled:");
@@ -692,7 +691,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
   /**
    * Prepare a linear move in a dual X axis setup
    *
-   * Return true if current_position[] was set to destination[]
+   * Return true if position[] was set to destination[]
    */
   bool Cartesian_Mechanics::dual_x_carriage_unpark() {
     if (active_extruder_parked) {
@@ -700,48 +699,48 @@ void Cartesian_Mechanics::report_current_position_detail() {
         case DXC_FULL_CONTROL_MODE:
           break;
         case DXC_AUTO_PARK_MODE:
-          if (current_position.e == destination.e) {
+          if (position.e == destination.e) {
             // This is a travel move (with no extrusion)
             // Skip it, but keep track of the current position
             // (so it can be used as the start of the next non-travel move)
             if (!delayed_move_timer.isRunning()) {
-              current_position = destination;
+              position = destination;
               NOLESS(raised_parked_position[Z_AXIS], destination.z);
               delayed_move_timer.start();
               return true;
             }
           }
           // unpark extruder: 1) raise, 2) move into starting XY position, 3) lower
-          #define CUR_X    current_position.x
-          #define CUR_Y    current_position.y
-          #define CUR_Z    current_position.z
-          #define CUR_E    current_position.e
-          #define RAISED_X raised_parked_position[X_AXIS]
-          #define RAISED_Y raised_parked_position[Y_AXIS]
-          #define RAISED_Z raised_parked_position[Z_AXIS]
+          #define CUR_X    position.x
+          #define CUR_Y    position.y
+          #define CUR_Z    position.z
+          #define CUR_E    position.e
+          #define RAISED_X raised_parked_position.x
+          #define RAISED_Y raised_parked_position.y
+          #define RAISED_Z raised_parked_position.z
 
-          if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z, toolManager.extruder.active))
+          if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z,  toolManager.extruder.active))
             if (planner.buffer_line(   CUR_X,    CUR_Y, RAISED_Z, CUR_E, PLANNER_XY_FEEDRATE(),     toolManager.extruder.active))
-                planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z, toolManager.extruder.active);
+                planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z,  toolManager.extruder.active);
           delayed_move_timer.stop();
           active_extruder_parked = false;
           if (printer.debugFeature()) DEBUG_EM("Clear active_extruder_parked");
           break;
-        case DXC_SCALED_DUPLICATION_MODE:
+        case DXC_MIRRORED_MODE:
         case DXC_DUPLICATION_MODE:
           if (toolManager.extruder.active == 0) {
+            xyze_pos_t new_pos = position;
+            if (dual_x_carriage_mode == DXC_DUPLICATION_MODE)
+              new_pos.x += duplicate_extruder_x_offset;
+            else
+              new_pos.x = inactive_extruder_x_pos;
+            // move duplicate extruder into correct duplication position.
             if (printer.debugFeature()) {
               DEBUG_MV("Set planner X", inactive_extruder_x_pos);
-              DEBUG_EMV(" ... Line to X", current_position.x + duplicate_extruder_x_offset);
+              DEBUG_EMV(" ... Line to X", new_pos.x);
             }
-            // move duplicate extruder into correct duplication position.
-            planner.set_position_mm(inactive_extruder_x_pos, current_position.y, current_position.z, current_position.e);
-
-            if (!planner.buffer_line(
-              dual_x_carriage_mode == DXC_DUPLICATION_MODE ? duplicate_extruder_x_offset + current_position.x : inactive_extruder_x_pos,
-              current_position.y, current_position.z, current_position.e,
-              data.max_feedrate_mm_s.x, 1
-            )) break;
+            planner.set_position_mm(inactive_extruder_x_pos, position.y, position.z, position.e);
+            if (!planner.buffer_line(new_pos, data.max_feedrate_mm_s.x, 1)) break;
             planner.synchronize();
             sync_plan_position();
             extruder_duplication_enabled = true;
@@ -874,7 +873,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
 
   void Cartesian_Mechanics::nextion_gfx_clear() {
     nexlcd.gfx_clear(X_MAX_BED, Y_MAX_BED, Z_MAX_BED);
-    nexlcd.gfx_cursor_to(current_position);
+    nexlcd.gfx_cursor_to(position);
   }
 
 #endif
@@ -1050,7 +1049,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
   set_axis_is_at_home(axis);
   sync_plan_position();
 
-  destination[axis] = current_position[axis];
+  destination[axis] = position[axis];
 
   // Put away the Z probe
   #if HOMING_Z_WITH_PROBE
@@ -1075,7 +1074,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
   void Cartesian_Mechanics::quick_home_xy() {
 
     // Pretend the current position is 0,0
-    current_position.x = current_position.y = 0;
+    position.x = position.y = 0;
     sync_plan_position();
 
     #if ENABLED(DUAL_X_CARRIAGE)
@@ -1103,7 +1102,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
     endstops.validate_homing_move();
 
-    current_position.x = current_position.y = 0.0f;
+    position.x = position.y = 0.0f;
 
     #if ENABLED(SENSORLESS_HOMING)
       tmc.disable_stallguard(driver.x, stealth_states.x);
@@ -1138,7 +1137,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
      * Move the Z probe (or just the nozzle) to the safe homing point
      * (Z is already at the right height)
      */
-    destination.set(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT, current_position.z);
+    destination.set(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT, position.z);
 
     #if HOMING_Z_WITH_PROBE
       destination -= probe.data.offset;
@@ -1189,7 +1188,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
      * Move the Z probe (or just the nozzle) to the safe homing point
      * Z is already at the right height
      */
-    destination.set(DOUBLE_Z_HOMING_X_POINT, DOUBLE_Z_HOMING_Y_POINT, current_position.z);
+    destination.set(DOUBLE_Z_HOMING_X_POINT, DOUBLE_Z_HOMING_Y_POINT, position.z);
 
     #if HAS_BED_PROBE
       destination -= probe.data.offset;
@@ -1200,8 +1199,8 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
       if (printer.debugFeature()) DEBUG_POS("DOUBLE_Z_HOMING", destination);
 
       const float newzero = probe_pt(destination.x, destination.y, true, 1) - (2 * probe.data.offset.z);
-      current_position.z -= newzero;
-      destination.z = current_position.z;
+      position.z -= newzero;
+      destination.z = position.z;
       endstops.soft_endstop.max.z = data.base_pos.max.z - newzero;
 
       sync_plan_position();

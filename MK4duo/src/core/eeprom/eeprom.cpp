@@ -39,6 +39,10 @@
 #include "../../../MK4duo.h"
 #include "sanitycheck.h"
 
+// Check the integrity of data offsets.
+// Can be disabled for production build.
+//#define DEBUG_EEPROM_READWRITE
+
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
   float new_z_fade_height;
 #endif
@@ -51,12 +55,8 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV78"
+#define EEPROM_VERSION "MKV79"
 #define EEPROM_OFFSET 100
-
-// Check the integrity of data offsets.
-// Can be disabled for production build.
-//#define DEBUG_EEPROM_READWRITE
 
 typedef struct EepromDataStruct {
 
@@ -87,7 +87,7 @@ typedef struct EepromDataStruct {
   //
   // Driver
   //
-  driver_data_t     driver_data[XYZ];
+  driver_data_t     driver_data[MAX_DRIVER_XYZ];
   driver_data_t     driver_e_data[MAX_DRIVER_E];
 
   //
@@ -257,13 +257,6 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // Volumetric & Filament Size
-  //
-  #if ENABLED(VOLUMETRIC_EXTRUSION)
-    bool            volumetric_enabled;
-  #endif
-
-  //
   // IDLE oozing
   //
   #if ENABLED(IDLE_OOZING_PREVENT)
@@ -281,10 +274,14 @@ typedef struct EepromDataStruct {
   // Trinamic
   //
   #if HAS_TRINAMIC
-    uint16_t  tmc_stepper_current[MAX_DRIVER],
-              tmc_stepper_microstep[MAX_DRIVER];
-    uint32_t  tmc_hybrid_threshold[MAX_DRIVER];
-    bool      tmc_stealth_enabled[MAX_DRIVER];
+    uint16_t  tmc_stepper_current[MAX_DRIVER_XYZ],
+              tmc_stepper_current_e[MAX_DRIVER_E],
+              tmc_stepper_microstep[MAX_DRIVER_XYZ],
+              tmc_stepper_microstep_e[MAX_DRIVER_E];
+    uint32_t  tmc_hybrid_threshold[MAX_DRIVER_XYZ],
+              tmc_hybrid_threshold_e[MAX_DRIVER_E];
+    bool      tmc_stealth_enabled[MAX_DRIVER_XYZ],
+              tmc_stealth_enabled_e[MAX_DRIVER_E];
     int16_t   tmc_sgt[XYZ];
   #endif
 
@@ -299,7 +296,7 @@ uint16_t EEPROM::datasize() { return sizeof(eepromDataStruct); }
  */
 void EEPROM::post_process() {
 
-  mechanics.stored_position[0] = mechanics.current_position;
+  mechanics.stored_position[0] = mechanics.position;
 
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
@@ -360,11 +357,11 @@ void EEPROM::post_process() {
   #endif
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
-  // and init stepper.count[], planner.position[] with current_position
+  // and init stepper.count[], planner.position[] with position
   planner.refresh_positioning();
 
-  if (mechanics.stored_position[0] != mechanics.current_position)
-    mechanics.report_current_position();
+  if (mechanics.stored_position[0] != mechanics.position)
+    mechanics.report_position();
 
 }
 
@@ -409,7 +406,7 @@ void EEPROM::post_process() {
     uint16_t working_crc  = 0;
     int eeprom_index      = EEPROM_OFFSET;
 
-    driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_data[MAX_DRIVER_XYZ] = { { NoPin, NoPin, NoPin }, false };
     driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
     extruder_data_t extruder_data[MAX_EXTRUDER];
@@ -464,8 +461,8 @@ void EEPROM::post_process() {
     // Driver data
     //
     EEPROM_TEST(driver_data);
-    LOOP_DRV_XYZ()  if (driver[d])    driver_data[d]    = driver[d]->data;
-    LOOP_DRV_EXT()  if (driver.e[d])  driver_e_data[d]  = driver.e[d]->data;
+    LOOP_DRV_ALL_XYZ()  if (driver[d])    driver_data[d]    = driver[d]->data;
+    LOOP_DRV_EXT()      if (driver.e[d])  driver_e_data[d]  = driver.e[d]->data;
     EEPROM_WRITE(driver_data);
     EEPROM_WRITE(driver_e_data);
 
@@ -659,14 +656,6 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Volumetric & Filament Size
-    //
-    #if ENABLED(VOLUMETRIC_EXTRUSION)
-      const bool volumetric_enabled = printer.isVolumetric();
-      EEPROM_WRITE(volumetric_enabled);
-    #endif
-
-    //
     // IDLE oozing
     //
     #if ENABLED(IDLE_OOZING_PREVENT)
@@ -685,12 +674,16 @@ void EEPROM::post_process() {
     //
     #if HAS_TRINAMIC
 
-      uint16_t  tmc_stepper_current[MAX_DRIVER],
-                tmc_stepper_microstep[MAX_DRIVER];
-      uint32_t  tmc_hybrid_threshold[MAX_DRIVER];
-      bool      tmc_stealth_enabled[MAX_DRIVER];
+      uint16_t  tmc_stepper_current[MAX_DRIVER_XYZ],
+                tmc_stepper_current_e[MAX_DRIVER_E],
+                tmc_stepper_microstep[MAX_DRIVER_XYZ],
+                tmc_stepper_microstep_e[MAX_DRIVER_E];
+      uint32_t  tmc_hybrid_threshold[MAX_DRIVER_XYZ],
+                tmc_hybrid_threshold_e[MAX_DRIVER_E];
+      bool      tmc_stealth_enabled[MAX_DRIVER_XYZ],
+                tmc_stealth_enabled_e[MAX_DRIVER_E];
 
-      LOOP_DRV_XYZ() {
+      LOOP_DRV_ALL_XYZ() {
         Driver* drv = driver[d];
         if (drv && drv->tmc) {
           tmc_stepper_current[d]    = drv->tmc->getMilliamps();
@@ -706,21 +699,25 @@ void EEPROM::post_process() {
       LOOP_DRV_EXT() {
         Driver* drv = driver.e[d];
         if (drv && drv->tmc) {
-          tmc_stepper_current[XYZ + d]    = drv->tmc->getMilliamps();
-          tmc_stepper_microstep[XYZ + d]  = drv->tmc->getMicrosteps();
+          tmc_stepper_current_e[d]    = drv->tmc->getMilliamps();
+          tmc_stepper_microstep_e[d]  = drv->tmc->getMicrosteps();
           #if ENABLED(HYBRID_THRESHOLD)
-            tmc_hybrid_threshold[XYZ + d] = drv->tmc->get_pwm_thrs_e();
+            tmc_hybrid_threshold_e[d] = drv->tmc->get_pwm_thrs_e();
           #endif
           #if TMC_HAS_STEALTHCHOP
-            tmc_stealth_enabled[XYZ + d]  = drv->tmc->get_stealthChop_status();
+            tmc_stealth_enabled_e[d]  = drv->tmc->get_stealthChop_status();
           #endif
         }
       }
 
       EEPROM_WRITE(tmc_stepper_current);
+      EEPROM_WRITE(tmc_stepper_current_e);
       EEPROM_WRITE(tmc_stepper_microstep);
+      EEPROM_WRITE(tmc_stepper_microstep_e);
       EEPROM_WRITE(tmc_hybrid_threshold);
+      EEPROM_WRITE(tmc_hybrid_threshold_e);
       EEPROM_WRITE(tmc_stealth_enabled);
+      EEPROM_WRITE(tmc_stealth_enabled_e);
 
       //
       // TMC2130 StallGuard threshold
@@ -806,7 +803,7 @@ void EEPROM::post_process() {
               stored_crc  = 0;
     char      stored_ver[6];
 
-    driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_data[MAX_DRIVER_XYZ] = { { NoPin, NoPin, NoPin }, false };
     driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
     extruder_data_t extruder_data[MAX_EXTRUDER];
@@ -876,8 +873,8 @@ void EEPROM::post_process() {
       EEPROM_READ(driver_e_data);
       if (!flag.validating) {
         stepper.create_driver();  // Create driver stepper
-        LOOP_DRV_XYZ()  if (driver[d])    driver[d]->data   = driver_data[d];
-        LOOP_DRV_EXT()  if (driver.e[d])  driver.e[d]->data = driver_e_data[d];
+        LOOP_DRV_ALL_XYZ()  if (driver[d])    driver[d]->data   = driver_data[d];
+        LOOP_DRV_EXT()      if (driver.e[d])  driver.e[d]->data = driver_e_data[d];
       }
 
       //
@@ -1080,15 +1077,6 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // Volumetric & Filament Size
-      //
-      #if ENABLED(VOLUMETRIC_EXTRUSION)
-        bool volumetric_enabled;
-        EEPROM_READ(volumetric_enabled);
-        if (!flag.validating) printer.setVolumetric(volumetric_enabled);
-      #endif
-
-      //
       // IDLE oozing
       //
       #if ENABLED(IDLE_OOZING_PREVENT)
@@ -1109,18 +1097,26 @@ void EEPROM::post_process() {
       //
       #if HAS_TRINAMIC
 
-        uint16_t  tmc_stepper_current[MAX_DRIVER],
-                  tmc_stepper_microstep[MAX_DRIVER];
-        uint32_t  tmc_hybrid_threshold[MAX_DRIVER];
-        bool      tmc_stealth_enabled[MAX_DRIVER];
+        uint16_t  tmc_stepper_current[MAX_DRIVER_XYZ],
+                  tmc_stepper_current_e[MAX_DRIVER_E],
+                  tmc_stepper_microstep[MAX_DRIVER_XYZ],
+                  tmc_stepper_microstep_e[MAX_DRIVER_E];
+        uint32_t  tmc_hybrid_threshold[MAX_DRIVER_XYZ],
+                  tmc_hybrid_threshold_e[MAX_DRIVER_E];
+        bool      tmc_stealth_enabled[MAX_DRIVER_XYZ],
+                  tmc_stealth_enabled_e[MAX_DRIVER_E];
 
         EEPROM_READ(tmc_stepper_current);
+        EEPROM_READ(tmc_stepper_current_e);
         EEPROM_READ(tmc_stepper_microstep);
+        EEPROM_READ(tmc_stepper_microstep_e);
         EEPROM_READ(tmc_hybrid_threshold);
+        EEPROM_READ(tmc_hybrid_threshold_e);
         EEPROM_READ(tmc_stealth_enabled);
+        EEPROM_READ(tmc_stealth_enabled_e);
 
         if (!flag.validating) {
-          LOOP_DRV_XYZ() {
+          LOOP_DRV_ALL_XYZ() {
             Driver* drv = driver[d];
             if (drv && drv->tmc) {
               drv->tmc->rms_current(tmc_stepper_current[d]);
@@ -1137,13 +1133,13 @@ void EEPROM::post_process() {
           LOOP_DRV_EXT() {
             Driver* drv = driver.e[d];
             if (drv && drv->tmc) {
-              drv->tmc->rms_current(tmc_stepper_current[XYZ + d]);
-              drv->tmc->microsteps(tmc_stepper_microstep[XYZ + d]);
+              drv->tmc->rms_current(tmc_stepper_current_e[d]);
+              drv->tmc->microsteps(tmc_stepper_microstep_e[d]);
               #if ENABLED(HYBRID_THRESHOLD)
-                drv->tmc->set_pwm_thrs_e(tmc_hybrid_threshold[XYZ + d]);
+                drv->tmc->set_pwm_thrs_e(tmc_hybrid_threshold_e[d]);
               #endif
               #if TMC_HAS_STEALTHCHOP
-                drv->tmc->stealthChop_enabled = tmc_stealth_enabled[XYZ + d];
+                drv->tmc->stealthChop_enabled = tmc_stealth_enabled_e[d];
                 drv->tmc->refresh_stepping_mode();
               #endif
             }
@@ -1505,6 +1501,27 @@ void EEPROM::reset() {
     toolManager.print_M563();
 
     /**
+     * Print Tool volumetric extrusion
+     */
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
+      toolManager.print_M200();
+    #endif
+
+    /**
+     * Print Tool change filament swap
+     */
+    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+      toolManager.print_M217();
+    #endif
+
+    /**
+     * Linear Advance
+     */
+    #if ENABLED(LIN_ADVANCE)
+      toolManager.print_M900();
+    #endif
+
+    /**
      * Print heaters parameters
      */
     #if HAS_HOTENDS
@@ -1548,13 +1565,6 @@ void EEPROM::reset() {
      */
     #if HAS_AD8495 || HAS_AD595
       LOOP_HOTEND() hotends[h]->print_M595();
-    #endif
-
-    /**
-     * Print Tools data
-     */
-    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-      toolManager.print_M217();
     #endif
 
     /**
@@ -1638,9 +1648,11 @@ void EEPROM::reset() {
             for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
               SERIAL_SMV(CFG, "  G29 S3 I", (int)px);
               SERIAL_MV(" J", (int)iy);
-              SERIAL_EMV(" Z", LINEAR_UNIT(mbl.data.z_values[px][iy]), 3);
+              SERIAL_MV(" Z", LINEAR_UNIT(mbl.data.z_values[px][iy]), 5);
+              SERIAL_EOL();
             }
           }
+          SERIAL_LMV(CFG, "  G29 S4 Z", LINEAR_UNIT(mbl.data.z_offset), 5);
         }
 
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
@@ -1737,10 +1749,6 @@ void EEPROM::reset() {
       filamentrunout.print_M412();
     #endif
 
-    #if ENABLED(VOLUMETRIC_EXTRUSION)
-      toolManager.print_M200();
-    #endif // ENABLED(VOLUMETRIC_EXTRUSION)
-
     /**
      * Driver Pins M352
      */
@@ -1789,13 +1797,6 @@ void EEPROM::reset() {
       tmc.print_M940();
 
     #endif // HAS_TRINAMIC
-
-    /**
-     * Linear Advance
-     */
-    #if ENABLED(LIN_ADVANCE)
-      toolManager.print_M900();
-    #endif
 
     /**
      * Hysteresis Feature

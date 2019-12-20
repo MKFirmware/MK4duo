@@ -1539,7 +1539,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           block->use_advance_lead = false;
         else {
           const uint32_t max_accel_steps_per_s2 = extruders[extruder]->data.max_jerk / (extruders[extruder]->data.advance_K * block->e_D_ratio) * steps_per_mm;
-          if (accel > max_accel_steps_per_s2) DEBUG_EM("Acceleration limited.");
+          if (printer.debugFeature() && accel > max_accel_steps_per_s2) DEBUG_EM("Acceleration limited.");
           NOMORE(accel, max_accel_steps_per_s2);
         }
       }
@@ -1579,10 +1579,12 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #if ENABLED(LIN_ADVANCE)
     if (block->use_advance_lead) {
       block->advance_speed = (STEPPER_TIMER_RATE) / (extruders[extruder]->data.advance_K * block->e_D_ratio * block->acceleration * extruders[extruder]->data.axis_steps_per_mm);
-      if (extruders[extruder]->data.advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
-        DEBUG_EM("More than 2 steps per eISR loop executed.");
-      if (block->advance_speed < 200)
-        DEBUG_EM("eISR running at > 10kHz.");
+      if (printer.debugFeature()) {
+        if (extruders[extruder]->data.advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
+          DEBUG_EM("More than 2 steps per eISR loop executed.");
+        if (block->advance_speed < 200)
+          DEBUG_EM("eISR running at > 10kHz.");
+      }
     }
   #endif
 
@@ -2083,7 +2085,7 @@ void Planner::reset_acceleration_rates() {
 void Planner::refresh_positioning() {
   LOOP_XYZ(axis)  mechanics.steps_to_mm[axis] = 1.0f / mechanics.data.axis_steps_per_mm[axis];
   LOOP_EXTRUDER() extruders[e]->steps_to_mm   = 1.0f / extruders[e]->data.axis_steps_per_mm;
-  set_position_mm(mechanics.current_position);
+  set_position_mm(mechanics.position);
   reset_acceleration_rates();
 }
 
@@ -2493,7 +2495,7 @@ void Planner::recalculate_trapezoids() {
             calculate_trapezoid_for_block(current_block, current_entry_speed * nomr, next_entry_speed * nomr);
             #if ENABLED(LIN_ADVANCE)
               if (current_block->use_advance_lead) {
-                const float comp = current_block->e_D_ratio * extruders[toolManager.extruder.target]->data.advance_K * extruders[toolManager.extruder.active]->data.axis_steps_per_mm;
+                const float comp = current_block->e_D_ratio * extruders[toolManager.extruder.active]->data.advance_K * extruders[toolManager.extruder.active]->data.axis_steps_per_mm;
                 current_block->max_adv_steps = current_nominal_speed * comp;
                 current_block->final_adv_steps = next_entry_speed * comp;
               }
@@ -2532,7 +2534,7 @@ void Planner::recalculate_trapezoids() {
       calculate_trapezoid_for_block(next_block, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
       #if ENABLED(LIN_ADVANCE)
         if (next_block->use_advance_lead) {
-          const float comp = next_block->e_D_ratio * extruders[toolManager.extruder.target]->data.advance_K * extruders[toolManager.extruder.target]->data.axis_steps_per_mm;
+          const float comp = next_block->e_D_ratio * extruders[toolManager.extruder.active]->data.advance_K * extruders[toolManager.extruder.active]->data.axis_steps_per_mm;
           next_block->max_adv_steps = next_nominal_speed * comp;
           next_block->final_adv_steps = (MINIMUM_PLANNER_SPEED) * comp;
         }

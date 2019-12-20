@@ -47,7 +47,7 @@
     host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Delta Calibration in progress"), PSTR("Continue"));
     while (printer.isWaitForUser()) printer.idle();
     lcdui.goto_previous_screen_no_defer();
-    return mechanics.current_position.z;
+    return mechanics.position.z;
   }
 
 #endif
@@ -134,7 +134,7 @@
     // Encoder knob or keypad buttons adjust the Z position
     //
     if (lcdui.encoderPosition) {
-      const float z = mechanics.current_position.z + float(int32_t(lcdui.encoderPosition)) * (LCD_Z_STEP);
+      const float z = mechanics.position.z + float(int32_t(lcdui.encoderPosition)) * (LCD_Z_STEP);
       lcd_line_to_z(constrain(z, -(LCD_PROBE_Z_RANGE) * 0.5f, (LCD_PROBE_Z_RANGE) * 0.5f));
       lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
       lcdui.encoderPosition = 0;
@@ -144,7 +144,7 @@
     // Draw on first display, then only on Z change
     //
     if (lcdui.should_draw()) {
-      const float v = mechanics.current_position.z;
+      const float v = mechanics.position.z;
       MenuItemBase::itemIndex = NO_INDEX;
       MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
     }
@@ -214,7 +214,7 @@
 #if ENABLED(MESH_EDIT_MENU)
 
   inline void refresh_planner() {
-    mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+    mechanics.set_position_from_steppers_for_axis(ALL_AXES);
     mechanics.sync_plan_position();
   }
 

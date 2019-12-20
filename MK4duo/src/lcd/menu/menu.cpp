@@ -267,8 +267,8 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 }
 
 void lcd_line_to_z(const float &z) {
-  mechanics.current_position.z = z;
-  mechanics.line_to_current_position(MMM_TO_MMS(manual_feedrate_mm_m.z));
+  mechanics.position.z = z;
+  mechanics.line_to_position(MMM_TO_MMS(manual_feedrate_mm_m.z));
 }
 
 #if ENABLED(BABYSTEP_ZPROBE_OFFSET)

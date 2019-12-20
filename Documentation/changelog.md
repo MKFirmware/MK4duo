@@ -1,8 +1,8 @@
 ### Version 4.4.0
 *
-* Revision 15-12-2019
+* Revision 20-12-2019
 *
-* Version EEPROM MKV78
+* Version EEPROM MKV79
 *
 * Version Nextion 1_3_0
 *
@@ -38,6 +38,8 @@
 *
 * M890: Run User GCode
 *   S[int]    - Run 1 - 5 user gcode
+*
+* M900: S[bool] Active Linear Advance Test see new valor in configuration LIN_ADVANCE_K_START and LIN_ADVANCE_K_FACTOR
 *
 * Add multiple Language, max 5, for lcd..
 *

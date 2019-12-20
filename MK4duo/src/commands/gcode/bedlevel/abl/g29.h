@@ -120,7 +120,7 @@ inline void gcode_G29() {
   // G29 Q is also available if debugging
   const bool seenQ = parser.seen('Q');
   if (seenQ) {
-    DEBUG_POS(">>> G29", mechanics.current_position);
+    DEBUG_POS(">>> G29", mechanics.position);
     DEBUG_LOG_INFO();
   }
 
@@ -262,7 +262,7 @@ inline void gcode_G29() {
           return;
         }
 
-        const float rz = parser.seenval('Z') ? NATIVE_Z_POSITION(parser.value_linear_units()) : mechanics.current_position.z;
+        const float rz = parser.seenval('Z') ? NATIVE_Z_POSITION(parser.value_linear_units()) : mechanics.position.z;
         if (!WITHIN(rz, -10, 10)) {
           SERIAL_LM(ER, "Bad Z value");
           return;
@@ -287,7 +287,7 @@ inline void gcode_G29() {
             abl.virt_interpolate();
           #endif
           bedlevel.restore_bed_leveling_state();
-          mechanics.report_current_position();
+          mechanics.report_position();
         }
         return;
       } // parser.seen('W')
@@ -348,8 +348,10 @@ inline void gcode_G29() {
 
       bedlevel.xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.linearval('S', XY_PROBE_SPEED));
 
-      const float x_min = probe.min_x(), x_max = probe.max_x(),
-                  y_min = probe.min_y(), y_max = probe.max_y();
+      #if !MECH(DELTA)
+        const float x_min = probe.min_x(), x_max = probe.max_x(),
+                    y_min = probe.min_y(), y_max = probe.max_y();
+      #endif
 
       probe_position_lf.set(
         parser.seenval('L') ? NATIVE_X_POSITION(parser.value_linear_units()) : LEFT_PROBE_BED_POSITION,
@@ -486,7 +488,7 @@ inline void gcode_G29() {
 
       // For G29 after adjusting Z.
       // Save the previous Z before going to the next point
-      measured_z = mechanics.current_position.z;
+      measured_z = mechanics.position.z;
 
       #if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
@@ -734,7 +736,7 @@ inline void gcode_G29() {
   // return or loop before this point.
   //
 
-  if (printer.debugFeature()) DEBUG_POS("> probing complete", mechanics.current_position);
+  if (printer.debugFeature()) DEBUG_POS("> probing complete", mechanics.position);
 
   #if HAS_PROBE_MANUALLY
     bedlevel.flag.g29_in_progress = false;
@@ -848,16 +850,16 @@ inline void gcode_G29() {
         // Correct the current XYZ position based on the tilted plane.
         //
 
-        if (printer.debugFeature()) DEBUG_POS("G29 uncorrected XYZ", mechanics.current_position);
+        if (printer.debugFeature()) DEBUG_POS("G29 uncorrected XYZ", mechanics.position);
 
-        xyze_pos_t converted = mechanics.current_position;
+        xyze_pos_t converted = mechanics.position;
         bedlevel.force_unapply_leveling(converted);
 
         // Use the last measured distance to the bed, if possible
-        if ( NEAR(mechanics.current_position.x, probePos.x - probe.data.offset.x)
-          && NEAR(mechanics.current_position.y, probePos.y - probe.data.offset.y)
+        if ( NEAR(mechanics.position.x, probePos.x - probe.data.offset.x)
+          && NEAR(mechanics.position.y, probePos.y - probe.data.offset.y)
         ) {
-          float simple_z = mechanics.current_position.z - measured_z;
+          float simple_z = mechanics.position.z - measured_z;
           if (printer.debugFeature()) {
             DEBUG_MV("Probed Z", simple_z);
             DEBUG_MV("  Matrix Z", converted.z);
@@ -866,23 +868,23 @@ inline void gcode_G29() {
           converted.z = simple_z;
         }
 
-        // The rotated XY and corrected Z are now current_position.x
-        mechanics.current_position = converted;
+        // The rotated XY and corrected Z are now position.x
+        mechanics.position = converted;
 
-        if (printer.debugFeature()) DEBUG_POS("G29 corrected XYZ", mechanics.current_position);
+        if (printer.debugFeature()) DEBUG_POS("G29 corrected XYZ", mechanics.position);
 
       }
 
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       if (!dryrun) {
-        if (printer.debugFeature()) DEBUG_EMV("G29 uncorrected Z:", mechanics.current_position.z);
+        if (printer.debugFeature()) DEBUG_EMV("G29 uncorrected Z:", mechanics.position.z);
 
         // Unapply the offset because it is going to be immediately applied
         // and cause compensation movement in Z
-        mechanics.current_position.z -= abl.bilinear_z_offset(mechanics.current_position);
+        mechanics.position.z -= abl.bilinear_z_offset(mechanics.position);
 
-        if (printer.debugFeature()) DEBUG_EMV(" corrected Z:", mechanics.current_position.z);
+        if (printer.debugFeature()) DEBUG_EMV(" corrected Z:", mechanics.position.z);
       }
 
     #endif // ABL_PLANAR
@@ -912,7 +914,7 @@ inline void gcode_G29() {
     commands.process_now_P(PSTR(Z_PROBE_END_SCRIPT));
   #endif
 
-  mechanics.report_current_position();
+  mechanics.report_position();
 }
 
 #endif // OLD_ABL

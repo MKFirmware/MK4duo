@@ -810,13 +810,13 @@ void NextionLCD::coordtoLCD() {
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   if (PageID == 2) {
-    setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.current_position.x)));
-    setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.current_position.y)));
-    setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position.z))));
+    setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.position.x)));
+    setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.position.y)));
+    setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.position.z))));
   }
   else if (PageID == 4) {
     if (mechanics.home_flag.XHomed) {
-      valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position.x));
+      valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.position.x));
       strcat(cmd, "X");
       strcat(cmd, valuetemp);
     }
@@ -824,7 +824,7 @@ void NextionLCD::coordtoLCD() {
       strcat(cmd, "?");
 
     if (mechanics.home_flag.YHomed) {
-      valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position.y));
+      valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.position.y));
       strcat(cmd, " Y");
       strcat(cmd, valuetemp);
     }
@@ -832,7 +832,7 @@ void NextionLCD::coordtoLCD() {
       strcat(cmd, " ?");
 
     if (mechanics.home_flag.ZHomed) {
-      valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position.z)));
+      valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.position.z)));
       strcat(cmd, " Z");
       strcat(cmd, valuetemp);
     }
@@ -1157,7 +1157,7 @@ bool NextionLCD::getConnect(char* buffer) {
         if (manual_move_axis == E_AXIS) toolManager.extruder.active = manual_move_e_index;
 
         // Set movement on a single axis
-        mechanics.destination = mechanics.current_position;
+        mechanics.destination = mechanics.position;
         mechanics.destination[manual_move_axis] += manual_move_offset;
 
         // Reset for the next move
@@ -1177,7 +1177,7 @@ bool NextionLCD::getConnect(char* buffer) {
 
       #else
 
-        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), toolManager.extruder.active);
+        planner.buffer_line(mechanics.position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), toolManager.extruder.active);
         manual_move_axis = (int8_t)NO_AXIS;
 
       #endif

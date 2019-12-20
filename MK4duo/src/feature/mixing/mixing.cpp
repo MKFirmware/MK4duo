@@ -168,7 +168,7 @@ void Mixer::refresh_collector(const float proportion/*=1.0*/, const uint8_t t/*=
   }
 
   void Mixer::update_gradient_for_planner_z() {
-    update_gradient_for_z(mechanics.current_position.z);
+    update_gradient_for_z(mechanics.position.z);
   }
 
 #endif

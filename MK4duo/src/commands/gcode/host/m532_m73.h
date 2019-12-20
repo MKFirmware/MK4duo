@@ -30,16 +30,26 @@
 #define CODE_M532
 
 void gcode_M73_M532() {
+
   if (parser.seen('P') || parser.seen('X')) {
     printer.progress = parser.value_byte();
     NOMORE(printer.progress, 100);
   }
   if (parser.seen('L')) {
     printer.currentLayer = parser.value_long();
-    char text[30] = "";
-    sprintf_P(text, PSTR("%s  %i of %i"), printer.printName, int(printer.currentLayer), int(printer.maxLayer));
+    char text[50];
+    sprintf_P(text, PSTR("%s %d of %d"), printer.printName, int(printer.currentLayer), int(printer.maxLayer));
     lcdui.set_status(text);
   }
+
+  #if ENABLED(LIN_ADVANCE)
+    static int16_t old_Layer = 0;
+    if (toolManager.IsTestLinAdvance() && old_Layer != printer.currentLayer) {
+      toolManager.test_linadvance();
+      old_Layer = printer.currentLayer;
+    }
+  #endif
+
 }
 
 /**

@@ -36,8 +36,8 @@
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         advancedpause.do_pause_e_move(length, fr_mm_s);
       #else
-        current_position.e += length / extruders[toolManager.extruder.active]->e_factor;
-        planner.buffer_line(mechanics.current_position, fr_mm_s, toolManager.extruder.active);
+        position.e += length / extruders[toolManager.extruder.active]->e_factor;
+        planner.buffer_line(mechanics.position, fr_mm_s, toolManager.extruder.active);
       #endif
     }
   }
@@ -83,10 +83,10 @@ inline void gcode_M240() {
 
     if (!mechanics.isHomedAll()) return;
 
-    mechanics.stored_position[0].x = mechanics.current_position.x + parser.linearval('A');
-    mechanics.stored_position[0].y = mechanics.current_position.y + parser.linearval('B');
-    mechanics.stored_position[0].z = mechanics.current_position.z;
-    mechanics.stored_position[0].e = mechanics.current_position.e;
+    mechanics.stored_position[0].x = mechanics.position.x + parser.linearval('A');
+    mechanics.stored_position[0].y = mechanics.position.y + parser.linearval('B');
+    mechanics.stored_position[0].z = mechanics.position.z;
+    mechanics.stored_position[0].e = mechanics.position.e;
 
     #if ENABLED(PHOTO_RETRACT_MM)
       constexpr float rfr = (MMS_TO_MMM(
@@ -110,7 +110,7 @@ inline void gcode_M240() {
     xyz_pos_t raw = {
        parser.seenval('X') ? NATIVE_X_POSITION(parser.value_linear_units()) : photo_position.x,
        parser.seenval('Y') ? NATIVE_Y_POSITION(parser.value_linear_units()) : photo_position.y,
-      (parser.seenval('Z') ? parser.value_linear_units() : photo_position.z) + mechanics.current_position.z
+      (parser.seenval('Z') ? parser.value_linear_units() : photo_position.z) + mechanics.position.z
     };
     endstops.apply_motion_limits(raw);
     mechanics.do_blocking_move_to(raw, fr_mm_s);

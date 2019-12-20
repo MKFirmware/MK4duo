@@ -88,7 +88,7 @@ class Delta_Mechanics : public Mechanics {
      * The result is in the current coordinate space with
      * leveling applied. The coordinates need to be run through
      * unapply_leveling to obtain the "ideal" coordinates
-     * suitable for current_position.x, etc.
+     * suitable for position.x, etc.
      */
     static void get_cartesian_from_steppers();
 
@@ -115,7 +115,7 @@ class Delta_Mechanics : public Mechanics {
     }
 
     /**
-     *  Plan a move to (X, Y, Z) and set the current_position
+     *  Plan a move to (X, Y, Z) and set the position
      */
     static void do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s=0.0f);
     static void do_blocking_move_to(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0.0f);
@@ -129,10 +129,10 @@ class Delta_Mechanics : public Mechanics {
     static void do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s=0.0f);
     static void do_blocking_move_to_xy(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0.0f);
     FORCE_INLINE static void do_blocking_move_to_xy(const xyz_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
+      do_blocking_move_to(raw.x, raw.y, position.z, fr_mm_s);
     }
     FORCE_INLINE static void do_blocking_move_to_xy(const xyze_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
+      do_blocking_move_to(raw.x, raw.y, position.z, fr_mm_s);
     }
 
     static void do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedrate_t &fr_mm_s=0.0f);
@@ -154,7 +154,7 @@ class Delta_Mechanics : public Mechanics {
     /**
      * Home Delta
      */
-    static void home(const bool report_position=true);
+    static void home(const bool report=true);
 
     /**
      * Home an individual linear axis
@@ -165,7 +165,7 @@ class Delta_Mechanics : public Mechanics {
      * Set an axis' current position to its home position (after homing).
      *
      * DELTA should wait until all homing is done before setting the XYZ
-     * current_position.x to home, because homing is a single operation.
+     * position.x to home, because homing is a single operation.
      * In the case where the axis positions are already known and previously
      * homed, DELTA could home to X or Y individually by moving either one
      * to the center. However, homing Z always homes XY and Z.
@@ -193,7 +193,7 @@ class Delta_Mechanics : public Mechanics {
     /**
      * Report current position to host
      */
-    static void report_current_position_detail();
+    static void report_position_detail();
 
     /**
      * Print mechanics parameters in memory
@@ -220,7 +220,7 @@ class Delta_Mechanics : public Mechanics {
     static void homeaxis(const AxisEnum axis);
 
     /**
-     * Buffer a fast move without interpolation. Set current_position to destination
+     * Buffer a fast move without interpolation. Set position to destination
      */
     static void prepare_uninterpolated_move_to_destination(const feedrate_t &fr_mm_s=0.0f);
 

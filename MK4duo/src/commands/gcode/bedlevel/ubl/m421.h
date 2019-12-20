@@ -49,7 +49,7 @@ inline void gcode_M421() {
               hasZ = parser.seen('Z'),
               hasQ = !hasZ && parser.seen('Q');
 
-  if (hasC) ij = ubl.find_closest_mesh_point_of_type(REAL, mechanics.current_position);
+  if (hasC) ij = ubl.find_closest_mesh_point_of_type(REAL, mechanics.position);
 
   if (int(hasC) + int(hasI && hasJ) != 1 || !(hasZ || hasQ || hasN))
     SERIAL_LM(ER, MSG_HOST_ERR_M421_PARAMETERS);

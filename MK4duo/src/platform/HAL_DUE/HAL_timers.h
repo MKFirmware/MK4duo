@@ -74,6 +74,7 @@
 #define STEPPER_TIMER_NUM           4
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000UL)                        // 42 - stepper timer ticks per µs
+#define STEPPER_TIMER_PULSE_TICK_NS (1000000000UL / STEPPER_TIMER_RATE)
 #define STEPPER_TIMER_PRESCALE      2                                                         // 2
 #define STEPPER_TIMER_MIN_INTERVAL  1                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts

@@ -93,7 +93,7 @@
        mechanics.destination.z += tilt_distance;
        planner.buffer_line(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z, mechanics.destination.z, retract_speed, toolManager.extruder.active);
        // And save it away as our current position, because we're there.
-       mechanics.current_position = mechanics.destination;
+       mechanics.position = mechanics.destination;
        planner.synchronize();
        tilted = false;
     }

@@ -1522,7 +1522,11 @@
   #define Z_STEPPER_COUNT 1
 #endif
 
-#define MAX_DRIVER_XYZ      (X_STEPPER_COUNT + Y_STEPPER_COUNT + Z_STEPPER_COUNT)
+#if MECH(DELTA)
+  #define MAX_DRIVER_XYZ    (XYZ)
+#else
+  #define MAX_DRIVER_XYZ    (XYZ + 4)
+#endif
 #define MAX_DRIVER          (MAX_DRIVER_XYZ + MAX_DRIVER_E)
 
 /**

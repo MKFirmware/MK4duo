@@ -422,10 +422,10 @@ void _lcd_ubl_map_lcd_edit_cmd() {
 void ubl_map_move_to_xy() {
   REMEMBER(fr, mechanics.feedrate_mm_s, MMM_TO_MMS(XY_PROBE_SPEED));
 
-  mechanics.destination = mechanics.current_position; // sync destination at the start
+  mechanics.destination = mechanics.position; // sync destination at the start
 
   #if MECH(DELTA)
-    if (mechanics.current_position.z > mechanics.delta_clip_start_height) {
+    if (mechanics.position.z > mechanics.delta_clip_start_height) {
       mechanics.destination.z = mechanics.delta_clip_start_height;
       mechanics.prepare_move_to_destination();
     }
@@ -444,7 +444,7 @@ void _lcd_hard_stop() {
   lcdui.currentScreen = _lcd_do_nothing;
   planner.quick_stop();
   lcdui.currentScreen = old_screen;
-  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.set_position_from_steppers_for_axis(ALL_AXES);
   mechanics.sync_plan_position();
 }
 

@@ -36,12 +36,12 @@
      * just do the required Z-Height correction, call the Planner's buffer_line() routine, and leave
      */
     #if HAS_POSITION_MODIFIERS
-      xyze_pos_t  start = mechanics.current_position,
+      xyze_pos_t  start = mechanics.position,
                   end   = mechanics.destination;
       planner.apply_modifiers(start);
       planner.apply_modifiers(end);
     #else
-      const xyze_pos_t  &start  = mechanics.current_position,
+      const xyze_pos_t  &start  = mechanics.position,
                         &end    = mechanics.destination;
     #endif
 
@@ -61,7 +61,7 @@
           end.z += UBL_Z_RAISE_WHEN_OFF_MESH;
         #endif
         planner.buffer_segment(end, scaled_fr_mm_s, extruder);
-        mechanics.current_position = mechanics.destination;
+        mechanics.position = mechanics.destination;
         return;
       }
 
@@ -88,7 +88,7 @@
       // Replace NAN corrections with 0.0 to prevent NAN propagation.
       if (!isnan(z0)) end.z += z0;
       planner.buffer_segment(end, scaled_fr_mm_s, extruder);
-      mechanics.current_position = mechanics.destination;
+      mechanics.position = mechanics.destination;
       return;
     }
 
@@ -176,10 +176,10 @@
       }
 
       // At the final destination? Usually not, but when on a Y Mesh Line it's completed.
-      if (xy_pos_t(mechanics.current_position) != xy_pos_t(end))
+      if (xy_pos_t(mechanics.position) != xy_pos_t(end))
         goto FINAL_MOVE;
 
-      mechanics.current_position = mechanics.destination;
+      mechanics.position = mechanics.destination;
       return;
     }
 
@@ -222,10 +222,10 @@
         } //else printf("FIRST MOVE PRUNED  ");
       }
 
-      if (xy_pos_t(mechanics.current_position) != xy_pos_t(end))
+      if (xy_pos_t(mechanics.position) != xy_pos_t(end))
         goto FINAL_MOVE;
 
-      mechanics.current_position = mechanics.destination;
+      mechanics.position = mechanics.destination;
       return;
     }
 
@@ -300,10 +300,10 @@
       if (cnt.x < 0 || cnt.y < 0) break; // Too far! Exit the loop and go to FINAL_MOVE
     }
 
-    if (xy_pos_t(mechanics.current_position) != xy_pos_t(end))
+    if (xy_pos_t(mechanics.position) != xy_pos_t(end))
       goto FINAL_MOVE;
 
-    mechanics.current_position = mechanics.destination;
+    mechanics.position = mechanics.destination;
   }
 
 #else // UBL_DELTA
@@ -313,15 +313,15 @@
   /**
    * Prepare a segmented linear move for DELTA/SCARA/CARTESIAN with UBL and FADE semantics.
    * This calls planner.buffer_segment multiple times for small incremental moves.
-   * Returns true if did NOT move, false if moved (requires current_position update).
+   * Returns true if did NOT move, false if moved (requires position update).
    */
 
   bool _O2 unified_bed_leveling::line_to_destination_segmented(const feedrate_t &scaled_fr_mm_s) {
 
     if (!mechanics.position_is_reachable(mechanics.destination))  // fail if moving outside reachable boundary
-      return true;                                                // did not move, so current_position still accurate
+      return true;                                                // did not move, so position still accurate
 
-    const xyze_pos_t total = mechanics.destination - mechanics.current_position;
+    const xyze_pos_t total = mechanics.destination - mechanics.position;
 
     const float cart_xy_mm_2  = HYPOT2(total.x, total.y),
                 cart_xy_mm    = SQRT(cart_xy_mm_2),                                         // Total XY distance
@@ -339,7 +339,7 @@
     // Note that E segment distance could vary slightly as z mesh height
     // changes for each segment, but small enough to ignore.
 
-    xyze_pos_t raw = mechanics.current_position;
+    xyze_pos_t raw = mechanics.position;
 
     // Just do plain segmentation if UBL is inactive or the target is above the fade height
     if (!bedlevel.flag.leveling_active || !bedlevel.leveling_active_at_z(mechanics.destination.z)) {
@@ -438,7 +438,7 @@
       } // segment loop
     } // cell loop
 
-    return false; // caller will update current_position
+    return false; // caller will update position
   }
 
 #endif // UBL_DELTA

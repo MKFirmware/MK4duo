@@ -65,6 +65,10 @@ void ToolManager::factory_parameters() {
 
   LOOP_EXTRUDER() if (extruders[e]) extruder_factory_parameters(e);
 
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
+    setVolumetric(VOLUMETRIC_DEFAULT_ON);
+  #endif
+
   #if ENABLED(IDLE_OOZING_PREVENT)
     IDLE_OOZING_enabled = true;
   #endif
@@ -101,11 +105,13 @@ void ToolManager::extruder_factory_parameters(const uint8_t e) {
 
   #if ENABLED(LIN_ADVANCE)
     extruders[e]->data.advance_K = LIN_ADVANCE_K;
+    extruder.LA_test = false;
   #endif
 
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     extruders[e]->volumetric_multiplier  = 1.0f;
     extruders[e]->data.filament_size     = DEFAULT_NOMINAL_FILAMENT_DIA;
+    extruder.volumetric = false;
   #endif
 
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
@@ -183,7 +189,7 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
     planner.synchronize();
   
-    #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_SCALED_DUPLICATION_MODE
+    #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_MIRRORED_MODE
       // Only T0 allowed in DXC_DUPLICATION_MODE
       if (extruder.target != 0 && mechanics.dxc_is_duplicating())
          return invalid_extruder_error();
@@ -222,8 +228,8 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             advancedpause.do_pause_e_move(-data.swap_length, MMM_TO_MMS(data.retract_speed));
           #else
-            mechanics.current_position.e -= data.swap_length / extruders[extruder.active]->e_factor;
-            planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.retract_speed), extruder.active);
+            mechanics.position.e -= data.swap_length / extruders[extruder.active]->e_factor;
+            planner.buffer_line(mechanics.position, MMM_TO_MMS(data.retract_speed), extruder.active);
             planner.synchronize();
           #endif
         }
@@ -250,7 +256,7 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
         #endif
       #endif
 
-      mechanics.destination = mechanics.current_position;
+      mechanics.destination = mechanics.position;
 
       #if !HAS_DONDOLO
         // Do a small lift to avoid the workpiece in the move back (below)
@@ -259,9 +265,9 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
             nozzle.park(2);
           #else
             // Do a small lift to avoid the workpiece in the move back (below)
-            mechanics.current_position.z += nozzle.data.park_point.z;
+            mechanics.position.z += nozzle.data.park_point.z;
             #if HAS_SOFTWARE_ENDSTOPS
-              endstops.apply_motion_limits(mechanics.current_position);
+              endstops.apply_motion_limits(mechanics.position);
             #endif
             fast_line_to_current(Z_AXIS);
             planner.synchronize();
@@ -281,9 +287,9 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
         dualx_tool_change(no_move); // Can modify no_move
       #elif HAS_DONDOLO
         // Always raise by at least 1 to avoid workpiece
-        mechanics.current_position.z += MAX(-z_diff, 0.0) + data.park_point.z;
+        mechanics.position.z += MAX(-z_diff, 0.0) + data.park_point.z;
         #if HAS_SOFTWARE_ENDSTOPS
-          endstops.apply_motion_limits(mechanics.current_position);
+          endstops.apply_motion_limits(mechanics.position);
         #endif
         if (!no_move) fast_line_to_current(Z_AXIS);
         move_extruder_servo();
@@ -297,9 +303,9 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
       }
 
       // The newly-selected extruder XY is actually at...
-      mechanics.current_position.x += x_diff;
-      mechanics.current_position.y += y_diff;
-      mechanics.current_position.z += z_diff;
+      mechanics.position.x += x_diff;
+      mechanics.position.y += y_diff;
+      mechanics.position.z += z_diff;
 
       #if HAS_MKMULTI_TOOLS
         MK_multi_tool_change();
@@ -313,7 +319,7 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
       mechanics.sync_plan_position();
 
       #if MECH(DELTA)
-        const bool safe_to_move = mechanics.current_position.z < mechanics.delta_clip_start_height - 1;
+        const bool safe_to_move = mechanics.position.z < mechanics.delta_clip_start_height - 1;
       #else
         constexpr bool safe_to_move = true;
       #endif
@@ -338,13 +344,13 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
               do_pause_e_move(data.swap_length, MMM_TO_MMS(data.prime_speed));
               do_pause_e_move(data.purge_lenght, ADVANCED_PAUSE_PURGE_FEEDRATE);
             #else
-              current_position.e += (data.swap_length) / extruders[extruder.active]->e_factor;
-              planner.buffer_line(mechanics.current_position, mechanics.data.max_feedrate_mm_s[E_AXIS], extruder.active);
-              current_position.e += (data.purge_lenght) / extruders[extruder.active]->e_factor;
-              planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.prime_speed * 0.2f), extruder.active);
+              position.e += (data.swap_length) / extruders[extruder.active]->e_factor;
+              planner.buffer_line(mechanics.position, mechanics.data.max_feedrate_mm_s[E_AXIS], extruder.active);
+              position.e += (data.purge_lenght) / extruders[extruder.active]->e_factor;
+              planner.buffer_line(mechanics.position, MMM_TO_MMS(data.prime_speed * 0.2f), extruder.active);
             #endif
             planner.synchronize();
-            planner.set_e_position_mm((mechanics.destination.e = mechanics.current_position.e = mechanics.current_position.e - data.purge_lenght));
+            planner.set_e_position_mm((mechanics.destination.e = mechanics.position.e = mechanics.position.e - data.purge_lenght));
           }
         #endif
 
@@ -407,6 +413,21 @@ void ToolManager::print_M563() {
 
 #if ENABLED(LIN_ADVANCE)
 
+  void ToolManager::setup_test_linadvance() {
+    SERIAL_EONOFF(" Test Linear Advance", IsTestLinAdvance());
+    if (IsTestLinAdvance()) {
+      planner.synchronize();
+      extruders[extruder.active]->data.advance_K = LIN_ADVANCE_K_START;
+    }
+  }
+
+  void ToolManager::test_linadvance() {
+    planner.synchronize();
+    extruders[extruder.active]->data.advance_K += LIN_ADVANCE_K_FACTOR;
+    SERIAL_SMV(ECHO, " Layer:", printer.currentLayer);
+    SERIAL_EMV(" Lin Advance K:", extruders[extruder.active]->data.advance_K);
+  }
+
   void ToolManager::print_M900() {
     SERIAL_LM(CFG, "Linear Advance T<Tool> K<factor>");
     LOOP_EXTRUDER() {
@@ -421,16 +442,35 @@ void ToolManager::print_M563() {
 
   void ToolManager::print_M200() {
     SERIAL_SM(CFG, "Filament settings");
-    if (printer.isVolumetric())
+    if (toolManager.isVolumetric())
       SERIAL_EOL();
     else
       SERIAL_EM(" Disabled");
 
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M200 T", (int)e);
-      SERIAL_EMV(" D", extruders[e]->filament_size, 3);
+      SERIAL_EMV(" D", extruders[e]->data.filament_size, 3);
     }
+  }
 
+  /**
+   * Convert the filament sizes into volumetric multipliers.
+   * The multiplier converts a given E value into a length.
+   */
+  void ToolManager::calculate_volumetric_multipliers() {
+    LOOP_EXTRUDER() {
+      extruders[e]->volumetric_multiplier = calculate_volumetric_multiplier(extruders[e]->data.filament_size);
+      extruders[e]->refresh_e_factor();
+    }
+  }
+
+  /**
+   * Get a volumetric multiplier from a filament diameter.
+   * This is the reciprocal of the circular cross-section area.
+   * Return 1.0 with volumetric off or a diameter of 0.0.
+   */
+  float ToolManager::calculate_volumetric_multiplier(const float diameter) {
+    return (toolManager.isVolumetric() && diameter) ? RECIPROCAL(CIRCLE_AREA(diameter * 0.5)) : 1.0;
   }
 
 #endif
@@ -443,14 +483,14 @@ void ToolManager::print_M563() {
 
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
-      mechanics.destination = mechanics.current_position;
-      mechanics.current_position.e += IDLE_OOZING_LENGTH
+      mechanics.destination = mechanics.position;
+      mechanics.position.e += IDLE_OOZING_LENGTH
         #if ENABLED(VOLUMETRIC_EXTRUSION)
           / volumetric_multiplier[extruder.active]
         #endif
       ;
       mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
-      planner.set_e_position_mm(mechanics.current_position.e);
+      planner.set_e_position_mm(mechanics.position.e);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[extruder.active] = true;
@@ -460,15 +500,15 @@ void ToolManager::print_M563() {
 
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
-      mechanics.destination = mechanics.current_position;
-      mechanics.current_position.e -= (IDLE_OOZING_LENGTH + IDLE_OOZING_RECOVER_LENGTH)
+      mechanics.destination = mechanics.position;
+      mechanics.position.e -= (IDLE_OOZING_LENGTH + IDLE_OOZING_RECOVER_LENGTH)
         #if ENABLED(VOLUMETRIC_EXTRUSION)
           / volumetric_multiplier[extruder.active]
         #endif
       ;
 
       mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
-      planner.set_e_position_mm(mechanics.current_position.e);
+      planner.set_e_position_mm(mechanics.position.e);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[extruder.active] = false;
@@ -546,32 +586,8 @@ void ToolManager::invalid_extruder_error() {
 }
 
 void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
-  planner.buffer_line(mechanics.current_position, mechanics.data.max_feedrate_mm_s[fr_axis], extruder.active);
+  planner.buffer_line(mechanics.position, mechanics.data.max_feedrate_mm_s[fr_axis], extruder.active);
 }
-
-#if ENABLED(VOLUMETRIC_EXTRUSION)
-
-  /**
-   * Get a volumetric multiplier from a filament diameter.
-   * This is the reciprocal of the circular cross-section area.
-   * Return 1.0 with volumetric off or a diameter of 0.0.
-   */
-  float ToolManager::calculate_volumetric_multiplier(const float diameter) {
-    return (printer.isVolumetric() && diameter) ? RECIPROCAL(CIRCLE_AREA(diameter * 0.5)) : 1.0;
-  }
-
-  /**
-   * Convert the filament sizes into volumetric multipliers.
-   * The multiplier converts a given E value into a length.
-   */
-  void ToolManager::calculate_volumetric_multipliers() {
-    LOOP_EXTRUDER() {
-      extruders[e]->volumetric_multiplier = calculate_volumetric_multiplier(extruders[e]->data.filament_size);
-      extruders[e]->refresh_e_factor();
-    }
-  }
-
-#endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
 #if ENABLED(MKSE6)
 
@@ -773,29 +789,29 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
         case DXC_FULL_CONTROL_MODE:       DEBUG_EM("DXC_FULL_CONTROL_MODE");        break;
         case DXC_AUTO_PARK_MODE:          DEBUG_EM("DXC_AUTO_PARK_MODE");           break;
         case DXC_DUPLICATION_MODE:        DEBUG_EM("DXC_DUPLICATION_MODE");         break;
-        case DXC_SCALED_DUPLICATION_MODE: DEBUG_EM("DXC_SCALED_DUPLICATION_MODE");  break;
+        case DXC_MIRRORED_MODE: DEBUG_EM("DXC_MIRRORED_MODE");  break;
       }
     }
 
     const float xhome = mechanics.x_home_pos(extruder.active);
     if (mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
         && printer.isRunning()
-        && (mechanics.delayed_move_timer.isRunning() || mechanics.current_position.x != xhome)
+        && (mechanics.delayed_move_timer.isRunning() || mechanics.position.x != xhome)
     ) {
-      float raised_z = mechanics.current_position.z + TOOLCHANGE_PARK_ZLIFT;
+      float raised_z = mechanics.position.z + TOOLCHANGE_PARK_ZLIFT;
       #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
         NOMORE(raised_z, endstops.soft_endstop.max.z);
       #endif
       if (printer.debugFeature()) {
         DEBUG_EMV("Raise to ", raised_z);
         DEBUG_EMV("MoveX to ", xhome);
-        DEBUG_EMV("Lower to ", mechanics.current_position.z);
+        DEBUG_EMV("Lower to ", mechanics.position.z);
       }
       // Park old head: 1) raise 2) move to park position 3) lower
-      #define CUR_X mechanics.current_position.x
-      #define CUR_Y mechanics.current_position.y
-      #define CUR_Z mechanics.current_position.z
-      #define CUR_E mechanics.current_position.e
+      #define CUR_X mechanics.position.x
+      #define CUR_Y mechanics.position.y
+      #define CUR_Z mechanics.position.z
+      #define CUR_E mechanics.position.e
 
       planner.buffer_line( CUR_X, CUR_Y, raised_z, CUR_E, mechanics.data.max_feedrate_mm_s.z, extruder.active);
       planner.buffer_line( xhome, CUR_Y, raised_z, CUR_E, mechanics.data.max_feedrate_mm_s.x, extruder.active);
@@ -805,8 +821,8 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
     }
 
     // apply Y & Z extruder offset (x offset is already used in determining home pos)
-    mechanics.current_position.y -= nozzle.data.hotend_offset[active_hotend()].y - nozzle.data.hotend_offset[target_hotend()].y;
-    mechanics.current_position.z -= nozzle.data.hotend_offset[active_hotend()].z - nozzle.data.hotend_offset[target_hotend()].z;
+    mechanics.position.y -= nozzle.data.hotend_offset[active_hotend()].y - nozzle.data.hotend_offset[target_hotend()].y;
+    mechanics.position.z -= nozzle.data.hotend_offset[active_hotend()].z - nozzle.data.hotend_offset[target_hotend()].z;
 
     // Activate the new extruder
     extruder.active = extruder.target;
@@ -814,7 +830,7 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
     // This function resets the max/min values - the current position may be overwritten below.
     mechanics.set_axis_is_at_home(X_AXIS);
 
-    if (printer.debugFeature()) DEBUG_POS("New Extruder", mechanics.current_position);
+    if (printer.debugFeature()) DEBUG_POS("New Extruder", mechanics.position);
 
     // Only when auto-parking are carriages safe to move
     if (mechanics.dual_x_carriage_mode != DXC_AUTO_PARK_MODE) no_move = true;
@@ -822,16 +838,16 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
     switch (mechanics.dual_x_carriage_mode) {
       case DXC_FULL_CONTROL_MODE:
         // New current position is the position of the activated hotend
-        mechanics.current_position.x = mechanics.inactive_extruder_x_pos;
-        // Save the inactive hotend's position (from the old mechanics.current_position.x)
+        mechanics.position.x = mechanics.inactive_extruder_x_pos;
+        // Save the inactive hotend's position (from the old mechanics.position.x)
         mechanics.inactive_extruder_x_pos = mechanics.destination.x;
         break;
       case DXC_AUTO_PARK_MODE:
         // record raised toolhead position for use by unpark
-        COPY_ARRAY(mechanics.raised_parked_position, mechanics.current_position);
-        mechanics.raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
+        mechanics.raised_parked_position = mechanics.position;
+        mechanics.raised_parked_position.z += TOOLCHANGE_UNPARK_ZLIFT;
         #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-          NOMORE(mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop.max.z);
+          NOMORE(mechanics.raised_parked_position.z, endstops.soft_endstop.max.z);
         #endif
         mechanics.active_extruder_parked = true;
         mechanics.delayed_move_timer.stop();
@@ -840,7 +856,7 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
 
     if (printer.debugFeature()) {
       DEBUG_EMV("Active hotend parked: ", mechanics.active_extruder_parked ? "yes" : "no");
-      DEBUG_POS("New hotend (parked)", mechanics.current_position);
+      DEBUG_POS("New hotend (parked)", mechanics.position);
     }
 
   }

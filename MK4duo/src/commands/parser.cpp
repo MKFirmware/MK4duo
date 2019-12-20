@@ -260,7 +260,7 @@ pin_t GCodeParser::analog_value_pin() {
 #if ENABLED(INCH_MODE_SUPPORT)
 
   float GCodeParser::axis_unit_factor(const AxisEnum axis) {
-    return (axis >= E_AXIS && printer.isVolumetric() ? volumetric_unit_factor : linear_unit_factor);
+    return (axis >= E_AXIS && toolManager.isVolumetric() ? volumetric_unit_factor : linear_unit_factor);
   }
 
 #endif

@@ -43,7 +43,6 @@
 #define NUM_AXIS  4
 #define XYZE      4
 #define ABCE      4
-#define XYZEN     3 + MAX_EXTRUDER
 #define ABC       3
 #define XYZ       3
 #define XY        2
@@ -118,7 +117,7 @@
 // Macros to inch mode support
 #if ENABLED(INCH_MODE_SUPPORT)
   #define LINEAR_UNIT(N)      ((N) / parser.linear_unit_factor)
-  #define VOLUMETRIC_UNIT(N)  ((N) / (printer.isVolumetric() ? parser.volumetric_unit_factor : parser.linear_unit_factor))
+  #define VOLUMETRIC_UNIT(N)  ((N) / (toolManager.isVolumetric() ? parser.volumetric_unit_factor : parser.linear_unit_factor))
 #else
   #define LINEAR_UNIT(N)      N
   #define VOLUMETRIC_UNIT(N)  N
@@ -246,6 +245,7 @@
 #define LOOP_ABCE_N(VAR)          LOOP_S_L_N(VAR, A_AXIS, XYZE_N)
 #define LOOP_DRV()                LOOP_L_N(d, MAX_DRIVER)
 #define LOOP_DRV_XYZ()            LOOP_L_N(d, XYZ)
+#define LOOP_DRV_ALL_XYZ()        LOOP_L_N(d, MAX_DRIVER_XYZ)
 #define LOOP_DRV_EXT()            LOOP_L_N(d, stepper.data.drivers_e)
 #define LOOP_DRV_MIX()            LOOP_L_N(d, MIXING_STEPPERS)
 #define LOOP_EXTRUDER()           LOOP_L_N(e, toolManager.extruder.total)

@@ -43,10 +43,10 @@ inline void gcode_G0_G1(
       if (MIN_AUTORETRACT <= MAX_AUTORETRACT) {
         // When M209 Autoretract is enabled, convert E-only moves to firmware retract/recover moves
         if (fwretract.autoretract_enabled && parser.seen('E') && !(parser.seen('X') || parser.seen('Y') || parser.seen('Z'))) {
-          const float echange = mechanics.destination.e - mechanics.current_position.e;
+          const float echange = mechanics.destination.e - mechanics.position.e;
           // Is this move an attempt to retract or recover?
           if (WITHIN(ABS(echange), MIN_AUTORETRACT, MAX_AUTORETRACT) && fwretract.retracted[toolManager.extruder.active] == (echange > 0.0)) {
-            mechanics.current_position.e = mechanics.destination.e; // Hide a G1-based retract/recover from calculations
+            mechanics.position.e = mechanics.destination.e; // Hide a G1-based retract/recover from calculations
             mechanics.sync_plan_position_e();                       // AND from the planner
             return fwretract.retract(echange < 0.0);                // Firmware-based retract/recover (double-retract ignored)
           }

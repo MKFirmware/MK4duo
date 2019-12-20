@@ -80,7 +80,7 @@
       uint8_t active_extruder_before_filament_change = toolManager.extruder.active;
       if (toolManager.extruder.active != toolManager.extruder.target
         #if ENABLED(DUAL_X_CARRIAGE)
-          && mechanics.dual_x_carriage_mode != DXC_DUPLICATION_MODE && mechanics.dual_x_carriage_mode != DXC_SCALED_DUPLICATION_MODE
+          && mechanics.dual_x_carriage_mode != DXC_DUPLICATION_MODE && mechanics.dual_x_carriage_mode != DXC_MIRRORED_MODE
         #endif
       ) toolManager.change(toolManager.extruder.target);
     #endif

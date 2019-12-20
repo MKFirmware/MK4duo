@@ -69,13 +69,14 @@
 
     const ProbePtRaiseEnum raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
 
-    float X_current = mechanics.current_position.x,
-          Y_current = mechanics.current_position.y;
+    xy_float_t next_pos = mechanics.position;
 
-    const float X_probe_location = parser.linearval('X', X_current + probe.data.offset.x),
-                Y_probe_location = parser.linearval('Y', Y_current + probe.data.offset.y);
+    const xy_pos_t probe_pos = {
+      parser.linearval('X', next_pos.x + probe.data.offset.x),
+      parser.linearval('Y', next_pos.y + probe.data.offset.y)
+    };
 
-    if (!mechanics.position_is_reachable_by_probe(X_probe_location, Y_probe_location)) {
+    if (!mechanics.position_is_reachable_by_probe(probe_pos)) {
       SERIAL_LM(ER, "? (X,Y) out of bounds.");
       return;
     }
@@ -88,7 +89,7 @@
     }
     if (n_legs == 1) n_legs = 2;
 
-    bool schizoid_flag = parser.seen('S');
+    const bool schizoid_flag = parser.seen('S');
     if (schizoid_flag && !seen_L) n_legs = 7;
 
     /**
@@ -109,7 +110,7 @@
     float mean = 0.0, sigma = 0.0, min = 99999.9, max = -99999.9, sample_set[n_samples];
 
     // Move to the first point, deploy, and probe
-    const float t = probe.check_at_point(X_probe_location, Y_probe_location, raise_after, verbose_level);
+    const float t = probe.check_at_point(probe_pos, raise_after, verbose_level);
     bool probing_good = !isnan(t);
 
     if (probing_good) {
@@ -129,7 +130,7 @@
               (int)(0.1250000000 * mechanics.data.probe_radius),
               (int)(0.3333333333 * mechanics.data.probe_radius)
             #else
-              5, (int)(0.125 * MIN(X_MAX_BED, Y_MAX_BED))
+              int(5), int(0.125 * MIN(X_MAX_BED, Y_MAX_BED))
             #endif
           );
 
@@ -142,7 +143,7 @@
           }
 
           for (uint8_t l = 0; l < n_legs - 1; l++) {
-            double delta_angle;
+            float delta_angle;
 
             if (schizoid_flag)
               // The points of a 5 point star are 72 degrees apart.  We need to
@@ -161,38 +162,40 @@
             while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
               angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
 
-            X_current = X_probe_location - probe.data.offset.x + cos(RADIANS(angle)) * radius;
-            Y_current = Y_probe_location - probe.data.offset.y + sin(RADIANS(angle)) * radius;
+            next_pos.set( probe_pos.x - probe.data.offset.x + cos(RADIANS(angle)) * radius,
+                          probe_pos.y - probe.data.offset.y + sin(RADIANS(angle)) * radius);
 
             #if MECH(DELTA)
               // If we have gone out too far, we can do a simple fix and scale the numbers
               // back in closer to the origin.
-              while (!mechanics.position_is_reachable_by_probe(X_current, Y_current)) {
-                X_current *= 0.8;
-                Y_current *= 0.8;
+              while (!mechanics.position_is_reachable_by_probe(next_pos)) {
+                next_pos *= 0.8f;
                 if (verbose_level > 3) {
-                  SERIAL_MV("Pulling point towards center:", X_current);
-                  SERIAL_EMV(", ", Y_current);
+                  SERIAL_MSG("Moving inward:");
+                  SERIAL_MV(" X", next_pos.x);
+                  SERIAL_MV(" Y", next_pos.y);
+                  SERIAL_EOL();
                 }
               }
             #else
-              LIMIT(X_current, X_MIN_BED, X_MAX_BED);
-              LIMIT(Y_current, Y_MIN_BED, Y_MAX_BED);
+              LIMIT(next_pos.x, X_MIN_BED, X_MAX_BED);
+              LIMIT(next_pos.y, Y_MIN_BED, Y_MAX_BED);
             #endif
 
             if (verbose_level > 3) {
               SERIAL_MSG("Going to:");
-              SERIAL_MV(" X", X_current);
-              SERIAL_MV(" Y", Y_current);
-              SERIAL_EMV(" Z", mechanics.current_position.z);
+              SERIAL_MV(" X", next_pos.x);
+              SERIAL_MV(" Y", next_pos.y);
+              SERIAL_MV(" Z", mechanics.position.z);
+              SERIAL_EOL();
             }
 
-            mechanics.do_blocking_move_to_xy(X_current, Y_current);
+            mechanics.do_blocking_move_to_xy(next_pos);
           } // n_legs loop
         } // n_legs
 
         // Probe a single point
-        sample_set[n] = probe.check_at_point(X_probe_location, Y_probe_location, raise_after, 0);
+        sample_set[n] = probe.check_at_point(probe_pos, raise_after, 0);
 
         // Break the loop if the probe fails
         probing_good = !isnan(sample_set[n]);
@@ -201,7 +204,7 @@
         /**
          * Get the current mean for the data points we have so far
          */
-        double sum = 0.0;
+        float sum = 0.0;
         for (uint8_t j = 0; j <= n; j++) sum += sample_set[j];
         mean = sum / (n + 1);
 
@@ -267,7 +270,7 @@
       bedlevel.restore_bed_leveling_state();
     #endif
 
-    mechanics.report_current_position();
+    mechanics.report_position();
   }
 
 #endif // ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)

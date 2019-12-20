@@ -87,8 +87,6 @@ void HAL::hwSetup() {
 
   HAL_InitTick(NvicPrioritySystick); // Start SysTick to priority low
 
-  FastIO_init();
-
   #if PIN_EXISTS(LED)
     OUT_WRITE(LED_PIN, LOW);
   #endif
@@ -111,35 +109,35 @@ void HAL::analogStart() {
 
   #if HAS_HOTENDS
     LOOP_HOTEND() {
-      pinMode(hotends[h]->data.sensor.pin, INPUT);
+      SET_INPUT_ANALOG(hotends[h]->data.sensor.pin);
     }
   #endif
   #if HAS_BEDS
     LOOP_BED() {
-      pinMode(beds[h]->data.sensor.pin, INPUT);
+      SET_INPUT_ANALOG(beds[h]->data.sensor.pin);
     }
   #endif
   #if HAS_CHAMBERS
     LOOP_CHAMBER() {
-      pinMode(chambers[h]->data.sensor.pin, INPUT);
+      SET_INPUT_ANALOG(chambers[h]->data.sensor.pin);
     }
   #endif
   #if HAS_COOLERS
     LOOP_COOLER() {
-      pinMode(coolers[h]->data.sensor.pin, INPUT);
+      SET_INPUT_ANALOG(coolers[h]->data.sensor.pin);
     }
   #endif
 
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
-    pinMode(FILWIDTH_PIN, INPUT);
+    SET_INPUT_ANALOG(FILWIDTH_PIN);
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
-    pinMode(POWER_CONSUMPTION_PIN, INPUT);
+    SET_INPUT_ANALOG(POWER_CONSUMPTION_PIN);
   #endif
 
   #if HAS_MCU_TEMPERATURE
-    pinMode(ADC_TEMPERATURE_SENSOR, INPUT);
+    SET_INPUT_ANALOG(ADC_TEMPERATURE_SENSOR);
   #endif
 
 }

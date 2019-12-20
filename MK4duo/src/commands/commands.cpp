@@ -175,11 +175,11 @@ void Commands::get_destination() {
     if ((seen[i] = parser.seen(axis_codes[i]))) {
       const float v = parser.value_axis_units((AxisEnum)i);
       mechanics.destination[i] = mechanics.axis_is_relative(AxisEnum(i))
-        ? mechanics.current_position[i] + v : (i == E_AXIS)
+        ? mechanics.position[i] + v : (i == E_AXIS)
         ? v : LOGICAL_TO_NATIVE(v, (AxisEnum)i);
     }
     else
-      mechanics.destination[i] = mechanics.current_position[i];
+      mechanics.destination[i] = mechanics.position[i];
   }
 
   #if HAS_SD_RESTART
@@ -190,10 +190,10 @@ void Commands::get_destination() {
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
-    mechanics.destination.e = (parser.value_axis_units(E_AXIS) * extruders[toolManager.extruder.previous]->density_percentage * 0.01f) + mechanics.current_position.e;
+    mechanics.destination.e = (parser.value_axis_units(E_AXIS) * extruders[toolManager.extruder.previous]->density_percentage * 0.01f) + mechanics.position.e;
 
   if (!printer.debugDryrun() && !printer.debugSimulation()) {
-    const float diff = mechanics.destination.e - mechanics.current_position.e;
+    const float diff = mechanics.destination.e - mechanics.position.e;
     print_job_counter.incFilamentUsed(diff);
     #if ENABLED(RFID_MODULE)
       rfid522.data[toolManager.extruder.active].data.lenght -= diff;

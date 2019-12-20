@@ -46,7 +46,7 @@ void Probe::factory_parameters() {
 bool Probe::set_deployed(const bool deploy) {
 
   if (printer.debugFeature()) {
-    DEBUG_POS("probe.set_deployed", mechanics.current_position);
+    DEBUG_POS("probe.set_deployed", mechanics.position);
     DEBUG_ELOGIC("deploy", deploy);
   }
 
@@ -77,7 +77,7 @@ bool Probe::set_deployed(const bool deploy) {
     }
   #endif
 
-  mechanics.stored_position[0] = mechanics.current_position;
+  mechanics.stored_position[0] = mechanics.position;
 
   #if HAS_ALLEN_KEY
 
@@ -110,7 +110,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   #endif
 
-  mechanics.do_blocking_move_to(mechanics.stored_position[0].x, mechanics.stored_position[0].y, mechanics.current_position.z); // return to position before deploy
+  mechanics.do_blocking_move_to(mechanics.stored_position[0].x, mechanics.stored_position[0].y, mechanics.position.z); // return to position before deploy
   endstops.setProbeEnabled(deploy);
   return false;
 }
@@ -118,9 +118,9 @@ bool Probe::set_deployed(const bool deploy) {
 #if Z_PROBE_AFTER_PROBING > 0
   // After probing move to a preferred Z position
   void Probe::move_z_after_probing() {
-    if (mechanics.current_position.z != Z_PROBE_AFTER_PROBING) {
+    if (mechanics.position.z != Z_PROBE_AFTER_PROBING) {
       mechanics.do_blocking_move_to_z(Z_PROBE_AFTER_PROBING);
-      mechanics.current_position.z = Z_PROBE_AFTER_PROBING;
+      mechanics.position.z = Z_PROBE_AFTER_PROBING;
     }
   }
 #endif
@@ -150,7 +150,7 @@ bool Probe::set_deployed(const bool deploy) {
         DEBUG_MV(", ", int(verbose_level));
         DEBUG_MT(", ", probe_relative ? "probe" : "nozzle");
         DEBUG_EM("_relative)");
-        DEBUG_POS("", mechanics.current_position);
+        DEBUG_POS("", mechanics.position);
       }
 
       xyz_pos_t npos = { rx, ry };
@@ -169,9 +169,9 @@ bool Probe::set_deployed(const bool deploy) {
       npos.z =
         #if MECH(DELTA)
           // Move below clip height or xy move will be aborted by do_blocking_move_to
-          MIN(mechanics.current_position.z, mechanics.delta_clip_start_height)
+          MIN(mechanics.position.z, mechanics.delta_clip_start_height)
         #else
-          mechanics.current_position.z
+          mechanics.position.z
         #endif
       ;
 
@@ -186,7 +186,7 @@ bool Probe::set_deployed(const bool deploy) {
         measured_z = run_probing() + data.offset.z;
 
         if (raise_after == PROBE_PT_RAISE)
-          mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
+          mechanics.do_blocking_move_to_z(mechanics.position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
         else if (raise_after == PROBE_PT_STOW)
           if (STOW_PROBE()) measured_z = NAN;
       }
@@ -418,7 +418,7 @@ void Probe::specific_action(const bool deploy) {
  */
 bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
 
-  if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
+  if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.position);
 
   // Deploy BLTouch at the start of any probe
   #if HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
@@ -480,14 +480,14 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   endstops.hit_on_purpose();
 
   // Get Z where the steppers were interrupted
-  mechanics.set_current_from_steppers_for_axis(Z_AXIS);
+  mechanics.set_position_from_steppers_for_axis(Z_AXIS);
 
   // Tell the planner where we actually are
   mechanics.sync_plan_position();
 
   if (printer.debugFeature()) {
     DEBUG_ELOGIC(" Probe triggered", probe_triggered);
-    DEBUG_POS("<<< probe.move_to_z", mechanics.current_position);
+    DEBUG_POS("<<< probe.move_to_z", mechanics.position);
   }
 
   return !probe_triggered;
@@ -509,13 +509,13 @@ void Probe::do_raise(const float z_raise) {
 
   NOMORE(z_dest, Z_MAX_BED);
 
-  if (z_dest > mechanics.current_position.z)
+  if (z_dest > mechanics.position.z)
     mechanics.do_blocking_move_to_z(z_dest);
 }
 
 /**
  * Used by check_at_point to do a single Z probe at the current position.
- * Leaves current_position.z at the height where the probe triggered.
+ * Leaves position.z at the height where the probe triggered.
  *
  * return The raw Z position where the probe was triggered
  */
@@ -523,7 +523,7 @@ float Probe::run_probing() {
 
   float probe_z = 0.0f;
 
-  if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
+  if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.position);
 
   // Stop the probe before it goes too low to prevent damage.
   // If Z isn't known then probe to -10mm.
@@ -532,9 +532,9 @@ float Probe::run_probing() {
   // If the nozzle is well over the travel height then
   // move down quickly before doing the slow probe
   float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset.z < 0 ? -data.offset.z : 0);
-  if (mechanics.current_position.z > z) {
+  if (mechanics.position.z > z) {
     if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
-      mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
+      mechanics.do_blocking_move_to_z(mechanics.position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
   }
 
   for (uint8_t r = data.repetitions + 1; --r;) {
@@ -543,13 +543,13 @@ float Probe::run_probing() {
     if (move_to_z(z_probe_low_point, MMM_TO_MMS(data.speed_slow))) {
       if (printer.debugFeature()) {
         DEBUG_EM("SLOW Probe fail!");
-        DEBUG_POS("<<< probe.run_probing", mechanics.current_position);
+        DEBUG_POS("<<< probe.run_probing", mechanics.position);
       }
       return NAN;
     }
 
-    probe_z += mechanics.current_position.z;
-    if (r > 1) mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
+    probe_z += mechanics.position.z;
+    if (r > 1) mechanics.do_blocking_move_to_z(mechanics.position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
 
   }
 

@@ -345,11 +345,11 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
    * Prepare a bilinear-leveled linear move on Cartesian,
    * splitting the move where it crosses mesh borders.
    */
-  void AutoBedLevel::bilinear_line_to_destination(const feedrate_t scaled_fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
+  void AutoBedLevel::line_to_destination(const feedrate_t scaled_fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
 
     // Get current and destination cells for this line
-    xy_int_t  c1 { CELL_INDEX(x, mechanics.current_position.x), CELL_INDEX(y, mechanics.current_position.y) },
-              c2 { CELL_INDEX(x, mechanics.destination.x),      CELL_INDEX(y, mechanics.destination.y) };
+    xy_int_t  c1 { CELL_INDEX(x, mechanics.position.x),     CELL_INDEX(y, mechanics.position.y) },
+              c2 { CELL_INDEX(x, mechanics.destination.x),  CELL_INDEX(y, mechanics.destination.y) };
 
     LIMIT(c1.x, 0, ABL_BG_POINTS_X - 2);
     LIMIT(c1.y, 0, ABL_BG_POINTS_Y - 2);
@@ -358,12 +358,12 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
 
     // Start and end on same mesh square
     if (c1 == c2) {
-      mechanics.current_position = mechanics.destination;
-      mechanics.line_to_current_position(scaled_fr_mm_s);
+      mechanics.line_to_destination(scaled_fr_mm_s);
+      mechanics.position = mechanics.destination;
       return;
     }
 
-    #define LINE_SEGMENT_END(A) (mechanics.current_position.A + (mechanics.destination.A - mechanics.current_position.A) * normalized_dist)
+    #define LINE_SEGMENT_END(A) (mechanics.position.A + (mechanics.destination.A - mechanics.position.A) * normalized_dist)
 
     xyze_pos_t end;
     float normalized_dist;
@@ -376,7 +376,7 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
       CBI(x_splits, gc.x);
       end = mechanics.destination;
       mechanics.destination.x = bilinear_start.x + ABL_BG_SPACING(x) * gc.x;
-      normalized_dist = (mechanics.destination.x - mechanics.current_position.x) / (end.x - mechanics.current_position.x);
+      normalized_dist = (mechanics.destination.x - mechanics.position.x) / (end.x - mechanics.position.x);
       mechanics.destination.y = LINE_SEGMENT_END(y);
     }
     // Crosses on the Y and not already split on this Y?
@@ -384,14 +384,14 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
       CBI(y_splits, gc.y);
       COPY_ARRAY(end, mechanics.destination);
       mechanics.destination.y = bilinear_start.y + ABL_BG_SPACING(y) * gc.y;
-      normalized_dist = (mechanics.destination.y - mechanics.current_position.y) / (end.y - mechanics.current_position.y);
+      normalized_dist = (mechanics.destination.y - mechanics.position.y) / (end.y - mechanics.position.y);
       mechanics.destination.x = LINE_SEGMENT_END(x);
     }
     else {
       // Must already have been split on these border(s)
       // This should be a rare case.
-      mechanics.current_position = mechanics.destination;
-      mechanics.line_to_current_position(scaled_fr_mm_s);
+      mechanics.line_to_destination(scaled_fr_mm_s);
+      mechanics.position = mechanics.destination;
       return;
     }
 
@@ -399,11 +399,11 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
     mechanics.destination.e = LINE_SEGMENT_END(e);
 
     // Do the split and look for more borders
-    bilinear_line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
+    line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
 
     // Restore destination from stack
     mechanics.destination = end;
-    bilinear_line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
+    line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
   }
 
 #endif // !IS_KINEMATIC

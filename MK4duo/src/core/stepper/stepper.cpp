@@ -226,16 +226,6 @@ void Stepper::create_xyz_driver() {
     }
   #endif
 
-  #if Z_STEPPER_COUNT == 3
-    if (!driver.z3) {
-      driver.z3 = new Driver("Z3");
-      driver_factory_parameters(driver.z3, Z3_DRV);
-      SERIAL_SM(ECHO, "Create driver ");
-      driver.z3->printLabel(); SERIAL_EOL();
-      driver.z3->init();
-    }
-  #endif
-
   #if Z_STEPPER_COUNT >= 2
     if (!driver.z2) {
       driver.z2 = new Driver("Z2");
@@ -243,6 +233,16 @@ void Stepper::create_xyz_driver() {
       SERIAL_SM(ECHO, "Create driver ");
       driver.z2->printLabel(); SERIAL_EOL();
       driver.z2->init();
+    }
+  #endif
+
+  #if Z_STEPPER_COUNT == 3
+    if (!driver.z3) {
+      driver.z3 = new Driver("Z3");
+      driver_factory_parameters(driver.z3, Z3_DRV);
+      SERIAL_SM(ECHO, "Create driver ");
+      driver.z3->printLabel(); SERIAL_EOL();
+      driver.z3->init();
     }
   #endif
 
@@ -255,12 +255,12 @@ void Stepper::create_ext_driver() {
   LOOP_DRV_EXT() {
     if (!driver.e[d]) {
       driver.e[d] = new Driver(drv_e_label[d]);
-      driver_factory_parameters(driver.e[d], d + XYZ);
+      driver_factory_parameters(driver.e[d], d + 7);
       SERIAL_SM(ECHO, "Create driver ");
       driver.e[d]->printLabel(); SERIAL_EOL();
       driver.e[d]->init();
       #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-        externaldac.set_driver_current(d + XYZ, driver.e[d]->data.ma);
+        externaldac.set_driver_current(d + 7, driver.e[d]->data.ma);
       #endif
     }
   }
@@ -322,21 +322,8 @@ void Stepper::factory_parameters() {
 
   create_driver();
 
-  LOOP_DRV_XYZ()  if (driver[d]) driver_factory_parameters(driver[d], d);
-  LOOP_DRV_EXT()  if (driver[d]) driver_factory_parameters(driver.e[d], d + XYZ);
-
-  #if X_STEPPER_COUNT == 2
-    if (driver.x2) driver_factory_parameters(driver.x2, X2_DRV);
-  #endif
-  #if Y_STEPPER_COUNT == 2
-    if (driver.y2) driver_factory_parameters(driver.y2, Y2_DRV);
-  #endif
-  #if Z_STEPPER_COUNT == 3
-    if (driver.z3) driver_factory_parameters(driver.z3, Z3_DRV);
-  #endif
-  #if Z_STEPPER_COUNT >= 2
-    if (driver.z2) driver_factory_parameters(driver.z2, Z2_DRV);
-  #endif
+  LOOP_DRV_ALL_XYZ()  if (driver[d]) driver_factory_parameters(driver[d], d);
+  LOOP_DRV_EXT()      if (driver[d]) driver_factory_parameters(driver.e[d], d + 7);
 
   #if HAS_TRINAMIC
     tmc.factory_parameters();
@@ -820,7 +807,7 @@ void Stepper::disable_E(const uint8_t e) {
 
 bool Stepper::driver_is_enable() {
   bool driver_enable = false;
-  LOOP_DRV_XYZ()
+  LOOP_DRV_ALL_XYZ()
     driver_enable |= driver[d]->enable_read() == driver[d]->isEnable();
   LOOP_DRV_EXT()
     driver_enable |= driver.e[d]->enable_read() == driver.e[d]->isEnable();
@@ -1358,28 +1345,28 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 void Stepper::driver_factory_parameters(Driver* act, const uint8_t index) {
 
   constexpr bool tmpenable[]  = { X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON,
-                                  E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON,
-                                  X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON, Z_ENABLE_ON };
+                                  X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON, Z_ENABLE_ON,
+                                  E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON };
   constexpr bool tmpdir[]     = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR,
-                                  INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR,
-                                  INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_Z_DIR };
+                                  INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_Z_DIR,
+                                  INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
   constexpr bool tmpstep[]    = { INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN,
+                                  INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN, INVERT_Z_STEP_PIN,
                                   INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
-                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
-                                  INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN, INVERT_Z_STEP_PIN };
+                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN };
   constexpr pin_t tmpenpin[]  = { X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN,
-                                  E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN,
-                                  X2_ENABLE_PIN, Y2_ENABLE_PIN, Z2_ENABLE_PIN, Z3_ENABLE_PIN };
+                                  X2_ENABLE_PIN, Y2_ENABLE_PIN, Z2_ENABLE_PIN, Z3_ENABLE_PIN,
+                                  E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN };
   constexpr pin_t tmpdrpin[]  = { X_DIR_PIN, Y_DIR_PIN, Z_DIR_PIN,
-                                  E0_DIR_PIN, E1_DIR_PIN, E2_DIR_PIN, E3_DIR_PIN, E4_DIR_PIN, E5_DIR_PIN,
-                                  X2_DIR_PIN, Y2_DIR_PIN, Z2_DIR_PIN, Z3_DIR_PIN };
+                                  X2_DIR_PIN, Y2_DIR_PIN, Z2_DIR_PIN, Z3_DIR_PIN,
+                                  E0_DIR_PIN, E1_DIR_PIN, E2_DIR_PIN, E3_DIR_PIN, E4_DIR_PIN, E5_DIR_PIN };
   constexpr pin_t tmpstpin[]  = { X_STEP_PIN, Y_STEP_PIN, Z_STEP_PIN,
-                                  E0_STEP_PIN, E1_STEP_PIN, E2_STEP_PIN, E3_STEP_PIN, E4_STEP_PIN, E5_STEP_PIN,
-                                  X2_STEP_PIN, Y2_STEP_PIN, Z2_STEP_PIN, Z3_STEP_PIN };
+                                  X2_STEP_PIN, Y2_STEP_PIN, Z2_STEP_PIN, Z3_STEP_PIN,
+                                  E0_STEP_PIN, E1_STEP_PIN, E2_STEP_PIN, E3_STEP_PIN, E4_STEP_PIN, E5_STEP_PIN };
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     constexpr int tmpma[]     = { X_CURRENT, Y_CURRENT, Z_CURRENT,
-                                  E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT,
-                                  X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT };
+                                  X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT,
+                                  E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT };
   #endif
 
   act->setEnable(tmpenable[index]);
@@ -1857,7 +1844,7 @@ FORCE_INLINE void Stepper::pulse_tick_prepare() {
   #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
     delta_error.e += advance_dividend.e;
     if ((step_needed.e = (delta_error.e >= 0))) {
-      count_position[E_AXIS] += count_direction.e;
+      count_position.e += count_direction.e;
       #if ENABLED(LIN_ADVANCE)
         delta_error.e -= advance_divisor;
         // Don't step E here - But remember the number of steps to perform
@@ -1940,7 +1927,7 @@ FORCE_INLINE void Stepper::start_X_step() {
         }
       }
       else {
-         driver.x->step_write(!driver.x->isStep());
+        driver.x->step_write(!driver.x->isStep());
         driver.x2->step_write(!driver.x2->isStep());
       }
     #else
@@ -1949,7 +1936,7 @@ FORCE_INLINE void Stepper::start_X_step() {
     #endif
   #elif ENABLED(DUAL_X_CARRIAGE)
     if (mechanics.extruder_duplication_enabled) {
-       driver.x->step_write(!driver.x->isStep());
+      driver.x->step_write(!driver.x->isStep());
       driver.x2->step_write(!driver.x2->isStep());
     }
     else {
@@ -2097,7 +2084,7 @@ FORCE_INLINE void Stepper::set_X_dir(const bool dir) {
   #elif ENABLED(DUAL_X_CARRIAGE)
     if (mechanics.extruder_duplication_enabled) {
       driver.x->dir_write(dir);
-      driver.x2->dir_write(dir);
+      driver.x2->dir_write(mechanics.mirrored_duplication_mode ? !dir : dir);
     }
     else {
       if (movement_extruder())
@@ -2134,7 +2121,7 @@ FORCE_INLINE void Stepper::set_nor_E_dir(const uint8_t e/*=0*/) {
       driver.e[1]->dir_write(!driver.e[1]->isDir());
     }
     else 
-      driver.e[d]->dir_write(!driver.e[d]->isDir());
+      driver.e[e]->dir_write(!driver.e[e]->isDir());
   #elif ENABLED(DONDOLO_SINGLE_MOTOR)
     UNUSED(e);
     driver.e[active_extruder]->dir_write(active_extruder ? driver.e[0]->isDir() : !driver.e[1]->isDir());
@@ -2152,7 +2139,7 @@ FORCE_INLINE void Stepper::set_rev_E_dir(const uint8_t e/*=0*/) {
       driver.e[1]->dir_write(driver.e[1]->isDir());
     }
     else 
-      driver.e[d]->dir_write(driver.e[d]->isDir());
+      driver.e[e]->dir_write(driver.e[e]->isDir());
   #elif ENABLED(DONDOLO_SINGLE_MOTOR)
     UNUSED(e);
     driver.e[active_extruder]->dir_write(active_extruder ? !driver.e[0]->isDir() : driver.e[1]->isDir());
