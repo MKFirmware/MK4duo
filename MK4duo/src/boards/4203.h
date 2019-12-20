@@ -186,7 +186,6 @@
 
 //###UNKNOWN_PINS
 #define EEPROM_FLASH
-#define E2END 0xFFF
 
 //###IF_BLOCKS
 #define LCD_PINS_RS                PE10
@@ -199,4 +198,3 @@
 #define BTN_EN2                    PB2
 #define BTN_ENC                    PE7
 //@@@
-

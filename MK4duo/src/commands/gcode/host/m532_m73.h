@@ -37,8 +37,8 @@ void gcode_M73_M532() {
   }
   if (parser.seen('L')) {
     printer.currentLayer = parser.value_long();
-    char text[30] = "";
-    sprintf_P(text, PSTR("%s  %i of %i"), printer.printName, int(printer.currentLayer), int(printer.maxLayer));
+    char text[50];
+    sprintf_P(text, PSTR("%s %d of %d"), printer.printName, int(printer.currentLayer), int(printer.maxLayer));
     lcdui.set_status(text);
   }
 

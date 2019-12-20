@@ -173,22 +173,12 @@ class Driver {
 struct driver_t {
   union {
     struct { Driver *x, *y, *z
-      , *e[MAX_DRIVER_E]
-      #if X_STEPPER_COUNT == 2
-        , *x2
+      #if NOMECH(DELTA)
+        , *x2, *y2, *z2, *z3
       #endif
-      #if Y_STEPPER_COUNT == 2
-        , *y2
-      #endif
-      #if Z_STEPPER_COUNT >= 2
-        , *z2
-      #endif
-      #if Z_STEPPER_COUNT == 3
-        , *z3
-      #endif
-      ;
+      , *e[MAX_DRIVER_E];
     };
-    Driver* drv[MAX_DRIVER];
+    Driver *drv[MAX_DRIVER];
   };
 
   Driver*   operator[](const int i) { return this->drv[i]; }

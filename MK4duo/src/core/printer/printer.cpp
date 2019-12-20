@@ -675,7 +675,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (delayed_move_timer.expired(1000, false) && isRunning()) {
+    if (mechanics.delayed_move_timer.expired(1000, false) && isRunning()) {
       // travel moves have been received so enact them
       mechanics.destination = mechanics.position;
       mechanics.prepare_move_to_destination();

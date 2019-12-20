@@ -38,12 +38,12 @@ mechanics_data_t Cartesian_Mechanics::data;
 #if ENABLED(DUAL_X_CARRIAGE)
   DualXModeEnum Cartesian_Mechanics::dual_x_carriage_mode           = DEFAULT_DUAL_X_CARRIAGE_MODE;
   float         Cartesian_Mechanics::inactive_extruder_x_pos        = X2_MAX_POS,
-                Cartesian_Mechanics::raised_parked_position[XYZE],
                 Cartesian_Mechanics::duplicate_extruder_x_offset    = DEFAULT_DUPLICATION_X_OFFSET;
+  xyz_pos_t     Cartesian_Mechanics::raised_parked_position;
   int16_t       Cartesian_Mechanics::duplicate_extruder_temp_offset = 0;
   bool          Cartesian_Mechanics::active_extruder_parked         = false,
                 Cartesian_Mechanics::extruder_duplication_enabled   = false,
-                Cartesian_Mechanics::scaled_duplication_mode        = false;
+                Cartesian_Mechanics::mirrored_duplication_mode      = false;
   short_timer_t Cartesian_Mechanics::delayed_move_timer;
 #endif
 
@@ -56,8 +56,7 @@ void Cartesian_Mechanics::factory_parameters() {
   static const float    tmp_step[]          PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
                         tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE;
 
-  static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
-                        tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+  static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION;
 
   LOOP_XYZ(axis) {
     data.axis_steps_per_mm[axis]          = pgm_read_float(&tmp_step[axis < COUNT(tmp_step) ? axis : COUNT(tmp_step) - 1]);
@@ -288,7 +287,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
       homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
-      raised_parked_position, position;
+      raised_parked_position = position;
       delayed_move_timer.stop();
       active_extruder_parked = true;
     #else
@@ -351,10 +350,10 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
       homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
-      COPY_ARRAY(raised_parked_position, position.x);
+      raised_parked_position = position;
       delayed_move_timer.stop();
       active_extruder_parked = true;
-      extruder_duplication_enabled  = false;
+      extruder_duplication_enabled  = DXC_saved_duplication_state;
       dual_x_carriage_mode          = DXC_saved_mode;
       stepper.set_directions();
     }
@@ -716,32 +715,32 @@ void Cartesian_Mechanics::report_position_detail() {
           #define CUR_Y    position.y
           #define CUR_Z    position.z
           #define CUR_E    position.e
-          #define RAISED_X raised_parked_position[X_AXIS]
-          #define RAISED_Y raised_parked_position[Y_AXIS]
-          #define RAISED_Z raised_parked_position[Z_AXIS]
+          #define RAISED_X raised_parked_position.x
+          #define RAISED_Y raised_parked_position.y
+          #define RAISED_Z raised_parked_position.z
 
-          if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z, toolManager.extruder.active))
+          if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z,  toolManager.extruder.active))
             if (planner.buffer_line(   CUR_X,    CUR_Y, RAISED_Z, CUR_E, PLANNER_XY_FEEDRATE(),     toolManager.extruder.active))
-                planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z, toolManager.extruder.active);
+                planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z,  toolManager.extruder.active);
           delayed_move_timer.stop();
           active_extruder_parked = false;
           if (printer.debugFeature()) DEBUG_EM("Clear active_extruder_parked");
           break;
-        case DXC_SCALED_DUPLICATION_MODE:
+        case DXC_MIRRORED_MODE:
         case DXC_DUPLICATION_MODE:
           if (toolManager.extruder.active == 0) {
+            xyze_pos_t new_pos = position;
+            if (dual_x_carriage_mode == DXC_DUPLICATION_MODE)
+              new_pos.x += duplicate_extruder_x_offset;
+            else
+              new_pos.x = inactive_extruder_x_pos;
+            // move duplicate extruder into correct duplication position.
             if (printer.debugFeature()) {
               DEBUG_MV("Set planner X", inactive_extruder_x_pos);
-              DEBUG_EMV(" ... Line to X", position.x + duplicate_extruder_x_offset);
+              DEBUG_EMV(" ... Line to X", new_pos.x);
             }
-            // move duplicate extruder into correct duplication position.
             planner.set_position_mm(inactive_extruder_x_pos, position.y, position.z, position.e);
-
-            if (!planner.buffer_line(
-              dual_x_carriage_mode == DXC_DUPLICATION_MODE ? duplicate_extruder_x_offset + position.x : inactive_extruder_x_pos,
-              position.y, position.z, position.e,
-              data.max_feedrate_mm_s.x, 1
-            )) break;
+            if (!planner.buffer_line(new_pos, data.max_feedrate_mm_s.x, 1)) break;
             planner.synchronize();
             sync_plan_position();
             extruder_duplication_enabled = true;

@@ -46,13 +46,13 @@ class Cartesian_Mechanics : public Mechanics {
     #if ENABLED(DUAL_X_CARRIAGE)
       static DualXModeEnum  dual_x_carriage_mode;
       static float          inactive_extruder_x_pos,        // used in mode 0 & 1
-                            raised_parked_position[XYZE],   // used in mode 1
                             duplicate_extruder_x_offset;    // used in mode 2 & 3
+      static xyz_pos_t      raised_parked_position;         // used in mode 1
       static int16_t        duplicate_extruder_temp_offset; // used in mode 2 & 3
       static bool           active_extruder_parked,         // used in mode 1, 2 & 3
                             extruder_duplication_enabled,   // used in mode 2
-                            scaled_duplication_mode;        // used in mode 3
-      static short_timer_t  delayed_move_timer;                // used in mode 1
+                            mirrored_duplication_mode;      // used in mode 3
+      static short_timer_t  delayed_move_timer;             // used in mode 1
     #endif
 
   public: /** Public Function */
@@ -174,7 +174,7 @@ class Cartesian_Mechanics : public Mechanics {
      */
     #if ENABLED(DUAL_X_CARRIAGE)
       static bool dual_x_carriage_unpark();
-      FORCE_INLINE static bool dxc_is_duplicating() { return dual_x_carriage_mode >= DXC_DUPLICATION_MODE; }
+      FORCE_INLINE static bool dxc_is_duplicating() { return dual_x_carriage_mode == DXC_DUPLICATION_MODE; }
       FORCE_INLINE static int x_home_dir(const uint8_t extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
     #endif
 

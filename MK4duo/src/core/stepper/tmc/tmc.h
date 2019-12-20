@@ -140,13 +140,13 @@ class TMCStorage {
     public: /** Constructor */
 
       MKTMC(const uint8_t DRIVER_ID, Stream* SerialPort, const float RS) :
-        id(DRIVER_ID),
-        TMC2208Stepper(SerialPort, RS)
+        TMC2208Stepper(SerialPort, RS),
+        id(DRIVER_ID)
         {}
 
       MKTMC(const uint8_t DRIVER_ID, const uint16_t RX, const uint16_t TX, const float RS, const bool has_rx=true) :
-        id(DRIVER_ID),
-        TMC2208Stepper(RX, TX, RS, has_rx)
+        TMC2208Stepper(RX, TX, RS, has_rx),
+        id(DRIVER_ID)
         {}
 
     public: /** Public Parameters */
@@ -220,13 +220,13 @@ class TMCStorage {
     public: /** Constructor */
 
       MKTMC(const uint8_t DRIVER_ID, const uint16_t cs_pin, const float RS) :
-        id(DRIVER_ID),
-        TMC2660Stepper(cs_pin, RS)
+        TMC2660Stepper(cs_pin, RS),
+        id(DRIVER_ID)
         {}
 
       MKTMC(const uint8_t DRIVER_ID, const uint16_t CS, const float RS, const uint16_t pinMOSI, const uint16_t pinMISO, const uint16_t pinSCK) :
-        id(DRIVER_ID),
-        TMC2660Stepper(CS, RS, pinMOSI, pinMISO, pinSCK)
+        TMC2660Stepper(CS, RS, pinMOSI, pinMISO, pinSCK),
+        id(DRIVER_ID)
         {}
 
     public: /** Public Parameters */
@@ -281,13 +281,13 @@ class TMCStorage {
     public: /** Constructor */
 
       MKTMC(const uint8_t DRIVER_ID, const uint16_t cs_pin, const float RS) :
-        id(DRIVER_ID),
-        TMC_MODEL_LIB(cs_pin, RS)
+        TMC_MODEL_LIB(cs_pin, RS),
+        id(DRIVER_ID)
         {}
 
       MKTMC(const uint8_t DRIVER_ID, const uint16_t CS, const float RS, const uint16_t pinMOSI, const uint16_t pinMISO, const uint16_t pinSCK) :
-        id(DRIVER_ID),
-        TMC_MODEL_LIB(CS, RS, pinMOSI, pinMISO, pinSCK)
+        TMC_MODEL_LIB(CS, RS, pinMOSI, pinMISO, pinSCK),
+        id(DRIVER_ID)
         {}
 
     public: /** Public Parameters */

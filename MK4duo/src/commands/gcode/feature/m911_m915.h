@@ -37,22 +37,10 @@
      *        The flag is held by the library and persist until manually cleared by M912
      */
     inline void gcode_M911() {
-      LOOP_DRV_XYZ() {
+      LOOP_DRV_ALL_XYZ() {
         Driver* drv = driver[d];
         if (drv && drv->tmc) tmc.report_otpw(drv);
       }
-      #if AXIS_HAS_TMC(X2)
-        tmc.report_otpw(driver.x2);
-      #endif
-      #if AXIS_HAS_TMC(Y2)
-        tmc.report_otpw(driver.y2);
-      #endif
-      #if AXIS_HAS_TMC(Z2)
-        tmc.report_otpw(driver.z2);
-      #endif
-      #if AXIS_HAS_TMC(Z3)
-        tmc.report_otpw(driver.z3);
-      #endif
       LOOP_DRV_EXT() {
         Driver* drv = driver[d];
         if (drv && drv->tmc) tmc.report_otpw(drv);

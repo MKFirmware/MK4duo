@@ -189,7 +189,7 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
     planner.synchronize();
   
-    #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_SCALED_DUPLICATION_MODE
+    #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_MIRRORED_MODE
       // Only T0 allowed in DXC_DUPLICATION_MODE
       if (extruder.target != 0 && mechanics.dxc_is_duplicating())
          return invalid_extruder_error();
@@ -789,7 +789,7 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
         case DXC_FULL_CONTROL_MODE:       DEBUG_EM("DXC_FULL_CONTROL_MODE");        break;
         case DXC_AUTO_PARK_MODE:          DEBUG_EM("DXC_AUTO_PARK_MODE");           break;
         case DXC_DUPLICATION_MODE:        DEBUG_EM("DXC_DUPLICATION_MODE");         break;
-        case DXC_SCALED_DUPLICATION_MODE: DEBUG_EM("DXC_SCALED_DUPLICATION_MODE");  break;
+        case DXC_MIRRORED_MODE: DEBUG_EM("DXC_MIRRORED_MODE");  break;
       }
     }
 
@@ -844,10 +844,10 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
         break;
       case DXC_AUTO_PARK_MODE:
         // record raised toolhead position for use by unpark
-        COPY_ARRAY(mechanics.raised_parked_position, mechanics.position);
-        mechanics.raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
+        mechanics.raised_parked_position = mechanics.position;
+        mechanics.raised_parked_position.z += TOOLCHANGE_UNPARK_ZLIFT;
         #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-          NOMORE(mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop.max.z);
+          NOMORE(mechanics.raised_parked_position.z, endstops.soft_endstop.max.z);
         #endif
         mechanics.active_extruder_parked = true;
         mechanics.delayed_move_timer.stop();

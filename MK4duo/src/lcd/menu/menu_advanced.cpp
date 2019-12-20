@@ -133,7 +133,7 @@ void menu_advanced_temperature() {
           EDIT_ITEM_N(float3, h, MSG_PID_C, &hotends[h]->data.pid.Kc, 1, 9990);
         #endif
         EDIT_ITEM_FAST_N(int3, h, MSG_PID_AUTOTUNE, &autotune_temp[h], 150, hotends[h]->data.temp.max - 10, []{
-          sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), int(MenuItemBase::itemIndex), autotune_temp[MenuItemBase::itemIndex]);
+          sprintf_P(cmd, PSTR("M303 U1 H%d S%d"), int(MenuItemBase::itemIndex), autotune_temp[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
       }
@@ -148,7 +148,7 @@ void menu_advanced_temperature() {
         EDIT_ITEM_N(float52, h, MSG_BED_PID_I, &beds[h]->data.pid.Ki, 0.01f, 9990);
         EDIT_ITEM_N(float52, h, MSG_BED_PID_D, &beds[h]->data.pid.Kd, 1, 9990);
         EDIT_ITEM_FAST_N(int3, h, MSG_PID_BED_AUTOTUNE, &autotune_temp_bed[h], 30, beds[h]->data.temp.max - 10, []{
-          sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), MenuItemBase::itemIndex, autotune_temp_bed[MenuItemBase::itemIndex]);
+          sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), int(MenuItemBase::itemIndex), autotune_temp_bed[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
       }
@@ -163,7 +163,7 @@ void menu_advanced_temperature() {
         EDIT_ITEM_N(float52, h, MSG_CHAMBER_PID_I, &chambers[h]->data.pid.Ki, 0.01f, 9990);
         EDIT_ITEM_N(float52, h, MSG_CHAMBER_PID_D, &chambers[h]->data.pid.Kd, 1, 9990);
         EDIT_ITEM_FAST_N(int3, h, MSG_PID_CHAMBER_AUTOTUNE, &autotune_temp_chamber[h], 30, chambers[h]->data.temp.max - 10, []{
-          sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), MenuItemBase::itemIndex, autotune_temp_chamber[MenuItemBase::itemIndex]);
+          sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), int(MenuItemBase::itemIndex), autotune_temp_chamber[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
       }

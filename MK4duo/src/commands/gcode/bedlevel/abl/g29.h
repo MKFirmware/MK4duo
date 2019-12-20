@@ -348,8 +348,10 @@ inline void gcode_G29() {
 
       bedlevel.xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.linearval('S', XY_PROBE_SPEED));
 
-      const float x_min = probe.min_x(), x_max = probe.max_x(),
-                  y_min = probe.min_y(), y_max = probe.max_y();
+      #if !MECH(DELTA)
+        const float x_min = probe.min_x(), x_max = probe.max_x(),
+                    y_min = probe.min_y(), y_max = probe.max_y();
+      #endif
 
       probe_position_lf.set(
         parser.seenval('L') ? NATIVE_X_POSITION(parser.value_linear_units()) : LEFT_PROBE_BED_POSITION,

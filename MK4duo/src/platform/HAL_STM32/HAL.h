@@ -225,10 +225,10 @@ class HAL {
       }
     }
     FORCE_INLINE static void digitalWrite(const pin_t pin, const bool value) {
-      ::digitalWrite(pin, value);
+      WRITE(pin, value);
     }
     FORCE_INLINE static bool digitalRead(const pin_t pin) {
-      return ::digitalRead(pin);
+      return READ(pin);
     }
     FORCE_INLINE static void setInputPullup(const pin_t pin, const bool onoff) {
       onoff ? pinMode(pin, INPUT_PULLUP) : pinMode(pin, INPUT);

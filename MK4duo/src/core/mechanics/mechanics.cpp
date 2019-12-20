@@ -64,10 +64,10 @@ uint8_t Mechanics::axis_relative_modes = (
 
 #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
   // The distance that XYZ has been offset by G92. Reset by G28.
-  xyz_pos_t Mechanics::position_shift[XYZ] = { 0.0f, 0.0f, 0.0f };
+  xyz_pos_t Mechanics::position_shift{ 0.0f, 0.0f, 0.0f };
 
   // The above two are combined to save on computes
-  xyz_pos_t Mechanics::workspace_offset[XYZ] = { 0.0f, 0.0f, 0.0f };
+  xyz_pos_t Mechanics::workspace_offset{ 0.0f, 0.0f, 0.0f };
 #endif
 
 /** Private Parameters */

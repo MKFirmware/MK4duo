@@ -325,7 +325,7 @@ class FilamentSensorBase {
           return runout_states;                     // A single sensor applying to all extruders
         #else
           #if ENABLED(DUAL_X_CARRIAGE)
-            if (dual_x_carriage_mode == DXC_DUPLICATION_MODE || dual_x_carriage_mode == DXC_SCALED_DUPLICATION_MODE)
+            if (dual_x_carriage_mode == DXC_DUPLICATION_MODE || dual_x_carriage_mode == DXC_MIRRORED_MODE)
               return runout_states;                 // Any extruder
             else if (mechanics.extruder_duplication_enabled)
               return runout_states;                 // Any extruder

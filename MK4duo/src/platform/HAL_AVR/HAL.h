@@ -181,6 +181,7 @@ typedef uint16_t  ptr_int_t;
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE
 #define STEPPER_TIMER_PRESCALE      8
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)
+#define STEPPER_TIMER_PULSE_TICK_NS (1000000000UL / STEPPER_TIMER_RATE)
 #define STEPPER_TIMER_MIN_INTERVAL  8                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
 

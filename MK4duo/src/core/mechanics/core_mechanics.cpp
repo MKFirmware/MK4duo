@@ -44,8 +44,7 @@ void Core_Mechanics::factory_parameters() {
   static const float    tmp_step[]          PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
                         tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE;
 
-  static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
-                        tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+  static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION;
 
   LOOP_XYZ(axis) {
     data.axis_steps_per_mm[axis]          = pgm_read_float(&tmp_step[axis < COUNT(tmp_step) ? axis : COUNT(tmp_step) - 1]);
@@ -499,6 +498,7 @@ float Core_Mechanics::axis_home_pos(const AxisEnum axis) {
     case X_AXIS: return x_home_pos(); break;
     case Y_AXIS: return y_home_pos(); break;
     case Z_AXIS: return z_home_pos(); break;
+    default: break;
   }
 }
 
@@ -506,7 +506,7 @@ float Core_Mechanics::x_home_pos() {
   #if ENABLED(MANUAL_X_HOME_POS)
     return MANUAL_X_HOME_POS;
   #elif ENABLED(BED_CENTER_AT_0_0)
-     return ((mechanics.data.base_pos.max.x - mechanics.data.base_pos.min.x) * (mechanics.get_homedir(X_AXIS)) * 0.5);
+    return ((mechanics.data.base_pos.max.x - mechanics.data.base_pos.min.x) * (mechanics.get_homedir(X_AXIS)) * 0.5);
   #else
     return (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos.min.x : mechanics.data.base_pos.max.x);
   #endif

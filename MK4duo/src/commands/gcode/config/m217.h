@@ -47,9 +47,8 @@ inline void gcode_M217() {
 
   if (commands.get_target_tool(217)) return;
 
-  const uint8_t t = toolManager.extruder.target;
-
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+    const uint8_t t = toolManager.extruder.target;
     #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
       static constexpr float max_extrude = EXTRUDE_MAXLENGTH;
     #else
