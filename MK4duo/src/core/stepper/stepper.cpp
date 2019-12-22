@@ -255,7 +255,7 @@ void Stepper::create_ext_driver() {
   LOOP_DRV_EXT() {
     if (!driver.e[d]) {
       driver.e[d] = new Driver(drv_e_label[d]);
-      driver_factory_parameters(driver.e[d], d + 7);
+      driver_factory_parameters(driver.e[d], d, false);
       SERIAL_SM(ECHO, "Create driver ");
       driver.e[d]->printLabel(); SERIAL_EOL();
       driver.e[d]->init();
@@ -323,7 +323,7 @@ void Stepper::factory_parameters() {
   create_driver();
 
   LOOP_DRV_ALL_XYZ()  if (driver[d]) driver_factory_parameters(driver[d], d);
-  LOOP_DRV_EXT()      if (driver[d]) driver_factory_parameters(driver.e[d], d + 7);
+  LOOP_DRV_EXT()      if (driver[d]) driver_factory_parameters(driver.e[d], d, false);
 
   #if HAS_TRINAMIC
     tmc.factory_parameters();
@@ -1342,42 +1342,43 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 #endif // BABYSTEPPING
 
 /** Private Function */
-void Stepper::driver_factory_parameters(Driver* act, const uint8_t index) {
+void Stepper::driver_factory_parameters(Driver* act, const uint8_t index, const bool axis/*=true*/) {
 
-  constexpr bool tmpenable[]  = { X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON,
-                                  X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON, Z_ENABLE_ON,
-                                  E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON };
-  constexpr bool tmpdir[]     = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR,
-                                  INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_Z_DIR,
-                                  INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
-  constexpr bool tmpstep[]    = { INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN,
-                                  INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN, INVERT_Z_STEP_PIN,
-                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
-                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN };
-  constexpr pin_t tmpenpin[]  = { X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN,
-                                  X2_ENABLE_PIN, Y2_ENABLE_PIN, Z2_ENABLE_PIN, Z3_ENABLE_PIN,
-                                  E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN };
-  constexpr pin_t tmpdrpin[]  = { X_DIR_PIN, Y_DIR_PIN, Z_DIR_PIN,
-                                  X2_DIR_PIN, Y2_DIR_PIN, Z2_DIR_PIN, Z3_DIR_PIN,
-                                  E0_DIR_PIN, E1_DIR_PIN, E2_DIR_PIN, E3_DIR_PIN, E4_DIR_PIN, E5_DIR_PIN };
-  constexpr pin_t tmpstpin[]  = { X_STEP_PIN, Y_STEP_PIN, Z_STEP_PIN,
-                                  X2_STEP_PIN, Y2_STEP_PIN, Z2_STEP_PIN, Z3_STEP_PIN,
-                                  E0_STEP_PIN, E1_STEP_PIN, E2_STEP_PIN, E3_STEP_PIN, E4_STEP_PIN, E5_STEP_PIN };
+  constexpr bool  tmpenable[]   = { X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON,
+                                    X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON, Z_ENABLE_ON },
+                  tmpenable_e[] = { E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON },
+                  tmpdir[]      = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR,
+                                    INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_Z_DIR },
+                  tmpdir_e[]    = { INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR },
+                  tmpstep[]     = { INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN,
+                                    INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN, INVERT_Z_STEP_PIN },
+                  tmpstep_e[]   = { INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
+                                    INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN };
+  constexpr pin_t tmpenpin[]    = { X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN,
+                                    X2_ENABLE_PIN, Y2_ENABLE_PIN, Z2_ENABLE_PIN, Z3_ENABLE_PIN },
+                  tmpenpin_e[]  = { E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN },
+                  tmpdrpin[]    = { X_DIR_PIN, Y_DIR_PIN, Z_DIR_PIN,
+                                    X2_DIR_PIN, Y2_DIR_PIN, Z2_DIR_PIN, Z3_DIR_PIN },
+                  tmpdrpin_e[]  = { E0_DIR_PIN, E1_DIR_PIN, E2_DIR_PIN, E3_DIR_PIN, E4_DIR_PIN, E5_DIR_PIN },
+                  tmpstpin[]    = { X_STEP_PIN, Y_STEP_PIN, Z_STEP_PIN,
+                                    X2_STEP_PIN, Y2_STEP_PIN, Z2_STEP_PIN, Z3_STEP_PIN },
+                  tmpstpin_e[]  = { E0_STEP_PIN, E1_STEP_PIN, E2_STEP_PIN, E3_STEP_PIN, E4_STEP_PIN, E5_STEP_PIN };
+
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    constexpr int tmpma[]     = { X_CURRENT, Y_CURRENT, Z_CURRENT,
-                                  X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT,
-                                  E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT };
+    constexpr int tmpma[]       = { X_CURRENT, Y_CURRENT, Z_CURRENT,
+                                    X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT },
+                  tmpma_e[]     = { E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT };
   #endif
 
-  act->setEnable(tmpenable[index]);
-  act->setDir(tmpdir[index]);
-  act->setStep(tmpstep[index]);
-  act->data.pin.enable  = tmpenpin[index];
-  act->data.pin.dir     = tmpdrpin[index];
-  act->data.pin.step    = tmpstpin[index];
+  act->setEnable(axis ? tmpenable[index] : tmpenable_e[index]);
+  act->setDir(axis ? tmpdir[index] : tmpdir_e[index]);
+  act->setStep(axis ? tmpstep[index] : tmpstep_e[index]);
+  act->data.pin.enable  = axis ? tmpenpin[index] : tmpenpin_e[index];
+  act->data.pin.dir     = axis ? tmpdrpin[index] : tmpdrpin_e[index];
+  act->data.pin.step    = axis ? tmpstpin[index] : tmpstpin_e[index];
 
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    act->data.ma        = tmpma[index];
+    act->data.ma        = axis ? tmpma[index] : tmpma_e[index];
   #endif
 
 }

@@ -346,7 +346,7 @@ class Stepper {
     /**
      * Driver Factory parameters
      */
-    static void driver_factory_parameters(Driver* act, const uint8_t index);
+    static void driver_factory_parameters(Driver* act, const uint8_t index, const bool axis=true);
 
     /**
      * Pulse phase Step
