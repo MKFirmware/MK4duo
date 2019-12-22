@@ -310,7 +310,7 @@
   #define DHT_DATA_PIN        NoPin
 #endif
 
-#if HAS_TRINAMIC && ENABLED(TMC_USE_SW_SPI)
+#if ENABLED(TMC_USE_SW_SPI)
   #define TMC_SW_MOSI         51
   #define TMC_SW_MISO         50
   #define TMC_SW_SCK          52
