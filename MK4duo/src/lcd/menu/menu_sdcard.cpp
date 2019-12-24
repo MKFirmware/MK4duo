@@ -75,10 +75,14 @@ class MenuItem_sdfile : public MenuItem_sdbase {
         sd_items = screen_items;
       #endif
       MenuItem_submenu::action(pstr, []{
+        char * const longest = card.fileName;
+        char buffer[strlen(longest) + 2];
+        buffer[0] = ' ';
+        strcpy(buffer + 1, longest);
         MenuItem_confirm::select_screen(
           GET_TEXT(MSG_BUTTON_PRINT), GET_TEXT(MSG_BUTTON_CANCEL),
           sdcard_start_selected_file, lcdui.goto_previous_screen,
-          GET_TEXT(MSG_START_PRINT), card.fileName, PSTR("?")
+          GET_TEXT(MSG_START_PRINT), buffer, PSTR("?")
         );
       });
     }

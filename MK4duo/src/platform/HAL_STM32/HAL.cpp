@@ -142,9 +142,8 @@ void HAL::analogStart() {
 
 }
 
-void HAL::AdcChangePin(const pin_t old_pin, const pin_t new_pin) {
-  UNUSED(old_pin);
-  pinMode(new_pin, INPUT);
+void HAL::AdcChangePin(const pin_t, const pin_t new_pin) {
+  SET_INPUT_ANALOG(new_pin);
 }
 
 // Reset peripherals and cpu
@@ -270,6 +269,16 @@ void HAL::Tick() {
   // Tick endstops state, if required
   endstops.Tick();
 
+}
+
+pin_t HAL::digital_value_pin() {
+  const pin_t pin = parser.value_pin();
+  return WITHIN(pin, 0 , NUM_DIGITAL_PINS - 1) ? pin : NoPin;
+}
+
+pin_t HAL::analog_value_pin() {
+  const pin_t pin = parser.value_pin();
+  return analogInputToDigitalPin(pin);
 }
 
 /**

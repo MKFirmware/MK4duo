@@ -73,6 +73,8 @@ inline void gcode_M306() {
   act->data.temp.max      = parser.intval('O', act->data.temp.max);
   act->data.freq          = MIN(parser.intval('F', act->data.freq), MAX_PWM_FREQUENCY);
 
+  NOMORE(act->data.pid.drive.max, act->data.pid.Max);
+
   if (parser.seen('U'))
     act->setUsePid(parser.value_bool());
   if (parser.seen('I'))
@@ -85,7 +87,7 @@ inline void gcode_M306() {
   if (parser.seen('P')) {
     // Put off the heaters
     act->set_target_temp(0);
-    act->data.pin = parser.value_pin();
+    act->data.pin = HAL::digital_value_pin();
   }
 
 }

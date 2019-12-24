@@ -124,7 +124,7 @@ inline void gcode_M305() {
     // Put off the heaters
     act->set_target_temp(0);
 
-    const pin_t new_pin = parser.analog_value_pin();
+    const pin_t new_pin = HAL::analog_value_pin();
     if (new_pin != NoPin) {
       const pin_t old_pin = act->data.sensor.pin;
       act->data.sensor.pin = new_pin;

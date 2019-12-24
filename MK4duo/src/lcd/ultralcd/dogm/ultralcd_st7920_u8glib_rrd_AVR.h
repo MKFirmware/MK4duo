@@ -25,8 +25,6 @@
 
 #include "../../../../MK4duo.h"
 
-#if ENABLED(U8GLIB_ST7920) && !defined(U8G_HAL_LINKS) && !defined(__SAM3X8E__)
-
 #define ST7920_CLK_PIN  LCD_PINS_D4
 #define ST7920_DAT_PIN  LCD_PINS_ENABLE
 #define ST7920_CS_PIN   LCD_PINS_RS
@@ -65,6 +63,10 @@
   #define CPU_ST7920_DELAY_1 DELAY_NS(0)
   #define CPU_ST7920_DELAY_2 DELAY_NS(0)
   #define CPU_ST7920_DELAY_3 DELAY_NS(189)
+#elif defined(ARDUINO_ARCH_STM32)
+  #define CPU_ST7920_DELAY_1 DELAY_NS(300)
+  #define CPU_ST7920_DELAY_2 DELAY_NS(40)
+  #define CPU_ST7920_DELAY_3 DELAY_NS(340)
 #elif F_CPU == 16000000
   #define CPU_ST7920_DELAY_1 DELAY_NS(0)
   #define CPU_ST7920_DELAY_2 DELAY_NS(0)
@@ -87,5 +89,3 @@ void ST7920_SWSPI_SND_8BIT(uint8_t val);
 #define ST7920_SET_DAT()         { ST7920_SWSPI_SND_8BIT(0xFA); U8G_DELAY(); }
 #define ST7920_WRITE_BYTE(a)     { ST7920_SWSPI_SND_8BIT((uint8_t)((a)&0xF0u)); ST7920_SWSPI_SND_8BIT((uint8_t)((a)<<4u)); U8G_DELAY(); }
 #define ST7920_WRITE_BYTES(p,l)  { for (uint8_t i = l + 1; --i;) { ST7920_SWSPI_SND_8BIT(*p&0xF0); ST7920_SWSPI_SND_8BIT(*p<<4); p++; } U8G_DELAY(); }
-
-#endif // U8GLIB_ST7920 && !U8G_HAL_LINKS && !__SAM3X8E__

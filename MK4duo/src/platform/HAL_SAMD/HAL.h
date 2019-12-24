@@ -208,6 +208,9 @@ class HAL {
 
     static void Tick();
 
+    static pin_t digital_value_pin();
+    static pin_t analog_value_pin();
+
     FORCE_INLINE static void pinMode(const pin_t pin, const uint8_t mode) {
       switch (mode) {
         case INPUT:         SET_INPUT(pin);         break;

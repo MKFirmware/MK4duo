@@ -129,11 +129,6 @@ typedef uint32_t  ptr_int_t;
 // Macros for stepper.cpp
 #define HAL_MULTI_ACC(A,B)  MultiU32X24toH32(A,B)
 
-// TEMPERATURE
-#ifndef analogInputToDigitalPin
-  #define analogInputToDigitalPin(p) (p)
-#endif
-
 // Bits for PWM
 #undef PWM_RESOLUTION
 #define PWM_RESOLUTION       8
@@ -206,13 +201,16 @@ class HAL {
   public: /** Public Function */
 
     static void analogStart();
-    static void AdcChangePin(const pin_t old_pin, const pin_t new_pin);
+    static void AdcChangePin(const pin_t, const pin_t new_pin);
 
     static void hwSetup(void);
 
     static void analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t PWM_freq=1000U);
 
     static void Tick();
+
+    static pin_t digital_value_pin();
+    static pin_t analog_value_pin();
 
     FORCE_INLINE static void pinMode(const pin_t pin, const uint8_t mode) {
       switch (mode) {

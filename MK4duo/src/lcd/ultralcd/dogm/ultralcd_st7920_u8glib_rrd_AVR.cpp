@@ -25,7 +25,7 @@
 
 #include "../../../../MK4duo.h"
 
-#if ENABLED(U8GLIB_ST7920) && !defined(U8G_HAL_LINKS) && !defined(__SAM3X8E__) && !defined(ARDUINO_ARCH_SAMD)
+#if ENABLED(U8GLIB_ST7920) && DISABLED(U8G_HAL_LINKS) && (ENABLED(__AVR__) || ENABLED(ARDUINO_ARCH_STM32))
 
 #include "ultralcd_st7920_u8glib_rrd_AVR.h"
 
@@ -42,11 +42,11 @@
 // Optimize this code with -O3
 #pragma GCC optimize (3)
 
-#define ST7920_SND_BIT \
-  WRITE(ST7920_CLK_PIN, LOW);        ST7920_DELAY_1; \
-  WRITE(ST7920_DAT_PIN, val & 0x80); ST7920_DELAY_2; \
-  WRITE(ST7920_CLK_PIN, HIGH);       ST7920_DELAY_3; \
-  val <<= 1
+#define ST7920_SND_BIT do{                            \
+  WRITE(ST7920_CLK_PIN, LOW);         ST7920_DELAY_1; \
+  WRITE(ST7920_DAT_PIN, val & 0x80);  ST7920_DELAY_2; \
+  WRITE(ST7920_CLK_PIN, HIGH);        ST7920_DELAY_3; \
+  val <<= 1; }while(0)
 
 // Optimize this code with -O3
 #pragma GCC optimize (3)
@@ -134,4 +134,4 @@ u8g_dev_t u8g_dev_st7920_128x64_rrd_sw_spi = {u8g_dev_rrd_st7920_128x64_fn, &u8g
 
 #pragma GCC reset_options
 
-#endif // U8GLIB_ST7920 && !U8G_HAL_LINKS && !__SAM3X8E__ && !ARDUINO_ARCH_SAMD
+#endif // ENABLED(U8GLIB_ST7920) && DISABLED(U8G_HAL_LINKS) && (ENABLED(__AVR__) || ENABLED(ARDUINO_ARCH_STM32))
