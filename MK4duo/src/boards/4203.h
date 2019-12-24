@@ -1,7 +1,7 @@
 /****************************************************************************************
 * 4203
 *
-* RUMBA 32 with STM32F4
+* RUMBA32_F446VE
 *****************************************************************************************/
 
 //###CHIP
@@ -14,7 +14,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "RUMBA32"
+  #define BOARD_NAME "RUMBA32_F446VE"
 #endif
 //@@@
 
@@ -188,6 +188,10 @@
 #define EEPROM_FLASH
 
 //###IF_BLOCKS
+#define ST7920_DELAY_1             DELAY_NS(350)
+#define ST7920_DELAY_2             DELAY_NS(100)
+#define ST7920_DELAY_3             DELAY_NS(350)
+#define SD_DETECT_PIN              PB0
 #define LCD_PINS_RS                PE10
 #define LCD_PINS_ENABLE            PE9
 #define LCD_PINS_D4                PE12

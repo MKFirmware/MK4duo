@@ -637,6 +637,16 @@ void HAL::Tick() {
 
 }
 
+pin_t HAL::digital_value_pin() {
+  const pin_t pin = parser.value_pin();
+  return WITHIN(pin, 0 , NUM_DIGITAL_PINS - 1) ? pin : NoPin;
+}
+
+pin_t HAL::analog_value_pin() {
+  const pin_t pin = parser.value_pin();
+  return WITHIN(pin, 0 , NUM_ANALOG_INPUTS - 1) ? pin : NoPin;
+}
+
 /**
  * Interrupt Service Routines
  */

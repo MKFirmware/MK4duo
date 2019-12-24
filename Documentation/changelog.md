@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 20-12-2019
+* Revision 24-12-2019
 *
 * Version EEPROM MKV79
 *
@@ -20,7 +20,7 @@
 *   SERVO                       OK
 *   BLTOUCH                     OK
 *   DISPLAY 20x4                No Test
-*   DISPLAY Graphics            No Test
+*   DISPLAY Graphics            Function
 *   Neopixel                    Not function
 *
 * M353: Set total number Extruder, Hotend, Bed, Chamber, Fan
@@ -51,6 +51,7 @@
 * Fix BABYSTEPPING
 * Fix M569 code for extruder
 *
+* Fix problem with STM32core 1_8_0
 * Fix and clear code
 
 ### Version 4.3.9

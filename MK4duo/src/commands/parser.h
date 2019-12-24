@@ -239,8 +239,7 @@ class GCodeParser {
     static inline bool      value_bool()    { return !has_value() || !!value_byte(); }
 
     // Pin value
-    static pin_t value_pin();
-    static pin_t analog_value_pin();
+    static inline pin_t     value_pin()     { return (pin_t)value_byte(); }
 
     // Units modes: Inches, Fahrenheit, Kelvin
 

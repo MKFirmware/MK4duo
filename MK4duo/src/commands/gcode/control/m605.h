@@ -43,7 +43,7 @@
  *             the first X-carriage and extruder, to print 2 copies of the same object at the same time.
  *             Set the constant X-offset and temperature differential with M605 S2 X[offs] R[deg] and
  *             follow with "M605 S2" to initiate duplicated movement. For example, use "M605 S2 X100 R2" to
- *             make a copy 100mm to the right with E1 2° hotter than E0.
+ *             make a copy 100mm to the right with E1 2Â° hotter than E0.
  *
  *   M605 S3 : (MIRRORED) Formbot/Vivedino-inspired mirrored mode in which the second extruder duplicates
  *             the movement of the first except the second extruder is reversed in the X axis.

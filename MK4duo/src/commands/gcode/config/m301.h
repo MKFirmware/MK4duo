@@ -63,6 +63,7 @@ inline void gcode_M301() {
   if (parser.seen('P')) act->data.pid.Kp = parser.value_float();
   if (parser.seen('I')) act->data.pid.Ki = parser.value_float();
   if (parser.seen('D')) act->data.pid.Kd = parser.value_float();
+
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     if (act->type == IS_HOTEND) {
       if (parser.seen('C')) act->data.pid.Kc = parser.value_float();

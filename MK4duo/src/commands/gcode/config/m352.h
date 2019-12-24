@@ -59,9 +59,9 @@ inline void gcode_M352() {
   LOOP_XYZ(i) {
     if (parser.seen(axis_codes[i])) {
       if (driver[i]) {
-        if (parser.seen('E')) driver[i]->data.pin.enable  = parser.value_pin();
-        if (parser.seen('D')) driver[i]->data.pin.dir     = parser.value_pin();
-        if (parser.seen('S')) driver[i]->data.pin.step    = parser.value_pin();
+        if (parser.seen('E')) driver[i]->data.pin.enable  = HAL::digital_value_pin();
+        if (parser.seen('D')) driver[i]->data.pin.dir     = HAL::digital_value_pin();
+        if (parser.seen('S')) driver[i]->data.pin.step    = HAL::digital_value_pin();
         if (parser.seen('L')) driver[i]->data.flag.enable = parser.value_bool();
         if (parser.seen('M')) driver[i]->data.flag.step   = parser.value_bool();
         driver[i]->init();
@@ -72,9 +72,9 @@ inline void gcode_M352() {
   if (parser.seenval('T')) {
     const uint8_t d = extruders[toolManager.extruder.target]->get_driver();
     if (driver.e[d]) {
-      if (parser.seen('E')) driver.e[d]->data.pin.enable   = parser.value_pin();
-      if (parser.seen('D')) driver.e[d]->data.pin.dir      = parser.value_pin();
-      if (parser.seen('S')) driver.e[d]->data.pin.step     = parser.value_pin();
+      if (parser.seen('E')) driver.e[d]->data.pin.enable   = HAL::digital_value_pin();
+      if (parser.seen('D')) driver.e[d]->data.pin.dir      = HAL::digital_value_pin();
+      if (parser.seen('S')) driver.e[d]->data.pin.step     = HAL::digital_value_pin();
       if (parser.seen('L')) driver.e[d]->data.flag.enable  = parser.value_bool();
       if (parser.seen('M')) driver.e[d]->data.flag.step    = parser.value_bool();
       driver.e[d]->init();

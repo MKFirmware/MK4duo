@@ -173,7 +173,7 @@ class Driver {
 struct driver_t {
   union {
     struct { Driver *x, *y, *z
-      #if NOMECH(DELTA)
+      #if HAS_MULTY_STEPPER
         , *x2, *y2, *z2, *z3
       #endif
       , *e[MAX_DRIVER_E];

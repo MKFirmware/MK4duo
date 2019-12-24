@@ -57,6 +57,7 @@ void Heater::init() {
   setIdle(false);
   ResetFault();
   next_check_timer.start();
+  data.pid.init();
 
   watch_target_temp     = 0;
   idle_timeout_ms       = 0;

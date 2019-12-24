@@ -393,6 +393,13 @@ void HAL::Tick() {
 
 }
 
+pin_t HAL::digital_value_pin() {
+  const pin_t pin = parser.value_pin();
+  return WITHIN(pin, 0 , NUM_DIGITAL_PINS - 1) ? pin : NoPin;
+}
+
+pin_t HAL::analog_value_pin() { return NoPin; }
+
 /** Private Function */
 void HAL::set_current_temp_raw() {
 
