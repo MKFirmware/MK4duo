@@ -86,10 +86,12 @@ void menu_tool_change() {
     #else
       static constexpr float max_extrude_lenght = 500;
     #endif
-    EDIT_ITEM(float3, MSG_FILAMENT_SWAP_LENGTH, &toolManager.data.swap_length, 0, max_extrude_lenght);
-    EDIT_ITEM(float3, MSG_FILAMENT_PURGE_LENGTH, &toolchange_settings.purge_lenght, 0, max_extrude_lenght);
-    EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &toolManager.data.retract_speed, 10, 5400);
-    EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_PRIME_SPD, &toolManager.data.prime_speed, 10, 5400);
+    LOOP_EXTRUDER() {
+      EDIT_ITEM_N(float3, e, MSG_FILAMENT_SWAP_LENGTH, &extruders[e]->data.swap_length, 0, max_extrude_lenght);
+      EDIT_ITEM_N(float3, e, MSG_FILAMENT_PURGE_LENGTH, &extruders[e]->data.purge_lenght, 0, max_extrude_lenght);
+      EDIT_ITEM_FAST_N(int4, e, MSG_SINGLENOZZLE_RETRACT_SPD, &extruders[e]->data.retract_speed, 10, 6000);
+      EDIT_ITEM_FAST_N(int4, e, MSG_SINGLENOZZLE_PRIME_SPD, &extruders[e]->data.prime_speed, 10, 6000);
+    }
   #endif
   #if MAX_EXTRUDER > 1
     EDIT_ITEM(float3, MSG_TOOL_CHANGE_ZLIFT, &nozzle.data.park_point.z, 0, 10);

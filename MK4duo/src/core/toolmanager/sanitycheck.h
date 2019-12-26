@@ -195,8 +195,8 @@ static_assert(1 >= 0
 #endif
 
 #if ENABLED(TOOL_CHANGE_PARK)
-  #if EXTRUDERS < 2
-    #error "DEPENDENCY ERROR: You must have EXTRUDERS > 1 for TOOL_CHANGE_PARK."
+  #if MAX_EXTRUDER < 2
+    #error "DEPENDENCY ERROR: You must have MAX_EXTRUDER > 1 for TOOL_CHANGE_PARK."
   #endif
   #if DISABLED(NOZZLE_PARK_FEATURE)
     #error "DEPENDENCY ERROR: You must enabled NOZZLE_PARK_FEATURE for TOOL_CHANGE_PARK."
@@ -204,8 +204,8 @@ static_assert(1 >= 0
 #endif
 
 #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-  #if EXTRUDERS < 2
-    #error "DEPENDENCY ERROR: You must have EXTRUDERS > 1 for TOOL_CHANGE_FIL_SWAP."
+  #if MAX_EXTRUDER < 2
+    #error "DEPENDENCY ERROR: You must have MAX_EXTRUDER > 1 for TOOL_CHANGE_FIL_SWAP."
   #endif
   #if DISABLED(TOOL_CHANGE_FIL_SWAP_LENGTH)
     #error "DEPENDENCY ERROR: TOOL_CHANGE_FIL_SWAP requires TOOL_CHANGE_FIL_SWAP_LENGTH."
