@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 24-12-2019
+* Revision 26-12-2019
 *
 * Version EEPROM MKV79
 *
@@ -52,6 +52,7 @@
 * Fix M569 code for extruder
 *
 * Fix problem with STM32core 1_8_0
+* Fix problem with TOOL_CHANGE_FIL_SWAP
 * Fix and clear code
 
 ### Version 4.3.9
