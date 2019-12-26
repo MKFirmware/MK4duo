@@ -41,33 +41,33 @@ void Sound::factory_parameters() {
 void Sound::playtone(const uint16_t duration, const uint16_t frequency/*=0*/) {
   if (data.mode == SOUND_MODE_MUTE) return;
   while (buffer.isFull()) printer.idle(true);
-  tone_t tone = { duration, frequency };
-  buffer.enqueue(tone);
+  tone_t new_tone = { duration, frequency };
+  buffer.enqueue(new_tone);
 }
 
 void Sound::spin() {
 
-  static tone_t tone = { 0, 0 };
+  static tone_t play_tone = { 0, 0 };
 
   if (!tone_timer.isRunning()) {
     if (buffer.isEmpty()) return;
 
-    tone = buffer.dequeue();
+    play_tone = buffer.dequeue();
     tone_timer.start();
 
-    if (tone.frequency > 0) {
+    if (play_tone.frequency > 0) {
       #if ENABLED(LCD_USE_I2C_BUZZER)
-        lcd.buzz(tone.duration, tone.frequency);
+        lcd.buzz(play_tone.duration, play_tone.frequency);
       #elif ENABLED(SPEAKER)
         CRITICAL_SECTION_START
-          ::tone(BEEPER_PIN, tone.frequency, tone.duration);
+          ::tone(BEEPER_PIN, play_tone.frequency, play_tone.duration);
         CRITICAL_SECTION_END
       #elif PIN_EXISTS(BEEPER)
         on();
       #endif
     }
   }
-  else if (tone_timer.expired(tone.duration)) reset();
+  else if (tone_timer.expired(play_tone.duration)) reset();
 
 }
 

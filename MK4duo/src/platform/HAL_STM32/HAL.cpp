@@ -63,25 +63,6 @@ extern "C" {
   }
 }
 
-// Tone for due
-static pin_t tone_pin;
-volatile static int32_t toggles;
-
-void tone(const pin_t _pin, const uint16_t frequency, const uint16_t duration) {
-  /*
-  tone_pin = _pin;
-  toggles = 2 * frequency * duration / 1000;
-  HAL_timer_start(TONE_TIMER_NUM, 2 * frequency);
-  */
-}
-
-void noTone(const pin_t _pin) {
-  /*
-  HAL_timer_disable_interrupt(TONE_TIMER_NUM);
-  HAL::digitalWrite(_pin, LOW);
-  */
-}
-
 // do any hardware-specific initialization here
 void HAL::hwSetup() {
 
