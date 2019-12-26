@@ -263,10 +263,6 @@ class HAL {
 
 };
 
-// Tone for due
-void tone(const pin_t _pin, const uint16_t frequency, const uint16_t duration=0);
-void noTone(const pin_t _pin);
-
 // EEPROM
 uint8_t eeprom_read_byte(uint8_t* pos);
 void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);

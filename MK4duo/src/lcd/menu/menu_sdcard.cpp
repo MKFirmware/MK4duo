@@ -137,7 +137,7 @@ void menu_sdcard() {
     });
   }
 
-  if (lcdui.should_draw()) for (uint16_t i = 0; i < fileCnt; i++) {
+  for (uint16_t i = 0; i < fileCnt; i++) {
     if (_menuLineNr == _thisItemNr) {
       const uint16_t nr =
         #if DISABLED(SDCARD_SORT_ALPHA)
