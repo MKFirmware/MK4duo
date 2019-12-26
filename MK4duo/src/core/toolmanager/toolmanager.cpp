@@ -212,24 +212,25 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
     const bool can_move_away = !no_move && !idex_full_control;
 
     #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-      const bool should_swap = can_move_away && data.swap_length;
+      const bool should_swap = can_move_away && extruders[extruder.active]->data.swap_length;
       #if ENABLED(PREVENT_COLD_EXTRUSION)
         const bool too_cold = !printer.debugDryrun() && (tempManager.tooColdToExtrude(active_hotend()) || tempManager.tooColdToExtrude(target_hotend()));
       #else
         constexpr bool too_cold = false;
       #endif
       if (should_swap) {
-        if (too_cold)
+        if (too_cold) {
           SERIAL_LM(ER, MSG_HOST_HOTEND_TOO_COLD);
           extruder.previous = extruder.active;
           extruder.active   = extruder.target;
           return;
+        }
         else {
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
-            advancedpause.do_pause_e_move(-data.swap_length, MMM_TO_MMS(data.retract_speed));
+            advancedpause.do_pause_e_move(-extruders[extruder.active]->data.swap_length, MMM_TO_MMS(extruders[extruder.active]->data.retract_speed));
           #else
-            mechanics.position.e -= data.swap_length / extruders[extruder.active]->e_factor;
-            planner.buffer_line(mechanics.position, MMM_TO_MMS(data.retract_speed), extruder.active);
+            mechanics.position.e -= extruders[extruder.active]->data.swap_length / extruders[extruder.active]->e_factor;
+            planner.buffer_line(mechanics.position, MMM_TO_MMS(extruders[extruder.active]->data.retract_speed), extruder.active);
             planner.synchronize();
           #endif
         }
@@ -341,16 +342,16 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
         #if ENABLED(TOOL_CHANGE_FIL_SWAP)
           if (should_swap && !too_cold) {
             #if ENABLED(ADVANCED_PAUSE_FEATURE)
-              do_pause_e_move(data.swap_length, MMM_TO_MMS(data.prime_speed));
-              do_pause_e_move(data.purge_lenght, ADVANCED_PAUSE_PURGE_FEEDRATE);
+              advancedpause.do_pause_e_move(extruders[extruder.active]->data.swap_length, MMM_TO_MMS(extruders[extruder.active]->data.prime_speed));
+              advancedpause.do_pause_e_move(extruders[extruder.active]->data.purge_lenght, PAUSE_PARK_PURGE_FEEDRATE);
             #else
-              position.e += (data.swap_length) / extruders[extruder.active]->e_factor;
+              position.e += (extruders[extruder.active]->data.swap_length) / extruders[extruder.active]->e_factor;
               planner.buffer_line(mechanics.position, mechanics.data.max_feedrate_mm_s[E_AXIS], extruder.active);
-              position.e += (data.purge_lenght) / extruders[extruder.active]->e_factor;
-              planner.buffer_line(mechanics.position, MMM_TO_MMS(data.prime_speed * 0.2f), extruder.active);
+              position.e += (extruders[extruder.active]->data.purge_lenght) / extruders[extruder.active]->e_factor;
+              planner.buffer_line(mechanics.position, MMM_TO_MMS(extruders[extruder.active]->data.prime_speed * 0.2f), extruder.active);
             #endif
             planner.synchronize();
-            planner.set_e_position_mm((mechanics.destination.e = mechanics.position.e = mechanics.position.e - data.purge_lenght));
+            planner.set_e_position_mm((mechanics.destination.e = mechanics.position.e = mechanics.position.e - extruders[extruder.active]->data.purge_lenght));
           }
         #endif
 

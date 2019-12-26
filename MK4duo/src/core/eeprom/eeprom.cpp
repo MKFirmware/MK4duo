@@ -1508,13 +1508,6 @@ void EEPROM::reset() {
     #endif
 
     /**
-     * Print Tool change filament swap
-     */
-    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-      toolManager.print_M217();
-    #endif
-
-    /**
      * Linear Advance
      */
     #if ENABLED(LIN_ADVANCE)
@@ -1565,6 +1558,13 @@ void EEPROM::reset() {
      */
     #if HAS_AD8495 || HAS_AD595
       LOOP_HOTEND() hotends[h]->print_M595();
+    #endif
+
+    /**
+     * Print Tool change filament swap
+     */
+    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+      LOOP_EXTRUDER() extruders[e]->print_M217(e);
     #endif
 
     /**
