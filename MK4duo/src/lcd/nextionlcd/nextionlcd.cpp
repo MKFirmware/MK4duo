@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * nextionlcd.cpp
  *
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * Grbl is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
 
 #include "nextion_gfx.h"
 
-#define NEXTION_LCD_FIRMWARE_VERSION  130
+#define NEXTION_LCD_FIRMWARE_VERSION 131
 
 NextionLCD nexlcd;
 
@@ -103,16 +103,16 @@ uint8_t LcdUI::alert_level = 0,
  * Class Nextion LCD
  */
 /** Public Parameters */
-bool    NextionLCD::NextionON                   = false;        
+bool    NextionLCD::NextionON           = false;        
 
-uint8_t NextionLCD::PageID                      = 0;
+uint8_t NextionLCD::PageID              = 0;
 
 #if HAS_SD_SUPPORT
-  uint8_t NextionLCD::lcd_sd_status             = 2; // UNKNOWN
+  uint8_t NextionLCD::lcd_sd_status     = 2; // UNKNOWN
 #endif
 
 #if HAS_LCD_MENU
-  bool  NextionLCD::line_encoder_touch          = false;
+  bool  NextionLCD::line_encoder_touch  = false;
   #if LCD_TIMEOUT_TO_STATUS
     short_timer_t NextionLCD::return_to_status_timer(millis());
   #endif
@@ -266,14 +266,25 @@ void NextionLCD::init() {
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   #if ENABLED(NEXTION_CONNECT_DEBUG)
-    SERIAL_EM(" NEXTION connected at 57600 baud, ready");
+    SERIAL_EM(" NEXTION connected at 9600 baud, ready");
   #endif
 
   for (uint8_t i = 0; i < 10; i++) {
     ZERO(cmd);
-    nexSerial.begin(57600);
-    NextionON = getConnect(cmd);
+    nexSerial.begin(9600);
+    if (getConnect(cmd)) {
+      #if ENABLED(NEXTION_CONNECT_DEBUG)
+        SERIAL_EM(" NEXTION connected at 9600 baud, changing baudrate");
+      #endif
+      sendCommandPGM(PSTR("baud=" STRINGIFY(NEXTION_BAUDRATE)));
+      HAL::delayMilliseconds(100);
+      nexSerial.end();
+      HAL::delayMilliseconds(100);
+      nexSerial.begin(NEXTION_BAUDRATE);
+      NextionON = getConnect(cmd);
+    }
     if (NextionON) break;
+    nexSerial.end();
     HAL::delayMilliseconds(1000);
   }
 
@@ -282,12 +293,6 @@ void NextionLCD::init() {
     return;
   }
   else {
-
-    // Set connect page
-    sendCommandPGM(PSTR("page pg0"));
-    HAL::delayMilliseconds(500);
-    clear_rx();
-
     // Read Version Firmware Nextion
     sendCommandPGM(PSTR("get version.val"));
     const uint16_t nextion_version = recvRetNumber();
@@ -408,10 +413,23 @@ void NextionLCD::sendCommandPGM(PGM_P cmd) {
 
 void NextionLCD::status_screen_update() {
 
-  static uint8_t  PreviousPage                = 0xFF,
-                  Previousfeedrate            = 0xFF,
-                  PreviousfanSpeed            = 0xFF,
-                  PreviouspercentDone         = 0xFF;
+  static uint8_t    PreviousPage          = 0xFF,
+                    PreviousFeedrate      = 0xFF,
+                    PreviousFanSpeed      = 0xFF,
+                    PreviousPercent       = 0xFF,
+                    PreviousSD            = 0xFF;
+
+  static int16_t    PreviousDegHotend[MAX_HOTEND] = { 0xFFFF };
+
+  #if HAS_BEDS
+    static int16_t  PreviousDegBed        = 0xFFFF;
+  #endif
+  #if HAS_CHAMBERS
+    static int16_t  PreviousDegChamber    = 0xFFFF;
+  #endif
+  #if HAS_DHT
+    static int16_t  PreviousDegDht        = 0xFFFF;
+  #endif
 
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
@@ -427,13 +445,13 @@ void NextionLCD::status_screen_update() {
     if (printer.isPrinting()) {
       if (!GfxVis) {
         GfxVis = true;
-        nexlcd.sendCommandPGM(PSTR("p[2].b[5].val=1"));
+        nexlcd.sendCommandPGM(PSTR("prt.val=1"));
       }
     }
     else {
       if (GfxVis) {
         GfxVis = false;
-        nexlcd.sendCommandPGM(PSTR("p[2].b[5].val=0"));
+        nexlcd.sendCommandPGM(PSTR("prt.val=0"));
       }
     }
   #endif
@@ -447,9 +465,9 @@ void NextionLCD::status_screen_update() {
     }
 
     #if HAS_FAN
-      if (PreviousfanSpeed != fans[0]->actual_speed()) {
+      if (PreviousFanSpeed != fans[0]->actual_speed()) {
         setValue(Fanspeed, fans[0]->percent());
-        PreviousfanSpeed = fans[0]->actual_speed();
+        PreviousFanSpeed = fans[0]->actual_speed();
       }
     #endif
 
@@ -457,37 +475,54 @@ void NextionLCD::status_screen_update() {
       setValue(LightStatus, caselight.status ? 2 : 1);
     #endif
 
-    if (Previousfeedrate != mechanics.feedrate_percentage) {
+    if (PreviousFeedrate != mechanics.feedrate_percentage) {
       setValue(VSpeed, mechanics.feedrate_percentage);
-      Previousfeedrate = mechanics.feedrate_percentage;
+      PreviousFeedrate = mechanics.feedrate_percentage;
     }
 
     #if HAS_HOTENDS
       for (uint8_t h = 0; h < max_hotends; h++) {
         setValue(Hotend_deg[h], hotends[h]->deg_current());
-        setValue(Hotend_trg[h], hotends[h]->deg_target());
+        if (PreviousDegHotend[h] != hotends[h]->deg_target()) {
+          setValue(Hotend_trg[h], hotends[h]->deg_target());
+          PreviousDegHotend[h] = hotends[h]->deg_target();
+        }
       }
     #endif
     #if HAS_BEDS
       if (tempManager.heater.beds) {
         setValue(Bed_deg, beds[0]->deg_current());
-        setValue(Bed_trg, beds[0]->deg_target());
+        if (PreviousDegBed != beds[0]->deg_target()) {
+          setValue(Bed_trg, beds[0]->deg_target());
+          PreviousDegBed = beds[0]->deg_target();
+        }
       }
     #endif
     #if HAS_CHAMBERS
       if (tempManager.heater.chambers) {
         setValue(Chamber_deg, chambers[0]->deg_current());
-        setValue(Chamber_trg, chambers[0]->deg_target());
+        if (PreviousDegChamber != chambers[0]->deg_target()) {
+          setValue(Chamber_trg, chambers[0]->deg_target());
+          PreviousDegChamber = chambers[0]->deg_target();
+        }
       }
     #endif
     #if HAS_DHT
-      if (lcdui.get_blink(3))
-        setValue(DHT0, dhtsensor.humidity + 500);
-      else
-        setValue(DHT0, dhtsensor.temperature);
+      if (lcdui.get_blink(3)) {
+        if (PreviousDegDht != dhtsensor.humidity + 500) {
+          setValue(DHT0, dhtsensor.humidity + 500);
+          PreviousDegDht = dhtsensor.humidity + 500;
+        }
+      }
+      else {
+        if (PreviousDegDht != dhtsensor.temperature) {
+          setValue(DHT0, dhtsensor.temperature);
+          PreviousDegDht = dhtsensor.temperature;
+        }
+      }
     #endif
 
-    if (PreviouspercentDone != printer.progress) {
+    if (PreviousPercent != printer.progress) {
       // Progress bar solid part
       setValue(progressbar, printer.progress);
       // Estimate End Time
@@ -506,26 +541,46 @@ void NextionLCD::status_screen_update() {
         strcat(cmd, " E");
       strcat(cmd, cmd1);
       setText(LcdTime, cmd);
-      PreviouspercentDone = printer.progress;
+      PreviousPercent = printer.progress;
     }
 
-    if (printer.isPrinting())
-      setValue(SD, SD_HOST_PRINTING);
-    else if (printer.isPaused())
-      setValue(SD, SD_HOST_PAUSE);
-    else if (IS_SD_MOUNTED())
-      setValue(SD, SD_INSERT);
+    if (printer.isPrinting()) {
+      if (PreviousSD != SD_HOST_PRINTING) {
+        setValue(SD, SD_HOST_PRINTING);
+        PreviousSD = SD_HOST_PRINTING;
+      }
+    }
+    else if (printer.isPaused()) {
+      if (PreviousSD != SD_HOST_PAUSE) {
+        setValue(SD, SD_HOST_PAUSE);
+        PreviousSD = SD_HOST_PAUSE;
+      }
+    }
     #if HAS_SD_SUPPORT
-      else if (!IS_SD_MOUNTED())
-        setValue(SD, SD_NO_INSERT);
+      else if (IS_SD_MOUNTED()) {
+        if (PreviousSD != SD_INSERT) {
+          setValue(SD, SD_INSERT);
+          PreviousSD = SD_INSERT;
+        }
+      }
+      else if (!IS_SD_MOUNTED()) {
+        if (PreviousSD != SD_NO_INSERT) {
+          setValue(SD, SD_NO_INSERT);
+          PreviousSD = SD_NO_INSERT;
+        }
+      }
     #else
-      else
-        setValue(SD, NO_SD);
+      else {
+        if (PreviousSD != NO_SD) {
+          setValue(SD, NO_SD);
+          PreviousSD = NO_SD;
+        }
+      }
     #endif
 
   }
 
-  coordtoLCD();
+  if (lcdui.get_blink(2)) coordtoLCD();
 
   PreviousPage = PageID;
 

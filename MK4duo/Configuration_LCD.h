@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -370,12 +370,15 @@
  ******************************      Other Controllers     *******************************
  *****************************************************************************************/
 //
-// Nextion 4.3" - 5" Enanched - 7" Enanched HMI panel
+// Nextion 4.3" - 5" Enanched - 7" Enanched and intelligent HMI panel
 //
 //#define NEXTION
 
 // Define Serial it use
 #define NEXTION_SERIAL 1
+
+// Define Baudrate for Nextion
+#define NEXTION_BAUDRATE 57600
 
 // Define max message lenght
 #define NEXTION_MAX_MESSAGE_LENGTH 30

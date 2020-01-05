@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -266,7 +266,7 @@ namespace language_tr {
   FSTRINGVALUE(MSG_MEDIA_UPDATE                     , _UxGT("SD Güncellemesi"));
   FSTRINGVALUE(MSG_RESET_PRINTER                    , _UxGT("Yazıcıyı Resetle"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Yenile"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Bilgi Ekranı"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Bilgi Ekranı"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Hazırlık"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Ayar"));
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Duraklat"));

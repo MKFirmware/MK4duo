@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -251,7 +251,7 @@ namespace language_zh_CN {
   FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("恢复安全值"));     //"Restore failsafe"
   FSTRINGVALUE(MSG_INIT_EEPROM                      , _UxGT("初始化设置"));     // "Initialize EEPROM"
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("刷新"));     //"Refresh"
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("信息屏"));     //"Info screen"
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("信息屏"));     //"Info screen"
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("准备"));     //"Prepare"
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("调整"));     //"Tune"
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("暂停打印"));     //"Pause print"

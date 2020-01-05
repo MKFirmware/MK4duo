@@ -1,10 +1,10 @@
 ### Version 4.4.0
 *
-* Revision 26-12-2019
+* Revision 05-01-2020
 *
 * Version EEPROM MKV79
 *
-* Version Nextion 1_3_0
+* Version Nextion 1_3_1
 *
 * Add Nextion 7" Intelligent
 *
@@ -46,6 +46,8 @@
 * Rename DELTA_SEGMENTS_PER_SECOND in DELTA_SEGMENTS_PER_SECOND_PRINT for delta print
 * Add DELTA_SEGMENTS_PER_SECOND_MOVE for delta move
 * Add Linear advanced K-Factor for Extruder
+*
+* Add Nextion Baudrate
 *
 * Fix JUNCTION_DEVIATION
 * Fix BABYSTEPPING

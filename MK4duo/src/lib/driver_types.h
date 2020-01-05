@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,27 +22,27 @@
 #pragma once
 
 // Models
-#define _A4988              0x001
-#define _A5984              0x002
-#define _DRV8825            0x003
-#define _LV8729             0x004
-#define _TB6560             0x006
-#define _TB6600             0x007
-#define _TMC2100            0x008
-#define _TMC2130            2130
-#define _TMC2130_STANDALONE 0x009
-#define _TMC2160            2160
-#define _TMC2160_STANDALONE 0x00A
-#define _TMC2208            2208
-#define _TMC2208_STANDALONE 0x00B
-#define _TMC2660            2660
-#define _TMC2660_STANDALONE 0x00C
-#define _TMC5130            5130
-#define _TMC5130_STANDALONE 0x00D
-#define _TMC5160            5160
-#define _TMC5160_STANDALONE 0x00E
-#define _TMC5161            5161
-#define _TMC5161_STANDALONE 0x00F
+#define _A4988              0x4988
+#define _A5984              0x5984
+#define _DRV8825            0x8825
+#define _LV8729             0x8729
+#define _TB6560             0x6560
+#define _TB6600             0x6600
+#define _TMC2100            0x2100
+#define _TMC2130            0x2130A
+#define _TMC2130_STANDALONE 0x2130B
+#define _TMC2160            0x2160A
+#define _TMC2160_STANDALONE 0x2160B
+#define _TMC2208            0x2208A
+#define _TMC2208_STANDALONE 0x2208B
+#define _TMC2660            0x2660A
+#define _TMC2660_STANDALONE 0x2660B
+#define _TMC5130            0x5130A
+#define _TMC5130_STANDALONE 0x5130B
+#define _TMC5160            0x5160A
+#define _TMC5160_STANDALONE 0x5160B
+#define _TMC5161            0x5161A
+#define _TMC5161_STANDALONE 0x5161B
 
 // Type
 #define _ACTUAL(V)          _CAT(_, V)

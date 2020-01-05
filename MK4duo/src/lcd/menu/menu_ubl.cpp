@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@ void _menu_ubl_height_adjust() {
   START_MENU();
   BACK_ITEM(MSG_EDIT_MESH);
   EDIT_ITEM(int3, MSG_UBL_MESH_HEIGHT_AMOUNT, &ubl_height_amount, -9, 9, _lcd_ubl_adjust_height_cmd);
-  ACTION_ITEM(MSG_WATCH, lcdui.return_to_status);
+  ACTION_ITEM(MSG_INFO_SCREEN, lcdui.return_to_status);
   END_MENU();
 }
 
@@ -173,7 +173,7 @@ void _lcd_ubl_edit_mesh() {
   GCODES_ITEM(MSG_UBL_FINE_TUNE_ALL, PSTR("G29 P4 R999 T"));
   GCODES_ITEM(MSG_UBL_FINE_TUNE_CLOSEST, PSTR("G29 P4 T"));
   SUBMENU(MSG_UBL_MESH_HEIGHT_ADJUST, _menu_ubl_height_adjust);
-  ACTION_ITEM(MSG_WATCH, lcdui.return_to_status);
+  ACTION_ITEM(MSG_INFO_SCREEN, lcdui.return_to_status);
   END_MENU();
 }
 
@@ -214,7 +214,7 @@ void _lcd_ubl_validate_mesh() {
     GCODES_ITEM(MSG_UBL_VALIDATE_MESH_M2, PSTR("G28\nG26 C B0 H" STRINGIFY(PREHEAT_2_TEMP_HOTEND) " P"));
   #endif
   ACTION_ITEM(MSG_UBL_VALIDATE_CUSTOM_MESH, _lcd_ubl_validate_custom_mesh);
-  ACTION_ITEM(MSG_WATCH, lcdui.return_to_status);
+  ACTION_ITEM(MSG_INFO_SCREEN, lcdui.return_to_status);
   END_MENU();
 }
 
@@ -250,7 +250,7 @@ void _lcd_ubl_mesh_leveling() {
   BACK_ITEM(MSG_UBL_TOOLS);
   GCODES_ITEM(MSG_UBL_3POINT_MESH_LEVELING, PSTR("G29 J0"));
   SUBMENU(MSG_UBL_GRID_MESH_LEVELING, _lcd_ubl_grid_level);
-  ACTION_ITEM(MSG_WATCH, lcdui.return_to_status);
+  ACTION_ITEM(MSG_INFO_SCREEN, lcdui.return_to_status);
   END_MENU();
 }
 
@@ -279,7 +279,7 @@ void _menu_ubl_fillin() {
   EDIT_ITEM(int3, MSG_UBL_FILLIN_AMOUNT, &ubl_fillin_amount, 0, 9, _lcd_ubl_fillin_amount_cmd);
   GCODES_ITEM(MSG_UBL_SMART_FILLIN, PSTR("G29 P3 T0"));
   GCODES_ITEM(MSG_UBL_MANUAL_FILLIN, PSTR("G29 P2 B T0"));
-  ACTION_ITEM(MSG_WATCH, lcdui.return_to_status);
+  ACTION_ITEM(MSG_INFO_SCREEN, lcdui.return_to_status);
   END_MENU();
 }
 
@@ -342,7 +342,7 @@ void _lcd_ubl_build_mesh() {
   GCODES_ITEM(MSG_UBL_CONTINUE_MESH, PSTR("G29 P1 C"));
   ACTION_ITEM(MSG_UBL_INVALIDATE_ALL, _lcd_ubl_invalidate);
   GCODES_ITEM(MSG_UBL_INVALIDATE_CLOSEST, PSTR("G29 I"));
-  ACTION_ITEM(MSG_WATCH, lcdui.return_to_status);
+  ACTION_ITEM(MSG_INFO_SCREEN, lcdui.return_to_status);
   END_MENU();
 }
 

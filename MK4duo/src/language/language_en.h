@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -305,7 +305,7 @@ namespace language_en {
   FSTRINGVALUE(MSG_SD_UPDATE                        , _UxGT("SD Update"));
   FSTRINGVALUE(MSG_RESET_PRINTER                    , _UxGT("Reset Printer"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Refresh"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Info Screen"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Info Screen"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Prepare"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Tune"));
   FSTRINGVALUE(MSG_START_PRINT                      , _UxGT("Start Print"));

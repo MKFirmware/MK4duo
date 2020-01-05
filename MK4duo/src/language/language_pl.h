@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -307,7 +307,7 @@ namespace language_pl {
   FSTRINGVALUE(MSG_MEDIA_UPDATE                     , _UxGT("Uaktualnij karte"));
   FSTRINGVALUE(MSG_RESET_PRINTER                    , _UxGT("Resetuj drukarke"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Odswiez"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Ekran glówny"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Ekran glówny"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Przygotuj"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Strojenie"));
   FSTRINGVALUE(MSG_START_PRINT                      , _UxGT("Start wydruku"));

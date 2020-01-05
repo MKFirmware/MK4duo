@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -270,7 +270,7 @@ namespace language_cz {
   FSTRINGVALUE(MSG_MEDIA_UPDATE                     , _UxGT("Aktualizace z SD"));
   FSTRINGVALUE(MSG_RESET_PRINTER                    , _UxGT("Reset tiskárny"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH _UxGT("Obnovit"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Info obrazovka"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Info obrazovka"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Priprava tisku"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Doladení tisku"));
   FSTRINGVALUE(MSG_START_PRINT                      , _UxGT("Spustit tisk"));
