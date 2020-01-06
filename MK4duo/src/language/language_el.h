@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ namespace language_el {
   FSTRINGVALUE(MSG_LOAD_EEPROM                      , _UxGT("Φόρτωση"));
   FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("Επαναφορά ασφαλούς αντιγράφου")); //SHORTEN
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Ανανέωση"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Οθόνη πληροφόρησης"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Οθόνη πληροφόρησης"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Προετοιμασία"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Συντονισμός"));
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Παύση εκτύπωσης"));

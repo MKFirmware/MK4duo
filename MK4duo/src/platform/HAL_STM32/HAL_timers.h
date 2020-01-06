@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,7 +131,6 @@ extern hal_timer_t  HAL_min_pulse_cycle,
                     HAL_pulse_high_tick,
                     HAL_pulse_low_tick,
                     HAL_frequency_limit[8];
-extern bool         HAL_timer_is_active;
 
 // ------------------------
 // Hardware Timer
@@ -158,7 +157,7 @@ FORCE_INLINE bool HAL_timer_initialized() {
 }
 
 FORCE_INLINE bool HAL_timer_interrupt_is_enabled() {
-  return HAL_timer_initialized() && HAL_timer_is_active;
+  return HAL_timer_initialized() && MK_step_timer->hasInterrupt();
 }
 
 FORCE_INLINE hal_timer_t HAL_timer_get_current_count(const uint8_t) {

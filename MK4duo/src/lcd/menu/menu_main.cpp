@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ void menu_led();
 
 void menu_main() {
   START_MENU();
-  BACK_ITEM(MSG_WATCH);
+  BACK_ITEM(MSG_INFO_SCREEN);
 
   const bool busy = printer.isPrinting();
 

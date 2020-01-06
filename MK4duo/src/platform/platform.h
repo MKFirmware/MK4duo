@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,16 +42,20 @@
 #if ENABLED(__AVR__)
   #include "HAL_AVR/spi_pins.h"
   #include "HAL_AVR/HAL.h"
+  #define MK_MAIN_LOOP true
 #elif ENABLED(ARDUINO_ARCH_SAM)
   #define CPU_32_BIT
+  #define MK_MAIN_LOOP false
   #include "HAL_DUE/spi_pins.h"
   #include "HAL_DUE/HAL.h"
 #elif ENABLED(ARDUINO_ARCH_SAMD)
   #define CPU_32_BIT
+  #define MK_MAIN_LOOP false
   #include "HAL_SAMD/spi_pins.h"
   #include "HAL_SAMD/HAL.h"
 #elif ENABLED(ARDUINO_ARCH_STM32)
   #define CPU_32_BIT
+  #define MK_MAIN_LOOP false
   #include "HAL_STM32/spi_pins.h"
   #include "HAL_STM32/HAL.h"
 #else

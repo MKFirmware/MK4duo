@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ namespace language_uk {
   FSTRINGVALUE(MSG_LOAD_EEPROM                      , _UxGT("Зчитати з ПЗП"));
   FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("Відновити базові"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Поновити"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Інформація"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Інформація"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Підготувати"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Підлаштування"));
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Призупинити друк"));

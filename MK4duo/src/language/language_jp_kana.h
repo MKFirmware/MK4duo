@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,7 +150,7 @@ namespace language_jp_kana {
   FSTRINGVALUE(MSG_LOAD_EEPROM                      , _UxGT("EEPROMカラヨミコミ"));               // "Load memory"
   FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("セッテイリセット"));               // "Restore failsafe"
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("リフレッシュ"));                  // "Refresh"
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("ジョウホウガメン"));               // "Info screen"
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("ジョウホウガメン"));               // "Info screen"
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("ジュンビセッテイ"));               // "Prepare"
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("チョウセイ"));                    // "Tune"
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("イチジテイシ"));                  // "Pause print"

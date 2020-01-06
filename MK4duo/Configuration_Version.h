@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,5 +24,5 @@
 #define FIRMWARE_NAME           "MK4duo"
 #define SHORT_BUILD_VERSION     "4.4.0"
 #define BUILD_VERSION           FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_REVISION_DATE    "26-12-2019"
+#define STRING_REVISION_DATE    "05-01-2020"
 #define MK4DUO_FIRMWARE_URL     "marlinkimbra.it"

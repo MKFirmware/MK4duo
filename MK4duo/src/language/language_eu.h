@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -189,7 +189,7 @@ namespace language_eu {
   FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("Larri. berriz."));
   FSTRINGVALUE(MSG_INIT_EEPROM                      , _UxGT("EEPROM-a hasieratu"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Berriz kargatu"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Pantaila info"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Pantaila info"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Prestatu"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Doitu"));
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Pausatu inprimak."));

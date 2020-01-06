@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ namespace language_an {
   FSTRINGVALUE(MSG_LOAD_EEPROM                      , _UxGT("Cargar memoria"));
   FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("Restaurar memoria"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH _UxGT("Tornar a cargar"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Informacion"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Informacion"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Preparar"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Achustar"));
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Pausar impresion"));

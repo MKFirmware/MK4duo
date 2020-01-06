@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,12 +130,12 @@ class Heater {
     void start_watching();
 
     FORCE_INLINE void update_current_temperature() { this->current_temperature = this->data.sensor.getTemperature(); }
-    FORCE_INLINE float deg_current()  { return this->current_temperature; }
-    FORCE_INLINE int16_t deg_target() { return this->target_temperature;  }
-    FORCE_INLINE int16_t deg_idle()   { return this->idle_temperature;    }
-    FORCE_INLINE bool tempisrange()   { return (WITHIN(this->current_temperature, this->data.temp.min, this->data.temp.max)); }
-    FORCE_INLINE bool isHeating()     { return this->target_temperature > this->current_temperature;  }
-    FORCE_INLINE bool isCooling()     { return this->target_temperature <= this->current_temperature; }
+    FORCE_INLINE int16_t deg_current()  { return this->current_temperature + 0.5f; }
+    FORCE_INLINE int16_t deg_target()   { return this->target_temperature;  }
+    FORCE_INLINE int16_t deg_idle()     { return this->idle_temperature;    }
+    FORCE_INLINE bool tempisrange()     { return (WITHIN(this->current_temperature, this->data.temp.min, this->data.temp.max)); }
+    FORCE_INLINE bool isHeating()       { return this->target_temperature > this->current_temperature;  }
+    FORCE_INLINE bool isCooling()       { return this->target_temperature <= this->current_temperature; }
 
     FORCE_INLINE bool wait_for_heating() {
       return this->isActive() && ABS(this->current_temperature - this->target_temperature) > temp_hysteresis;

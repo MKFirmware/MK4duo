@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * printer.cpp
  *
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -287,7 +287,7 @@ void Printer::setup() {
  */
 void Printer::loop() {
 
-  for (;;) {
+  do {
 
     idle();
 
@@ -299,7 +299,7 @@ void Printer::loop() {
     commands.advance_queue();
     endstops.report_state();
 
-  }
+  } while (MK_MAIN_LOOP);
 }
 
 void Printer::factory_parameters() {

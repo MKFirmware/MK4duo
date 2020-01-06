@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ hal_timer_t HAL_min_pulse_cycle     = 0,
             HAL_pulse_high_tick     = 0,
             HAL_pulse_low_tick      = 0,
             HAL_frequency_limit[8]  = { 0 };
-bool        HAL_timer_is_active     = false;
 
 // ------------------------
 // Hardware Timer
@@ -86,26 +85,23 @@ void HAL_timer_start() {
   if (!HAL_timer_initialized()) {
     MK_step_timer = new HardwareTimer(STEP_TIMER);
     MK_step_timer->setMode(1, TIMER_OUTPUT_COMPARE);
-    //MK_step_timer->setInterruptPriority(NvicPriorityStepper, 0);
+    MK_step_timer->setInterruptPriority(NvicPriorityStepper, 0);
     MK_step_timer->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
     MK_step_timer->setOverflow(200, TICK_FORMAT);
     MK_step_timer->attachInterrupt(Step_Handler);
     MK_step_timer->resume();
-    HAL_timer_is_active = true;
   }
 }
 
 void HAL_timer_enable_interrupt() {
-  if (HAL_timer_initialized() && !HAL_timer_is_active) {
+  if (HAL_timer_initialized() && !MK_step_timer->hasInterrupt()) {
     MK_step_timer->attachInterrupt(Step_Handler);
-    HAL_timer_is_active = true;
   }
 }
 
 void HAL_timer_disable_interrupt() {
-  if (HAL_timer_initialized() && HAL_timer_is_active) {
+  if (HAL_timer_initialized() && MK_step_timer->hasInterrupt()) {
     MK_step_timer->detachInterrupt();
-    HAL_timer_is_active = false;
   }
 }
 

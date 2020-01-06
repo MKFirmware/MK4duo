@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -273,7 +273,7 @@ namespace language_ru {
   FSTRINGVALUE(MSG_MEDIA_UPDATE                     , _UxGT("Обновление прошивки"));
   FSTRINGVALUE(MSG_RESET_PRINTER                    , _UxGT("Сброс принтера"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Обновить"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Информационный экран"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Информационный экран"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Подготовить"));
   FSTRINGVALUE(MSG_TUNE                             , _UxGT("Настроить"));
   FSTRINGVALUE(MSG_START_PRINT                      , _UxGT("Начало печати"));

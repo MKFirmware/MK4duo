@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ namespace language_da {
   FSTRINGVALUE(MSG_LOAD_EEPROM                      , _UxGT("Hent fra EEPROM"));
   FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("Gendan failsafe"));
   FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Genopfrisk"));
-  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Info skærm"));
+  FSTRINGVALUE(MSG_INFO_SCREEN                      , _UxGT("Info skærm"));
   FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Forbered"));
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Pause printet"));
   FSTRINGVALUE(MSG_RESUME_PRINT                     , _UxGT("Forsæt printet"));
