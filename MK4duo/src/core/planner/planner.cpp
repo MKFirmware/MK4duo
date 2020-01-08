@@ -829,7 +829,7 @@ void Planner::quick_stop() {
   // Drop all queue entries
   block_buffer_nonbusy = block_buffer_planned = block_buffer_head = block_buffer_tail;
 
-  //  And restart the block delay for the first movement - As the queue was
+  // And restart the block delay for the first movement - As the queue was
   // forced to empty, there is no risk the ISR could touch this variable.
   delay_before_delivering = BLOCK_DELAY_FOR_1ST_MOVE;
 

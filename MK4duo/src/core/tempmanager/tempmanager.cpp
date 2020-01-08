@@ -908,7 +908,7 @@ void TempManager::print_heater_state(Heater* act, const bool print_ID, const boo
 
   const int16_t targetTemperature = act->isIdle() ? act->deg_idle() : act->deg_target();
   SERIAL_CHR(':');
-  SERIAL_VAL(act->deg_current());
+  SERIAL_VAL(act->current_temperature);
   SERIAL_MV(" /" , targetTemperature);
   if (showRaw) {
     SERIAL_MV(" (", act->data.sensor.adc_raw);

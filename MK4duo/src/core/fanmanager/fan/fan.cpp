@@ -81,7 +81,7 @@ void Fan::set_output_pwm() {
   const uint8_t new_speed = isHWinvert() ? 255 - actual_speed() : actual_speed();
 
   if (data.pin > NoPin) {
-    if (USEABLE_HARDWARE_PWM(data.pin) && false)
+    if (USEABLE_HARDWARE_PWM(data.pin))
       HAL::analogWrite(data.pin, new_speed, fanManager.data.frequency);
     else {
       #if ENABLED(SOFTWARE_PDM)
