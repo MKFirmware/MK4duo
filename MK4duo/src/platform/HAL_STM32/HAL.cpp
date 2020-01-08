@@ -66,7 +66,9 @@ extern "C" {
 // do any hardware-specific initialization here
 void HAL::hwSetup() {
 
-  HAL_InitTick(NvicPrioritySystick); // Start SysTick to priority low
+  hw_config_init();
+
+  //HAL_InitTick(NvicPrioritySystick); // Start SysTick to priority low
 
   #if PIN_EXISTS(LED)
     OUT_WRITE(LED_PIN, LOW);

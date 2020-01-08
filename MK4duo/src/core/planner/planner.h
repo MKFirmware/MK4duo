@@ -491,7 +491,7 @@ class Planner {
     }
 
     /**
-     * The current block. NULL if the buffer is empty.
+     * The current block. nullptr if the buffer is empty.
      * This also marks the block as busy.
      * WARNING: Called from Stepper ISR context!
      */
@@ -508,7 +508,7 @@ class Planner {
           --delay_before_delivering;
           // If the number of movements queued is less than 3, and there is still time
           //  to wait, do not deliver anything
-          if (nr_moves < 3 && delay_before_delivering) return NULL;
+          if (nr_moves < 3 && delay_before_delivering) return nullptr;
           delay_before_delivering = 0;
         }
 
@@ -516,7 +516,7 @@ class Planner {
         block_t * const block = &block_buffer[block_buffer_tail];
 
         // No trapezoid calculated? Don't execute yet.
-        if (TEST(block->flag, BLOCK_BIT_RECALCULATE)) return NULL;
+        if (TEST(block->flag, BLOCK_BIT_RECALCULATE)) return nullptr;
 
         #if HAS_SPI_LCD
           block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
@@ -538,7 +538,7 @@ class Planner {
         clear_block_buffer_runtime(); // paranoia. Buffer is empty now - so reset accumulated time to zero.
       #endif
 
-      return NULL;
+      return nullptr;
     }
 
     #if HAS_SPI_LCD
@@ -656,18 +656,18 @@ class Planner {
 
       FORCE_INLINE static void normalize_junction_vector(xyze_float_t &vector) {
         float magnitude_sq = 0;
-        LOOP_XYZE(idx) if (vector[idx]) magnitude_sq += sq(vector[idx]);
+        LOOP_XYZE(axis) if (vector[axis]) magnitude_sq += sq(vector[axis]);
         vector *= RSQRT(magnitude_sq);
       }
 
       FORCE_INLINE static float limit_value_by_axis_maximum(const float &max_value, xyze_float_t &unit_vec) {
         float limit_value = max_value;
-        LOOP_XYZE(idx) {
-          if (unit_vec[idx]) {  // Avoid divide by zero
-            if (idx == E_AXIS)
-              NOMORE(limit_value, ABS(extruders[toolManager.extruder.active]->data.max_acceleration_mm_per_s2 / unit_vec[idx]));
+        LOOP_XYZE(axis) {
+          if (unit_vec[axis]) {  // Avoid divide by zero
+            if (axis == E_AXIS)
+              NOMORE(limit_value, ABS(extruders[toolManager.extruder.active]->data.max_acceleration_mm_per_s2 / unit_vec[axis]));
             else
-              NOMORE(limit_value, ABS(mechanics.data.max_acceleration_mm_per_s2[idx] / unit_vec[idx]));
+              NOMORE(limit_value, ABS(mechanics.data.max_acceleration_mm_per_s2[axis] / unit_vec[axis]));
           }
         }
         return limit_value;
