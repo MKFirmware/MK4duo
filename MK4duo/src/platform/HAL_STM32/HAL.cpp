@@ -68,7 +68,7 @@ void HAL::hwSetup() {
 
   hw_config_init();
 
-  //HAL_InitTick(NvicPrioritySystick); // Start SysTick to priority low
+  HAL_InitTick(NvicPrioritySystick); // Start SysTick to priority low
 
   #if PIN_EXISTS(LED)
     OUT_WRITE(LED_PIN, LOW);
