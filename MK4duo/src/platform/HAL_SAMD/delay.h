@@ -48,7 +48,7 @@ static __inline__ void hal_delayMicroseconds( unsigned int usec ) {
    *      bne.n loop         // 1 Core cycle + 1 if branch is taken
    */
 
-  // VARIANT_MCK / 1000000 == cycles needed to delay 1µs
+  // VARIANT_MCK / 1000000 == cycles needed to delay 1Âµs
   //                     3 == cycles used in a loop
   uint32_t n = usec * (VARIANT_MCK / 1000000) / 3;
   __asm__ __volatile__(
