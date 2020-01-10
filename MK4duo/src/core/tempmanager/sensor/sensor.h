@@ -105,7 +105,7 @@ typedef struct {
       #if HAS_AMPLIFIER
 
         #define PGM_RD_W(x) (short)pgm_read_word(&x)
-        static uint8_t  ttbllen_map = COUNT(temptable_amplifier);
+        static uint8_t ttbllen_map = COUNT(temptable_amplifier);
         float celsius = 0;
         uint8_t i;
 
