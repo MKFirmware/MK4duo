@@ -106,8 +106,8 @@ void servo_init() {
 ServoInfo_t servo_info[MAX_SERVOS]; // static array of servo structures
 uint8_t ServoCount = 0;             // the total number of attached servo_info
 
-#define SERVO_MIN() (MIN_PULSE_WIDTH - this->min * 4) // minimum value in uS for this servo
-#define SERVO_MAX() (MAX_PULSE_WIDTH - this->max * 4) // maximum value in uS for this servo
+#define SERVO_MIN() (MIN_PULSE_WIDTH - this->min * 4) // minimum value in µs for this servo
+#define SERVO_MAX() (MAX_PULSE_WIDTH - this->max * 4) // maximum value in µs for this servo
 
 
 /************ static functions common to all instances ***********************/
@@ -143,7 +143,7 @@ int8_t MKServo::attach(const pin_t inPin, const int inMin, const int inMax) {
   HAL::pinMode(servo_info[index].Pin.nbr, OUTPUT); // set servo pin to output
 
   // todo min/max check: ABS(min - MIN_PULSE_WIDTH) /4 < 128
-  min = (MIN_PULSE_WIDTH - inMin) / 4;  // resolution of min/max is 4 uS
+  min = (MIN_PULSE_WIDTH - inMin) / 4;  // resolution of min/max is 4 µs
   max = (MAX_PULSE_WIDTH - inMax) / 4;
 
   // initialize the timer if it has not already been initialized

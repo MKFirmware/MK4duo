@@ -271,18 +271,18 @@ void NextionLCD::init() {
 
   for (uint8_t i = 0; i < 10; i++) {
     ZERO(cmd);
-    nexSerial.begin(9600);
+    nexSerial.begin(9600);  // Try at 9600
     if (getConnect(cmd)) {
       #if ENABLED(NEXTION_CONNECT_DEBUG)
         SERIAL_EM(" NEXTION connected at 9600 baud, changing baudrate");
       #endif
       sendCommandPGM(PSTR("baud=" STRINGIFY(NEXTION_BAUDRATE)));
       HAL::delayMilliseconds(100);
-      nexSerial.end();
-      HAL::delayMilliseconds(100);
-      nexSerial.begin(NEXTION_BAUDRATE);
-      NextionON = getConnect(cmd);
     }
+    nexSerial.end();
+    HAL::delayMilliseconds(100);
+    nexSerial.begin(NEXTION_BAUDRATE);  // Try at NEXTION_BAUDRATE
+    NextionON = getConnect(cmd);
     if (NextionON) break;
     nexSerial.end();
     HAL::delayMilliseconds(1000);
