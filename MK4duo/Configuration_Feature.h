@@ -1749,7 +1749,7 @@
  ***********************************************************************
  *                                                                     *
  * Minimum delay after setting the stepper DIR (in ns)                 *
- *      0 : No delay at all - But, at least 10uS are expected          *
+ *      0 : No delay at all - But, at least 10µs are expected          *
  *     50 : Minimum for TMC2xxx drivers                                *
  *    200 : Minimum for A4988 drivers                                  *
  *    400 : Minimum for A5984 drivers                                  *

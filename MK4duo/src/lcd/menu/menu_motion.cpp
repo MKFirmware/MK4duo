@@ -264,9 +264,9 @@ void menu_move() {
   #if ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR) || ENABLED(DUAL_X_CARRIAGE)
 
     if (toolManager.extruder.active)
-      GCODES_ITEM(MSG_SELECT "E0", PSTR("T0"));
+      GCODES_ITEM_N(0, MSG_SELECT, PSTR("T0"));
     else
-      GCODES_ITEM(MSG_SELECT "E1", PSTR("T1"));
+      GCODES_ITEM_N(1, MSG_SELECT, PSTR("T1"));
 
   #endif
 
