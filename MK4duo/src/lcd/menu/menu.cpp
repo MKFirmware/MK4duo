@@ -309,10 +309,10 @@ void lcd_line_to_z(const float &z) {
     if (lcdui.should_draw()) {
       #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
         if (!do_probe)
-          MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_DXC_Z_OFFSET), ftostr43sign(nozzle.data.hotend_offset[toolManager.active_hotend()].z));
+          MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_DXC_Z_OFFSET), LCD_Z_OFFSET_FUNC(nozzle.data.hotend_offset[toolManager.active_hotend()].z));
         else
       #endif
-          MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset.z));
+          MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_ZPROBE_ZOFFSET), LCD_Z_OFFSET_FUNC(probe.data.offset.z));
 
       #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
         if (do_probe) _lcd_zoffset_overlay_gfx(probe.data.offset.z);

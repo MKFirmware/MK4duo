@@ -72,14 +72,21 @@ typedef struct {
       #endif
 
       if (WITHIN(type, 1, 9)) {
-        const int32_t adc_low = 2 * adc_low_offset,
-                      adc_max = AD_RANGE + (2 * adc_high_offset);
 
         // Calculate the resistance
-        const float adc_inverse = (float)(adc_max - adc_raw) - 0.5f;
-        if (adc_inverse <= 0.0) return ABS_ZERO;
+        #if HAS_VREF_MONITOR
+          const int32_t adc_mv      = HAL::analog2mv(adc_raw),
+                        adc_low     = 2 * adc_low_offset,
+                        adc_max     = HAL_VREF + (2 * adc_high_offset);
+          const float   resistance  = pullup_res * (float)(adc_mv - adc_low) / (float)(adc_max - adc_mv);
+        #else
+          const int32_t adc_low = 2 * adc_low_offset,
+                        adc_max = AD_RANGE + (2 * adc_high_offset);
+          const float   adc_inverse = (float)(adc_max - adc_raw) - 0.5f;
+          if (adc_inverse <= 0.0) return ABS_ZERO;
+          const float   resistance = pullup_res * ((float)(adc_raw - adc_low) + 0.5f) / adc_inverse;
+        #endif
 
-        const float resistance = pullup_res * ((float)(adc_raw - adc_low) + 0.5f) / adc_inverse;
         const float logResistance = LOG(resistance);
         const float recipT = shA + shB * logResistance + shC * logResistance * logResistance * logResistance;
 

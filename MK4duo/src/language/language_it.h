@@ -349,10 +349,6 @@ namespace language_it {
   FSTRINGVALUE(MSG_MANUAL_DEPLOY                    , _UxGT("Estendi Probe"));
   FSTRINGVALUE(MSG_MANUAL_STOW                      , _UxGT("Ritrai Probe"));
   FSTRINGVALUE(MSG_HOME_FIRST                       , _UxGT("Home %s%s%s prima"));
-  FSTRINGVALUE(MSG_ZPROBE_ZOFFSET                   , _UxGT("Z Offset"));
-  FSTRINGVALUE(MSG_BABYSTEP_X                       , _UxGT("Babystep X"));
-  FSTRINGVALUE(MSG_BABYSTEP_Y                       , _UxGT("Babystep Y"));
-  FSTRINGVALUE(MSG_BABYSTEP_Z                       , _UxGT("Babystep Z"));
   FSTRINGVALUE(MSG_ENDSTOP_ABORT                    , _UxGT("Finecorsa abort"));
   FSTRINGVALUE(MSG_HEATING_FAILED                   , _UxGT("Riscald. Fallito"));
   FSTRINGVALUE(MSG_ERR_REDUNDANT_TEMP               , _UxGT("Err: TEMP RIDONDANTE"));

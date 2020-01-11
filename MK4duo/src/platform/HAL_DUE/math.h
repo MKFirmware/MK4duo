@@ -64,7 +64,7 @@ class AveragingFilter {
       }
     }
 
-    uint32_t GetSum() const volatile { return sum; }
+    uint32_t GetSum() const volatile { return sum / numAveraged; }
 
     bool IsValid() const volatile { return valid; }
 

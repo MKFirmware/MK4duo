@@ -372,7 +372,10 @@ namespace language_en {
   FSTRINGVALUE(MSG_MANUAL_DEPLOY                    , _UxGT("Deploy Z-Probe"));
   FSTRINGVALUE(MSG_MANUAL_STOW                      , _UxGT("Stow Z-Probe"));
   FSTRINGVALUE(MSG_HOME_FIRST                       , _UxGT("Home %s%s%s First"));
-  FSTRINGVALUE(MSG_ZPROBE_ZOFFSET                   , _UxGT("Z Offset"));
+  FSTRINGVALUE(MSG_ZPROBE_OFFSETS                   , _UxGT("Probe Offsets"));
+  FSTRINGVALUE(MSG_ZPROBE_XOFFSET                   , _UxGT("Probe X Offset"));
+  FSTRINGVALUE(MSG_ZPROBE_YOFFSET                   , _UxGT("Probe Y Offset"));
+  FSTRINGVALUE(MSG_ZPROBE_ZOFFSET                   , _UxGT("Probe Z Offset"));
   FSTRINGVALUE(MSG_BABYSTEP_X                       , _UxGT("Babystep X"));
   FSTRINGVALUE(MSG_BABYSTEP_Y                       , _UxGT("Babystep Y"));
   FSTRINGVALUE(MSG_BABYSTEP_Z                       , _UxGT("Babystep Z"));

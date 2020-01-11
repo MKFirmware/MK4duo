@@ -141,6 +141,8 @@ typedef uint32_t  ptr_int_t;
 #define AD595_MAX          330.0f
 #define AD8495_MAX         660.0f
 
+#define GET_VOLTAGE_FROM_RAW(raw) (__LL_ADC_CALC_DATA_TO_VOLTAGE(HAL_VREF, raw, LL_ADC_RESOLUTION_12B))
+
 #define GET_PIN_MAP_PIN(index) index
 #define GET_PIN_MAP_INDEX(pin) pin
 #define PARSED_PIN_INDEX(code, dval) parser.intval(code, dval)
@@ -148,6 +150,8 @@ typedef uint32_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
+
+extern int32_t HAL_VREF;
 
 // reset reason set by bootloader
 extern uint8_t MCUSR;
@@ -198,6 +202,10 @@ class HAL {
       static ADCAveragingFilter mcuFilter;
     #endif
 
+    #if HAS_VREF_MONITOR
+      static ADCAveragingFilter vrefFilter;
+    #endif
+
   public: /** Public Function */
 
     static void analogStart();
@@ -208,6 +216,9 @@ class HAL {
     static void analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t PWM_freq=1000U);
 
     static void Tick();
+
+    static int32_t analog2mv(const int16_t adc_raw);
+    static int32_t analog2tempMCU(const int16_t adc_raw);
 
     static pin_t digital_value_pin();
     static pin_t analog_value_pin();

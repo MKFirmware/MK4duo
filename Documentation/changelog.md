@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 05-01-2020
+* Revision 11-01-2020
 *
 * Version EEPROM MKV79
 *
@@ -52,6 +52,8 @@
 * Fix JUNCTION_DEVIATION
 * Fix BABYSTEPPING
 * Fix M569 code for extruder
+*
+* Add Vref on STM32 for ADC
 *
 * Fix problem with STM32core 1_8_0
 * Fix problem with TOOL_CHANGE_FIL_SWAP

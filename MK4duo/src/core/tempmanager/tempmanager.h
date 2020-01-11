@@ -54,10 +54,10 @@ class TempManager {
     #endif
 
     #if HAS_MCU_TEMPERATURE
-      static float    mcu_current_temperature,
+      static int16_t  mcu_current_temperature,
                       mcu_highest_temperature,
-                      mcu_alarm_temperature;
-      static int16_t  mcu_current_temperature_raw;
+                      mcu_alarm_temperature,
+                      mcu_current_temperature_raw;
     #endif
 
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
