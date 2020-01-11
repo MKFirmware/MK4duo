@@ -306,18 +306,24 @@ void menu_advanced_temperature() {
     END_MENU();
   }
 
+  // M851 - Z Probe Offsets
+  #if HAS_BED_PROBE
+    void menu_probe_offsets() {
+      START_MENU();
+      BACK_ITEM(MSG_ADVANCED_SETTINGS);
+      EDIT_ITEM(float51sign, MSG_ZPROBE_XOFFSET, &probe.data.offset.x, -50, 50);
+      EDIT_ITEM(float51sign, MSG_ZPROBE_YOFFSET, &probe.data.offset.y, -50, 50);
+      EDIT_ITEM(LCD_Z_OFFSET_TYPE, MSG_ZPROBE_ZOFFSET, &probe.data.offset.z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
+      END_MENU();
+    }
+  #endif
+
 #endif // !SLIM_LCD_MENUS
 
 void menu_advanced_settings() {
 
   START_MENU();
   BACK_ITEM(MSG_CONFIGURATION);
-
-  #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-    SUBMENU(MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
-  #elif HAS_BED_PROBE
-    EDIT_ITEM(float52, MSG_ZPROBE_ZOFFSET, &probe.data.offset.z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
-  #endif
 
   #if DISABLED(SLIM_LCD_MENUS)
 
@@ -360,6 +366,11 @@ void menu_advanced_settings() {
     if (!printer.isPrinting()) {
       // M92 - Steps Per mm
       SUBMENU(MSG_STEPS_PER_MM, menu_advanced_steps_per_mm);
+
+      #if HAS_BED_PROBE
+        // M851 - Z Probe Offsets
+        SUBMENU(MSG_ZPROBE_OFFSETS, menu_probe_offsets);
+      #endif
     }
 
     #if HAS_TRINAMIC

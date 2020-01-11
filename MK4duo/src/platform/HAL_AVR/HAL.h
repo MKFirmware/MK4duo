@@ -471,7 +471,6 @@ class HAL {
 
     #if ANALOG_INPUTS > 0
       static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
-      static bool Analog_is_ready;
     #endif
 
   public: /** Public Function */

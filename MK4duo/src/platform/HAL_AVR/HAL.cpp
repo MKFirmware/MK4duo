@@ -112,12 +112,7 @@ extern "C" {
 void(* resetFunc) (void) = 0; // declare reset function @ address 0
 
 #if ANALOG_INPUTS > 0
-  int32_t AnalogInputRead[ANALOG_INPUTS];
-  uint8_t adcCounter[ANALOG_INPUTS],
-          adcSamplePos = 0;
-
   int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
-  bool    HAL::Analog_is_ready = false;
 #endif
 
 const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
@@ -224,13 +219,8 @@ void HAL::showStartReason() {
     #endif
 
     ADMUX = ANALOG_REF; // refernce voltage
-    for (uint8_t i = 0; i < ANALOG_INPUTS; i++) {
-      adcCounter[i] = 0;
-      AnalogInputRead[i] = 0;
-    }
 
-    ADCSRA = _BV(ADEN) | _BV(ADSC) | ANALOG_PRESCALER;
-
+    ADCSRA = _BV(ADEN) | _BV(ADSC) | _BV(ADIF) | 0x07;
     DIDR0 = 0;
     #ifdef DIDR2
       DIDR2 = 0;
@@ -238,17 +228,19 @@ void HAL::showStartReason() {
 
     while (ADCSRA & _BV(ADSC) ) {} // wait for conversion
 
-    const uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
+    const uint8_t channel = pgm_read_byte(&AnalogInputChannels[0]);
 
-    #if ENABLED(ADCSRB) && ENABLED(MUX5)
-      if (channel & 8)  // Reading channel 0-7 or 8-15?
+    #if ENABLED(MUX5)
+      if (channel > 7)  // Reading channel 0-7 or 8-15?
         ADCSRB |= _BV(MUX5);
       else
-        ADCSRB &= ~_BV(MUX5);
+        ADCSRB = 0;
+    #else
+      ADCSRB = 0;
     #endif
 
-    ADMUX = (ADMUX & ~(0x1F)) | (channel & 7);
-    ADCSRA |= _BV(ADSC); // start conversion without interrupt!
+    ADMUX = _BV(REFS0) | (channel & 0x07);
+    SBI(ADCSRA, ADSC);
 
     // Use timer for temperature measurement
     // Interleave temperature interrupt with millies interrupt
@@ -341,7 +333,12 @@ void HAL::Tick() {
   static short_timer_t  cycle_1s_timer(millis()),
                         cycle_100_timer(millis());
 
-  static uint8_t channel = 0;
+  static uint32_t AnalogInputRead[ANALOG_INPUTS]      = { 0 };
+  static uint16_t sample[ANALOG_INPUTS][OVERSAMPLENR] = { 0 };
+  static uint8_t  adcCounter[ANALOG_INPUTS]           = { 0 },
+                  adcSamplePos                        = 0;
+
+  uint8_t channel = 0;
 
   if (printer.isStopped()) return;
 
@@ -359,34 +356,34 @@ void HAL::Tick() {
 
   if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
     channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
-    AnalogInputRead[adcSamplePos] += ADCW;
+    const uint16_t read_adc = ADC;
+    AnalogInputRead[adcSamplePos] += read_adc - sample[adcSamplePos][adcCounter[adcSamplePos]];
+    sample[adcSamplePos][adcCounter[adcSamplePos]] = read_adc;
     if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
-
       // update temperatures
       AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
-
-      AnalogInputRead[adcSamplePos] = 0;
       adcCounter[adcSamplePos] = 0;
-
-      // Start next conversion
-      if (++adcSamplePos >= ANALOG_INPUTS) {
-        adcSamplePos = 0;
-        Analog_is_ready = true;
-      }
-      channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
-      #if ENABLED(ADCSRB) && ENABLED(MUX5)
-        if (channel & 8)  // Reading channel 0-7 or 8-15?
-          ADCSRB |= _BV(MUX5);
-        else
-          ADCSRB &= ~_BV(MUX5);
-      #endif
-      ADMUX = (ADMUX & ~(0x1F)) | (channel & 7);
     }
-    ADCSRA |= _BV(ADSC);  // start next conversion
+
+    // Start next conversion
+    if (++adcSamplePos >= ANALOG_INPUTS) adcSamplePos = 0;
+
+    channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
+    #if ENABLED(MUX5)
+      if (channel > 7)  // Reading channel 0-7 or 8-15?
+        ADCSRB |= _BV(MUX5);
+      else
+        ADCSRB = 0;
+    #else
+      ADCSRB = 0;
+    #endif
+    ADMUX = _BV(REFS0) | (channel & 0x07);
+    SBI(ADCSRA, ADSC);
+
   }
 
   // Update the raw values if they've been read. Else we could be updating them during reading.
-  if (Analog_is_ready) set_current_temp_raw();
+  set_current_temp_raw();
 
   // Tick endstops state, if required
   endstops.Tick();

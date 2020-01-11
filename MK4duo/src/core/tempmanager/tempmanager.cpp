@@ -37,10 +37,10 @@ temp_data_t TempManager::heater;
 #endif
 
 #if HAS_MCU_TEMPERATURE
-  float   TempManager::mcu_current_temperature  = 0.0f,
-          TempManager::mcu_highest_temperature  = 0.0f,
-          TempManager::mcu_alarm_temperature    = 80.0f;
-  int16_t TempManager::mcu_current_temperature_raw;
+  int16_t TempManager::mcu_current_temperature  = 0,
+          TempManager::mcu_highest_temperature  = 0,
+          TempManager::mcu_alarm_temperature    = 80,
+          TempManager::mcu_current_temperature_raw;
 #endif
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -289,7 +289,7 @@ void TempManager::spin() {
   #endif
 
   #if HAS_MCU_TEMPERATURE
-    mcu_current_temperature = analog2tempMCU(mcu_current_temperature_raw);
+    mcu_current_temperature = HAL::analog2tempMCU(mcu_current_temperature_raw);
     NOLESS(mcu_highest_temperature, mcu_current_temperature);
   #endif
 
@@ -631,8 +631,8 @@ void TempManager::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 
   #if HAS_MCU_TEMPERATURE
-    SERIAL_MV(" MCU:", mcu_current_temperature, 2);
-    SERIAL_MV(" max:", mcu_highest_temperature, 2);
+    SERIAL_MV(" MCU:", mcu_current_temperature);
+    SERIAL_MV(" max:", mcu_highest_temperature);
     if (showRaw) {
       SERIAL_MV(" (", mcu_current_temperature_raw);
       SERIAL_CHR(')');

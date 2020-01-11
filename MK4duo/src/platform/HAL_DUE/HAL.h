@@ -274,6 +274,8 @@ class HAL {
 
     static void Tick();
 
+    static int32_t analog2tempMCU(const int16_t adc_raw);
+
     static pin_t digital_value_pin();
     static pin_t analog_value_pin();
 

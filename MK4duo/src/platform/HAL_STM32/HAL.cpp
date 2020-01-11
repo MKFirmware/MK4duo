@@ -23,9 +23,11 @@
 #if defined(ARDUINO_ARCH_STM32) && !defined(STM32GENERIC)
 
 #include "../../../MK4duo.h"
+#include "stm32yyxx_ll_adc.h"
 #include <Wire.h>
 
 /** Public Parameters */
+int32_t HAL_VREF = 0;
 uint8_t MCUSR;
 
 /** Private Parameters */
@@ -52,6 +54,10 @@ uint8_t MCUSR;
 
 #if HAS_MCU_TEMPERATURE
   ADCAveragingFilter  HAL::mcuFilter;
+#endif
+
+#if HAS_VREF_MONITOR
+  ADCAveragingFilter  HAL::vrefFilter;
 #endif
 
 // Return available memory
@@ -117,10 +123,6 @@ void HAL::analogStart() {
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     SET_INPUT_ANALOG(POWER_CONSUMPTION_PIN);
-  #endif
-
-  #if HAS_MCU_TEMPERATURE
-    SET_INPUT_ANALOG(ADC_TEMPERATURE_SENSOR);
   #endif
 
 }
@@ -203,7 +205,7 @@ void HAL::Tick() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(HOTENDsensorFilters[h]);
       currentFilter.process_reading(analogRead(hotends[h]->data.sensor.pin));
       if (currentFilter.IsValid())
-        hotends[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+        hotends[h]->data.sensor.adc_raw = currentFilter.GetSum();
     }
   #endif
   #if HAS_BEDS
@@ -211,7 +213,7 @@ void HAL::Tick() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
       currentFilter.process_reading(analogRead(beds[h]->data.sensor.pin));
       if (currentFilter.IsValid())
-        beds[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+        beds[h]->data.sensor.adc_raw = currentFilter.GetSum();
     }
   #endif
   #if HAS_CHAMBERS
@@ -219,7 +221,7 @@ void HAL::Tick() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
       currentFilter.process_reading(analogRead(chambers[h]->data.sensor.pin));
       if (currentFilter.IsValid())
-        chambers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+        chambers[h]->data.sensor.adc_raw = currentFilter.GetSum();
     }
   #endif
   #if HAS_COOLERS
@@ -227,31 +229,45 @@ void HAL::Tick() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
       currentFilter.process_reading(analogRead(coolers[h]->data.sensor.pin));
       if (currentFilter.IsValid())
-        coolers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+        coolers[h]->data.sensor.adc_raw = currentFilter.GetSum();
     }
   #endif
 
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
     const_cast<ADCAveragingFilter&>(filamentFilter).process_reading(analogRead(FILWIDTH_PIN));
     if (filamentFilter.IsValid())
-      tempManager.current_raw_filwidth = (filamentFilter.GetSum() / NUM_ADC_SAMPLES);
+      tempManager.current_raw_filwidth = filamentFilter.GetSum();
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     const_cast<ADCAveragingFilter&>(powerFilter).process_reading(analogRead(POWER_CONSUMPTION_PIN));
     if (powerFilter.IsValid())
-      powerManager.current_raw_powconsumption = (powerFilter.GetSum() / NUM_ADC_SAMPLES);
+      powerManager.current_raw_powconsumption = powerFilter.GetSum();
   #endif
 
   #if HAS_MCU_TEMPERATURE
-    const_cast<ADCAveragingFilter&>(mcuFilter).process_reading(analogRead(ADC_TEMPERATURE_SENSOR));
+    const_cast<ADCAveragingFilter&>(mcuFilter).process_reading(analogRead(ATEMP));
     if (mcuFilter.IsValid())
-      tempManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES);
+      tempManager.mcu_current_temperature_raw = mcuFilter.GetSum();
+  #endif
+
+  #if HAS_VREF_MONITOR
+    const_cast<ADCAveragingFilter&>(vrefFilter).process_reading(analogRead(AVREF));
+    if (mcuFilter.IsValid())
+      HAL_VREF = 1210 * AD_RANGE / vrefFilter.GetSum(); // ADC sample to mV
   #endif
 
   // Tick endstops state, if required
   endstops.Tick();
 
+}
+
+int32_t HAL::analog2mv(const int16_t adc_raw) {
+  return (__LL_ADC_CALC_DATA_TO_VOLTAGE(HAL_VREF, adc_raw, LL_ADC_RESOLUTION_12B));
+}
+
+int32_t HAL::analog2tempMCU(const int16_t adc_raw) {
+  return (__LL_ADC_CALC_TEMPERATURE(HAL_VREF, adc_raw, LL_ADC_RESOLUTION_12B));
 }
 
 pin_t HAL::digital_value_pin() {

@@ -575,7 +575,7 @@ void HAL::Tick() {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(HOTENDsensorFilters[h]);
           currentFilter.process_reading(AnalogInReadPin(hotends[h]->data.sensor.pin));
           if (currentFilter.IsValid())
-            hotends[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            hotends[h]->data.sensor.adc_raw = currentFilter.GetSum();
         }
       }
     #endif
@@ -585,7 +585,7 @@ void HAL::Tick() {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
           currentFilter.process_reading(AnalogInReadPin(beds[h]->data.sensor.pin));
           if (currentFilter.IsValid())
-            beds[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            beds[h]->data.sensor.adc_raw = currentFilter.GetSum();
         }
       }
     #endif
@@ -595,7 +595,7 @@ void HAL::Tick() {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
           currentFilter.process_reading(AnalogInReadPin(chambers[h]->data.sensor.pin));
           if (currentFilter.IsValid())
-            chambers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            chambers[h]->data.sensor.adc_raw = currentFilter.GetSum();
         }
       }
     #endif
@@ -605,7 +605,7 @@ void HAL::Tick() {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
           currentFilter.process_reading(AnalogInReadPin(coolers[h]->data.sensor.pin));
           if (currentFilter.IsValid())
-            coolers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            coolers[h]->data.sensor.adc_raw = currentFilter.GetSum();
         }
       }
     #endif
@@ -613,19 +613,19 @@ void HAL::Tick() {
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
       const_cast<ADCAveragingFilter&>(filamentFilter).process_reading(AnalogInReadPin(FILWIDTH_PIN));
       if (filamentFilter.IsValid())
-        tempManager.current_raw_filwidth = (filamentFilter.GetSum() / NUM_ADC_SAMPLES);
+        tempManager.current_raw_filwidth = filamentFilter.GetSum();
     #endif
 
     #if HAS_POWER_CONSUMPTION_SENSOR
       const_cast<ADCAveragingFilter&>(powerFilter).process_reading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
       if (powerFilter.IsValid())
-        powerManager.current_raw_powconsumption = (powerFilter.GetSum() / NUM_ADC_SAMPLES);
+        powerManager.current_raw_powconsumption = powerFilter.GetSum();
     #endif
 
     #if HAS_MCU_TEMPERATURE
       const_cast<ADCAveragingFilter&>(mcuFilter).process_reading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
       if (mcuFilter.IsValid())
-        tempManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES);
+        tempManager.mcu_current_temperature_raw = mcuFilter.GetSum();
     #endif
 
   }
@@ -635,6 +635,11 @@ void HAL::Tick() {
   // Tick endstops state, if required
   endstops.Tick();
 
+}
+
+int32_t HAL::analog2tempMCU(const int16_t adc_raw) {
+  const float voltage = (float)adc_raw * ((HAL_VOLTAGE_PIN) / (float)AD_RANGE);
+  return (voltage - 0.8f) * (1000.0f / 2.65f) + 27.0f; // + mcuTemperatureAdjust;
 }
 
 pin_t HAL::digital_value_pin() {

@@ -276,13 +276,10 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
         }
       #endif
 
+      xyz_pos_t diff = nozzle.data.hotend_offset[target_hotend()] - nozzle.data.hotend_offset[active_hotend()];
       #if ENABLED(DUAL_X_CARRIAGE)
-        constexpr float x_diff = 0;
-      #else
-        const float x_diff = nozzle.data.hotend_offset[target_hotend()].x - nozzle.data.hotend_offset[active_hotend()].x;
+        diff.x = 0;
       #endif
-      const float y_diff = nozzle.data.hotend_offset[target_hotend()].y - nozzle.data.hotend_offset[active_hotend()].y,
-                  z_diff = nozzle.data.hotend_offset[target_hotend()].z - nozzle.data.hotend_offset[active_hotend()].z;
 
       #if ENABLED(DUAL_X_CARRIAGE)
         dualx_tool_change(no_move); // Can modify no_move
@@ -294,27 +291,24 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
         #endif
         if (!no_move) fast_line_to_current(Z_AXIS);
         move_extruder_servo();
-      #endif
-
-      if (printer.debugFeature()) {
-        DEBUG_MV("Offset Tool XYZ by { ", x_diff);
-        DEBUG_MV(", ", y_diff);
-        DEBUG_MV(", ", z_diff);
-        DEBUG_EM(" }");
-      }
-
-      // The newly-selected extruder XY is actually at...
-      mechanics.position.x += x_diff;
-      mechanics.position.y += y_diff;
-      mechanics.position.z += z_diff;
-
-      #if HAS_MKMULTI_TOOLS
+      #elif HAS_MKMULTI_TOOLS
         MK_multi_tool_change();
       #endif
 
-      // Set the new active extruder
-      extruder.previous = extruder.active;
-      extruder.active   = extruder.target;
+      #if DISABLED(DUAL_X_CARRIAGE)
+        // Set the new active extruder
+        extruder.previous = extruder.active;
+        extruder.active   = extruder.target;
+      #endif
+
+      // The newly-selected extruder XYZ is actually at...
+      if (printer.debugFeature()) {
+        DEBUG_MV("Offset Tool XYZ by { ", diff.x);
+        DEBUG_MV(", ", diff.y);
+        DEBUG_MV(", ", diff.z);
+        DEBUG_EM(" }");
+      }
+      mechanics.position += diff;
 
       // Tell the planner the new "current position"
       mechanics.sync_plan_position();
@@ -345,9 +339,9 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
               advancedpause.do_pause_e_move(extruders[extruder.active]->data.swap_length, MMM_TO_MMS(extruders[extruder.active]->data.prime_speed));
               advancedpause.do_pause_e_move(extruders[extruder.active]->data.purge_lenght, PAUSE_PARK_PURGE_FEEDRATE);
             #else
-              position.e += (extruders[extruder.active]->data.swap_length) / extruders[extruder.active]->e_factor;
+              mechanics.position.e += (extruders[extruder.active]->data.swap_length) / extruders[extruder.active]->e_factor;
               planner.buffer_line(mechanics.position, mechanics.data.max_feedrate_mm_s[E_AXIS], extruder.active);
-              position.e += (extruders[extruder.active]->data.purge_lenght) / extruders[extruder.active]->e_factor;
+              mechanics.position.e += (extruders[extruder.active]->data.purge_lenght) / extruders[extruder.active]->e_factor;
               planner.buffer_line(mechanics.position, MMM_TO_MMS(extruders[extruder.active]->data.prime_speed * 0.2f), extruder.active);
             #endif
             planner.synchronize();
@@ -787,10 +781,10 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
     if (printer.debugFeature()) {
       DEBUG_MSG("Dual X Carriage Mode ");
       switch (mechanics.dual_x_carriage_mode) {
-        case DXC_FULL_CONTROL_MODE:       DEBUG_EM("DXC_FULL_CONTROL_MODE");        break;
-        case DXC_AUTO_PARK_MODE:          DEBUG_EM("DXC_AUTO_PARK_MODE");           break;
-        case DXC_DUPLICATION_MODE:        DEBUG_EM("DXC_DUPLICATION_MODE");         break;
-        case DXC_MIRRORED_MODE: DEBUG_EM("DXC_MIRRORED_MODE");  break;
+        case DXC_FULL_CONTROL_MODE: DEBUG_EM("FULL_CONTROL"); break;
+        case DXC_AUTO_PARK_MODE:    DEBUG_EM("AUTO_PARK");    break;
+        case DXC_DUPLICATION_MODE:  DEBUG_EM("DUPLICATION");  break;
+        case DXC_MIRRORED_MODE:     DEBUG_EM("MIRRORED");     break;
       }
     }
 
@@ -799,42 +793,23 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
         && printer.isRunning()
         && (mechanics.delayed_move_timer.isRunning() || mechanics.position.x != xhome)
     ) {
-      float raised_z = mechanics.position.z + TOOLCHANGE_PARK_ZLIFT;
-      #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-        NOMORE(raised_z, endstops.soft_endstop.max.z);
-      #endif
-      if (printer.debugFeature()) {
-        DEBUG_EMV("Raise to ", raised_z);
-        DEBUG_EMV("MoveX to ", xhome);
-        DEBUG_EMV("Lower to ", mechanics.position.z);
-      }
-      // Park old head: 1) raise 2) move to park position 3) lower
-      #define CUR_X mechanics.position.x
-      #define CUR_Y mechanics.position.y
-      #define CUR_Z mechanics.position.z
-      #define CUR_E mechanics.position.e
 
-      planner.buffer_line( CUR_X, CUR_Y, raised_z, CUR_E, mechanics.data.max_feedrate_mm_s.z, extruder.active);
-      planner.buffer_line( xhome, CUR_Y, raised_z, CUR_E, mechanics.data.max_feedrate_mm_s.x, extruder.active);
-      planner.buffer_line( xhome, CUR_Y, CUR_Z,    CUR_E, mechanics.data.max_feedrate_mm_s.z, extruder.active);
+      if (printer.debugFeature()) DEBUG_EMV("MoveX to ", xhome);
 
+      // Park old head
+      mechanics.position.x = xhome;
+      planner.buffer_line(mechanics.position, mechanics.data.max_feedrate_mm_s.x, extruder.active);
       planner.synchronize();
     }
 
-    // apply Y & Z extruder offset (x offset is already used in determining home pos)
-    mechanics.position.y -= nozzle.data.hotend_offset[active_hotend()].y - nozzle.data.hotend_offset[target_hotend()].y;
-    mechanics.position.z -= nozzle.data.hotend_offset[active_hotend()].z - nozzle.data.hotend_offset[target_hotend()].z;
-
     // Activate the new extruder
-    extruder.active = extruder.target;
+    extruder.previous = extruder.active;
+    extruder.active   = extruder.target;
 
     // This function resets the max/min values - the current position may be overwritten below.
     mechanics.set_axis_is_at_home(X_AXIS);
 
     if (printer.debugFeature()) DEBUG_POS("New Extruder", mechanics.position);
-
-    // Only when auto-parking are carriages safe to move
-    if (mechanics.dual_x_carriage_mode != DXC_AUTO_PARK_MODE) no_move = true;
 
     switch (mechanics.dual_x_carriage_mode) {
       case DXC_FULL_CONTROL_MODE:
@@ -846,12 +821,10 @@ void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {
       case DXC_AUTO_PARK_MODE:
         // record raised toolhead position for use by unpark
         mechanics.raised_parked_position = mechanics.position;
-        mechanics.raised_parked_position.z += TOOLCHANGE_UNPARK_ZLIFT;
-        #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-          NOMORE(mechanics.raised_parked_position.z, endstops.soft_endstop.max.z);
-        #endif
         mechanics.active_extruder_parked = true;
         mechanics.delayed_move_timer.stop();
+        break;
+      default:
         break;
     }
 

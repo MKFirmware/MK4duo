@@ -41,6 +41,14 @@ void scroll_screen(const uint8_t limit, const bool is_menu);
 #define SS_DEFAULT  SS_CENTER
 #define NO_INDEX    0xFF
 
+#if Z_PROBE_OFFSET_RANGE_MIN >= -9 && Z_PROBE_OFFSET_RANGE_MAX <= 9
+  #define LCD_Z_OFFSET_FUNC(N)  ftostr54sign(N)
+  #define LCD_Z_OFFSET_TYPE     float43
+#else
+  #define LCD_Z_OFFSET_FUNC(N)  ftostr52sign(N)
+  #define LCD_Z_OFFSET_TYPE     float52
+#endif
+
 //
 // The Menu Edit shadow value
 // Only one edit value is needed at a time
