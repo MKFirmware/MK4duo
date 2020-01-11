@@ -431,11 +431,11 @@ inline void gcode_M422() {
   };
 
   if (is_probe_point) {
-    if (!position_is_reachable_by_probe(pos.x, Y_CENTER)) {
+    if (!mechanics.position_is_reachable_by_probe(pos.x, Y_CENTER)) {
       SERIAL_EM("?(X) out of bounds.");
       return;
     }
-    if (!position_is_reachable_by_probe(pos)) {
+    if (!mechanics.position_is_reachable_by_probe(pos)) {
       SERIAL_EM("?(Y) out of bounds.");
       return;
     }
