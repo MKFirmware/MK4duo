@@ -284,12 +284,20 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
       #if ENABLED(DUAL_X_CARRIAGE)
         dualx_tool_change(no_move); // Can modify no_move
       #elif HAS_DONDOLO
-        // Always raise by at least 1 to avoid workpiece
-        mechanics.position.z += MAX(-z_diff, 0.0) + data.park_point.z;
-        #if HAS_SOFTWARE_ENDSTOPS
-          endstops.apply_motion_limits(mechanics.position);
-        #endif
-        if (!no_move) fast_line_to_current(Z_AXIS);
+        if (!no_move) {
+          #if HAS_SOFTWARE_ENDSTOPS
+            const float maxz = MIN(endstops.soft_endstop.max.z, mechanics.data.base_pos.max.z);
+          #else
+            constexpr float maxz = mechanics.data.base_pos.max.z;
+          #endif
+
+          // Check if Z has space to compensate at least z_offset, and if not, just abort now
+          const float newz = mechanics.position.z + MAX(-diff.z, 0.0);
+          if (newz > maxz) return;
+
+          mechanics.position.z = MIN(newz + nozzle.data.park_point.z, maxz);
+          fast_line_to_current(Z_AXIS);
+        }
         move_extruder_servo();
       #elif HAS_MKMULTI_TOOLS
         MK_multi_tool_change();
