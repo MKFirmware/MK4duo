@@ -908,7 +908,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
       stealth_states.y = tmc.enable_stallguard(driver.y);
     #endif
 
-    do_blocking_move_to_xy(1.5f * data.base_pos.max.x * x_axis_home_dir, 1.5f * data.base_pos.max.y * home_dir.y, fr_mm_s);
+    do_blocking_move_to_xy(1.5f * data.base_pos.max.x * home_dir.x, 1.5f * data.base_pos.max.y * home_dir.y, fr_mm_s);
 
     endstops.validate_homing_move();
 
