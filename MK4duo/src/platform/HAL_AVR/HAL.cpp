@@ -333,10 +333,10 @@ void HAL::Tick() {
   static short_timer_t  cycle_1s_timer(millis()),
                         cycle_100_timer(millis());
 
-  static uint32_t AnalogInputRead[ANALOG_INPUTS]      = { 0 };
-  static uint16_t sample[ANALOG_INPUTS][OVERSAMPLENR] = { 0 };
-  static uint8_t  adcCounter[ANALOG_INPUTS]           = { 0 },
-                  adcSamplePos                        = 0;
+  static uint32_t AnalogInputRead[ANALOG_INPUTS]          = { 0 };
+  static uint16_t sample[ANALOG_INPUTS][NUM_ADC_SAMPLES]  = { 0 };
+  static uint8_t  adcCounter[ANALOG_INPUTS]               = { 0 },
+                  adcSamplePos                            = 0;
 
   uint8_t channel = 0;
 
@@ -357,11 +357,11 @@ void HAL::Tick() {
   if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
     channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
     const uint16_t read_adc = ADC;
-    AnalogInputRead[adcSamplePos] += read_adc - sample[adcSamplePos][adcCounter[adcSamplePos]];
+    AnalogInputRead[adcSamplePos] += uint32_t(read_adc) - uint32_t(sample[adcSamplePos][adcCounter[adcSamplePos]]);
     sample[adcSamplePos][adcCounter[adcSamplePos]] = read_adc;
-    if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
+    if (++adcCounter[adcSamplePos] >= (NUM_ADC_SAMPLES)) {
       // update temperatures
-      AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+      AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (NUM_ADC_SAMPLES);
       adcCounter[adcSamplePos] = 0;
     }
 

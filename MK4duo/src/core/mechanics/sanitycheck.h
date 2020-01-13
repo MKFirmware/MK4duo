@@ -299,12 +299,9 @@
     #error "Z_STEPPER_AUTO_ALIGN requires Z_TWO_STEPPER_DRIVERS or Z_THREE_STEPPER_DRIVERS."
   #elif !HAS_BED_PROBE
     #error "Z_STEPPER_AUTO_ALIGN requires a Z-bed probe."
+  #elif ENABLED(Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS) && DISABLED(Z_THREE_STEPPER_DRIVERS)
+    #error "Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS requires Z_THREE_STEPPER_DRIVERS."
   #endif
-  constexpr float sanity_arr_z_align_x[] = Z_STEPPER_ALIGN_X, sanity_arr_z_align_y[] = Z_STEPPER_ALIGN_Y;
-  static_assert(
-    COUNT(sanity_arr_z_align_x) == Z_STEPPER_COUNT && COUNT(sanity_arr_z_align_y) == Z_STEPPER_COUNT,
-    "Z_STEPPER_ALIGN_[XY]POS settings require one element per Z stepper."
-  );
 #endif
 
 // Pin definitions
