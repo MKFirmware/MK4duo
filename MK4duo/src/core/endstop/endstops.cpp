@@ -837,6 +837,9 @@ void Endstops::apply_motion_limits(xyz_pos_t &target) {
   if (!isSoftEndstop()) return;
 
   #if MECH(DELTA)
+
+    if (!isHomedAll()) return;
+
     const float dist_2 = HYPOT2(target.x, target.y);
     if (dist_2 > soft_endstop_radius_2) {
       const float ratio = mechanics.data.print_radius / SQRT(dist_2);
@@ -845,17 +848,34 @@ void Endstops::apply_motion_limits(xyz_pos_t &target) {
     }
     NOLESS(target.z, 0);
     NOMORE(target.z, mechanics.data.height);
+
   #else
-    #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-      NOLESS(target.x, soft_endstop.min.x);
-      NOLESS(target.y, soft_endstop.min.y);
-      NOLESS(target.z, soft_endstop.min.z);
-    #endif
-    #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-      NOMORE(target.x, soft_endstop.max.x);
-      NOMORE(target.y, soft_endstop.max.y);
-      NOMORE(target.z, soft_endstop.max.z);
-    #endif
+
+    if (mechanics.isAxisHomed(X_AXIS)) {
+      #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
+        NOLESS(target.x, soft_endstop.min.x);
+      #endif
+      #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
+        NOMORE(target.x, soft_endstop.max.x);
+      #endif
+    }
+    if (mechanics.isAxisHomed(Y_AXIS)) {
+      #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
+        NOLESS(target.y, soft_endstop.min.y);
+      #endif
+      #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
+        NOMORE(target.y, soft_endstop.max.y);
+      #endif
+    }
+    if (mechanics.isAxisHomed(Z_AXIS)) {
+      #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
+        NOLESS(target.z, soft_endstop.min.z);
+      #endif
+      #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
+        NOMORE(target.z, soft_endstop.max.z);
+      #endif
+    }
+
   #endif
 }
 
