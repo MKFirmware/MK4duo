@@ -39,7 +39,9 @@ inline void gcode_G60() {
   if (slot >= NUM_POSITON_SLOTS) {
     SERIAL_LMV(ER, MSG_HOST_INVALID_POS_SLOT, NUM_POSITON_SLOTS);
     return;
-  } 
+  }
+
+  planner.synchronize();
   mechanics.stored_position[slot] = mechanics.position;
   printer.setPosSaved(true);
 

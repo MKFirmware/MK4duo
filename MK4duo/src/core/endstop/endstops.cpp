@@ -838,7 +838,7 @@ void Endstops::apply_motion_limits(xyz_pos_t &target) {
 
   #if MECH(DELTA)
 
-    if (!isHomedAll()) return;
+    if (!mechanics.isHomedAll()) return;
 
     const float dist_2 = HYPOT2(target.x, target.y);
     if (dist_2 > soft_endstop_radius_2) {
