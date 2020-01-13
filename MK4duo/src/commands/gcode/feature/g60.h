@@ -51,4 +51,5 @@ inline void gcode_G60() {
   SERIAL_MV(" Y:", mechanics.stored_position[slot].y);
   SERIAL_MV(" Z:", mechanics.stored_position[slot].z);
   SERIAL_EMV(" E:", mechanics.stored_position[slot].e);
+
 }
