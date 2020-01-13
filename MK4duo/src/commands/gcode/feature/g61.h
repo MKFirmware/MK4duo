@@ -67,4 +67,5 @@ inline void gcode_G61() {
   // finish moves
   mechanics.prepare_move_to_destination();
   planner.synchronize();
+
 }
