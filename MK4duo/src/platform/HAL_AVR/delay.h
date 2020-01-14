@@ -53,7 +53,7 @@ FORCE_INLINE static void HAL_delay_cycles(uint16_t cycles) {
 
     #undef MAXNOPS
   }
-  else if (cycles >>= 2)
+  else if ((cycles >>= 2))
     HAL_delay_4cycles(cycles);
 }
 

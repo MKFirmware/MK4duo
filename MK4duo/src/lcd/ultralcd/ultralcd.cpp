@@ -1176,7 +1176,7 @@ bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 void LcdUI::set_status(const char* const message, const bool persist/*=false*/) {
   if (alert_level) return;
 
-  host_action.action_notify(message);
+  //host_action.action_notify(message); // Disabled for now
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure
@@ -1209,7 +1209,7 @@ void LcdUI::status_printf_P(const uint8_t level, PGM_P const message, ...) {
   va_start(args, message);
   vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, message, args);
   va_end(args);
-  host_action.action_notify(status_message);
+  //host_action.action_notify(status_message); // Disabled for now
   finish_status(level > 0);
 }
 
@@ -1218,7 +1218,7 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   if (level < alert_level) return;
   alert_level = level;
 
-  host_action.action_notify_P(message);
+  //host_action.action_notify_P(message); // Disabled for now
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure

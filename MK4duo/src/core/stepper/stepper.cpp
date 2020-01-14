@@ -97,7 +97,7 @@ uint8_t Stepper::last_direction_bits  = 0,
 
 bool    Stepper::abort_current_block  = false;
 
-#if DISABLED(COLOR_MIXING_EXTRUDER) && EXTRUDERS > 1
+#if DISABLED(COLOR_MIXING_EXTRUDER) && MAX_EXTRUDER > 1
   uint8_t Stepper::last_moved_extruder = 0xFF;
 #endif
 
@@ -576,6 +576,10 @@ void Stepper::reset_drivers() {
  *   COREZX: X_AXIS=A_AXIS and Z_AXIS=C_AXIS
  */
 void Stepper::set_directions() {
+
+  // Pre changing directions, an small delay could be needed.
+  // Min delay is 50 Nanoseconds
+  if (data.direction_delay >= 50) HAL::delayNanoseconds(data.direction_delay);
 
   #if HAS_X_DIR
     if (motor_direction(X_AXIS)) {
@@ -1413,7 +1417,7 @@ void Stepper::pulse_phase_step() {
   step_events_completed += events_to_do;
 
   bool first_step = true;
-  hal_timer_t pulse_tick_end;
+  hal_timer_t pulse_tick_end = 0;
 
   // Take multiple steps per interrupt (For high speed moves)
   do {
@@ -1758,7 +1762,7 @@ uint32_t Stepper::block_phase_step() {
         #endif
       ) {
         last_direction_bits = current_block->direction_bits;
-        #if EXTRUDERS > 1
+        #if MAX_EXTRUDER > 1
           last_moved_extruder = active_extruder;
         #endif
         set_directions();

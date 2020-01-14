@@ -77,7 +77,7 @@ class Stepper {
     static bool     abort_current_block;    // Signals to the stepper that current block should be aborted
 
     // Last-moved extruder, as set when the last movement was fetched from planner
-    #if EXTRUDERS < 2
+    #if MAX_EXTRUDER < 2
       static constexpr uint8_t last_moved_extruder = 0;
     #elif DISABLED(COLOR_MIXING_EXTRUDER)
       static uint8_t last_moved_extruder;
@@ -482,15 +482,15 @@ class Stepper {
         if (step_rate >= (8 * 256)) { // higher step rate
           const uint8_t   tmp_step_rate = (step_rate & 0x00FF);
           const uint16_t  table_address = (uint16_t)&speed_lookuptable_fast[(uint8_t)(step_rate >> 8)][0],
-                          gain = (uint16_t)pgm_read_word_near(table_address + 2);
+                          gain = (uint16_t)pgm_read_word(table_address + 2);
           timer = MultiU16X8toH16(tmp_step_rate, gain);
-          timer = (uint16_t)pgm_read_word_near(table_address) - timer;
+          timer = (uint16_t)pgm_read_word(table_address) - timer;
         }
         else { // lower step rates
           uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
           table_address += ((step_rate) >> 1) & 0xFFFC;
-          timer = (uint16_t)pgm_read_word_near(table_address)
-                - (((uint16_t)pgm_read_word_near(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
+          timer = (uint16_t)pgm_read_word(table_address)
+                - (((uint16_t)pgm_read_word(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
         }
 
         return timer;

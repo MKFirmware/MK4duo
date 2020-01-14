@@ -43,8 +43,6 @@ int Commands::serial_count[NUM_SERIAL] = { 0 };
 
 PGM_P Commands::injected_commands_P = nullptr;
 
-short_timer_t Commands::last_command_timer;
-
 /** Public Function */
 void Commands::flush_and_request_resend() {
   Com::serialFlush();
@@ -308,6 +306,7 @@ void Commands::get_serial() {
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
+    static long_timer_t last_command_timer;
     if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && last_command_timer.expired(NO_TIMEOUTS)) {
       SERIAL_STR(WT);
       SERIAL_EOL();
@@ -323,7 +322,6 @@ void Commands::get_serial() {
 
       int c;
 
-      last_command_timer.start();
       printer.max_inactivity_timer.start();
 
       if ((c = Com::serialRead(i)) < 0) continue;
@@ -413,12 +411,16 @@ void Commands::get_serial() {
           // If command was e-stop process now
           if (strcmp(command, "M108") == 0) {
             printer.setWaitForHeatUp(false);
-            #if ENABLED(ULTIPANEL)
+            #if HAS_LCD_MENU
               printer.setWaitForUser(false);
             #endif
           }
           if (strcmp(command, "M112") == 0) printer.kill(PSTR("M112"));
           if (strcmp(command, "M410") == 0) printer.quickstop_stepper();
+        #endif
+
+        #if NO_TIMEOUTS > 0
+          last_command_timer.start();
         #endif
 
         // Add the command to the buffer_ring
@@ -473,7 +475,6 @@ void Commands::get_serial() {
       const int16_t n = card.get();
       char sd_char = (char)n;
       card_eof = card.eof();
-      last_command_timer.start();
       printer.max_inactivity_timer.start();
       if (card_eof || n == -1
           || sd_char == '\n'  || sd_char == '\r'
@@ -570,7 +571,7 @@ void Commands::unknown_error() {
   SERIAL_PORT(-1);
 }
 
-void Commands::gcode_line_error(PGM_P err, const int8_t port) {
+void Commands::gcode_line_error(PGM_P const err, const int8_t port) {
   SERIAL_PORT(port);
   SERIAL_STR(ER);
   SERIAL_STR(err);
