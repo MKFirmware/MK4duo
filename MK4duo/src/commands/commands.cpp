@@ -45,7 +45,7 @@ PGM_P Commands::injected_commands_P = nullptr;
 
 /** Public Function */
 void Commands::flush_and_request_resend() {
-  Com::serialFlush();
+  SERIAL_FLUSH();
   SERIAL_LV(RESEND, gcode_last_N + 1);
   ok_to_send();
 }
