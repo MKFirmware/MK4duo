@@ -274,23 +274,23 @@ typedef uint16_t  ptr_int_t;
 // But the user could be enforcing a minimum time, so the loop time is
 #define ISR_LOOP_CYCLES               (ISR_LOOP_BASE_CYCLES + MAX(HAL_min_pulse_cycle, MIN_ISR_LOOP_CYCLES))
 
-#define TIMER_SETUP_NS                (1000UL * TIMER_CYCLES / ((F_CPU) / 1000000UL))
+#define TIMER_SETUP_NS                (1000UL * (TIMER_CYCLES) / ((F_CPU) / 1000000))
 
 // If linear advance is enabled, then it is handled separately
 #if ENABLED(LIN_ADVANCE)
 
   // Estimate the minimum LA loop time
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    #define MIN_ISR_LA_LOOP_CYCLES  ((MIXING_STEPPERS) * (ISR_STEPPER_CYCLES))
+    #define MIN_ISR_LA_LOOP_CYCLES    ((MIXING_STEPPERS) * (ISR_STEPPER_CYCLES))
   #else
-    #define MIN_ISR_LA_LOOP_CYCLES  ISR_STEPPER_CYCLES
+    #define MIN_ISR_LA_LOOP_CYCLES    ISR_STEPPER_CYCLES
   #endif
 
   // And the real loop time
-  #define ISR_LA_LOOP_CYCLES  MAX(HAL_min_pulse_cycle, MIN_ISR_LA_LOOP_CYCLES)
+  #define ISR_LA_LOOP_CYCLES          MAX(HAL_min_pulse_cycle, MIN_ISR_LA_LOOP_CYCLES)
 
 #else
-  #define ISR_LA_LOOP_CYCLES  0UL
+  #define ISR_LA_LOOP_CYCLES          0UL
 #endif
 
 /* 18 cycles maximum latency */
@@ -436,10 +436,10 @@ void TIMER0_COMPB_vect_bottom(void)
 // Public Variables
 // --------------------------------------------------------------------------
 
-extern hal_timer_t  HAL_min_pulse_cycle,
-                    HAL_pulse_high_tick,
+extern hal_timer_t  HAL_pulse_high_tick,
                     HAL_pulse_low_tick;
-extern uint32_t     HAL_frequency_limit[8];
+extern uint32_t     HAL_min_pulse_cycle,
+                    HAL_frequency_limit[8];
 
 // --------------------------------------------------------------------------
 // Private Variables

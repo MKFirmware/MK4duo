@@ -76,8 +76,6 @@ class Commands {
      */
     static PGM_P injected_commands_P;
 
-    static short_timer_t last_command_timer;
-
   public: /** Public Function */
 
     /**
@@ -195,7 +193,7 @@ class Commands {
 
     static void unknown_error();
 
-    static void gcode_line_error(PGM_P err, const int8_t tmp_port);
+    static void gcode_line_error(PGM_P const err, const int8_t tmp_port);
 
     /**
      * Enqueue with Serial Echo

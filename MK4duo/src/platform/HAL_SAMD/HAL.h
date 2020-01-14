@@ -61,8 +61,6 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
 #undef pgm_read_word
 //#define pgm_read_word(addr) (*(const unsigned int *)(addr))
 #define pgm_read_word(addr) (*(addr))
-#undef pgm_read_word_near
-#define pgm_read_word_near(addr) pgm_read_word(addr)
 #undef pgm_read_dword
 #define pgm_read_dword(addr) (*(addr))
 //#define pgm_read_dword(addr) (*(const unsigned long *)(addr))

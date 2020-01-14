@@ -87,11 +87,12 @@ int Com::serialRead(const uint8_t index) {
 }
 
 bool Com::serialDataAvailable() {
-  return (MKSERIAL1.available() ? true :
+  return false
+    || MKSERIAL1.available()
     #if NUM_SERIAL > 1
-      MKSERIAL2.available() ? true :
+      || MKSERIAL2.available()
     #endif
-    false);
+  ;
 }
 
 bool Com::serialDataAvailable(const uint8_t index) {
