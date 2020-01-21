@@ -64,7 +64,7 @@
     #endif
 
     // Color Mixing gradient
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
+    #if HAS_GRADIENT_MIX
       gradient_t gradient;
     #endif
 
