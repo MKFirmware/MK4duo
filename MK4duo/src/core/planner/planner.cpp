@@ -2085,7 +2085,7 @@ void Planner::refresh_positioning() {
 #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::autotemp_M104_M109() {
-    if ((falg.autotemp_enabled = parser.seen('F'))) autotemp_factor = parser.value_float();
+    if ((flag.autotemp_enabled = parser.seen('F'))) autotemp_factor = parser.value_float();
     if (parser.seen('S')) autotemp_min = parser.value_celsius();
     if (parser.seen('B')) autotemp_max = parser.value_celsius();
   }
