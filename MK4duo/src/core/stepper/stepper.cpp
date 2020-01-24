@@ -78,7 +78,6 @@
 
 #include "../../../MK4duo.h"
 #include "sanitycheck.h"
-#include "stepper.h"
 
 Stepper stepper;
 
@@ -171,7 +170,7 @@ int32_t Stepper::ticks_nominal = -1;
 
 xyz_long_t  Stepper::endstops_trigsteps;
 xyze_long_t Stepper::count_position{0};
-xyze_int8_t Stepper::count_direction{1};
+xyze_int8_t Stepper::count_direction{0};
 
 #if ENABLED(LASER)
   int32_t Stepper::delta_error_laser = 0;
@@ -260,7 +259,7 @@ void Stepper::create_ext_driver() {
       driver.e[d]->printLabel(); SERIAL_EOL();
       driver.e[d]->init();
       #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-        externaldac.set_driver_current(d + 7, driver.e[d]->data.ma);
+        externaldac.set_driver_current(d + 3, driver.e[d]->data.ma);
       #endif
     }
   }
@@ -1519,6 +1518,7 @@ uint32_t Stepper::block_phase_step() {
           }
           else if (LA_steps) nextAdvanceISR = 0;
         #endif // ENABLED(LIN_ADVANCE)
+
       }
       // Are we in deceleration phase
       else if (step_events_completed > decelerate_after) {
@@ -1600,10 +1600,7 @@ uint32_t Stepper::block_phase_step() {
 
       // Sync block? Sync the stepper counts and return
       while (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
-        _set_position(
-          current_block->position[A_AXIS], current_block->position[B_AXIS],
-          current_block->position[C_AXIS], current_block->position[E_AXIS]
-        );
+        _set_position(current_block->position);
         planner.discard_current_block();
 
         // Try to get a new block
@@ -1715,10 +1712,7 @@ uint32_t Stepper::block_phase_step() {
       #endif
 
       // Calculate Bresenham dividends
-      advance_dividend.x = current_block->steps.x << 1;
-      advance_dividend.y = current_block->steps.y << 1;
-      advance_dividend.z = current_block->steps.z << 1;
-      advance_dividend.e = current_block->steps.e << 1;
+      advance_dividend = current_block->steps << 1;
 
       // Calculate Bresenham divisor
       advance_divisor = step_event_count << 1;
@@ -1823,7 +1817,8 @@ FORCE_INLINE void Stepper::pulse_tick_prepare() {
 
   #if HAS_X_STEP
     delta_error.x += advance_dividend.x;
-    if ((step_needed.x = (delta_error.x >= 0))) {
+    step_needed.x = (delta_error.x >= 0);
+    if (step_needed.x) {
       count_position.x += count_direction.x;
       delta_error.x -= advance_divisor;
     }
@@ -1831,7 +1826,8 @@ FORCE_INLINE void Stepper::pulse_tick_prepare() {
 
   #if HAS_Y_STEP
     delta_error.y += advance_dividend.y;
-    if ((step_needed.y = (delta_error.y >= 0))) {
+    step_needed.y = (delta_error.y >= 0);
+    if (step_needed.y) {
       count_position.y += count_direction.y;
       delta_error.y -= advance_divisor;
     }
@@ -1839,7 +1835,8 @@ FORCE_INLINE void Stepper::pulse_tick_prepare() {
 
   #if HAS_Z_STEP
     delta_error.z += advance_dividend.z;
-    if ((step_needed.z = (delta_error.z >= 0))) {
+    step_needed.z = (delta_error.z >= 0);
+    if (step_needed.z) {
       count_position.z += count_direction.z;
       delta_error.z -= advance_divisor;
     }
@@ -1848,7 +1845,8 @@ FORCE_INLINE void Stepper::pulse_tick_prepare() {
   // Pulse Extruders
   #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
     delta_error.e += advance_dividend.e;
-    if ((step_needed.e = (delta_error.e >= 0))) {
+    step_needed.e = (delta_error.e >= 0);
+    if (step_needed.e) {
       count_position.e += count_direction.e;
       #if ENABLED(LIN_ADVANCE)
         delta_error.e -= advance_divisor;
@@ -1858,7 +1856,8 @@ FORCE_INLINE void Stepper::pulse_tick_prepare() {
     }
   #else
     delta_error.e += advance_dividend.e;
-    if ((step_needed.e = (delta_error.e >= 0))) {
+    step_needed.e = (delta_error.e >= 0);
+    if (step_needed.e) {
       count_position[E_AXIS] += count_direction.e;
       delta_error.e -= advance_divisor;
     }

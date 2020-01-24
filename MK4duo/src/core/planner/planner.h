@@ -30,6 +30,21 @@
  * Copyright (c) 2009-2011 Simen Svale Skogsrud
  */
 
+union plan_flag_t {
+  uint8_t all;
+  struct {
+    bool  clean_buffer_flag     : 1;  // A flag to disable queuing of blocks
+    bool  abort_on_endstop_hit  : 1;  // Abort when endstop hit
+    bool  autotemp_enabled      : 1;  // Autotemp
+    bool  bit3                  : 1;
+    bool  bit4                  : 1;
+    bool  bit5                  : 1;
+    bool  bit6                  : 1;
+    bool  bit7                  : 1;
+  };
+  plan_flag_t() { all = 0x00; }
+};
+
 /**
  * struct block_t
  *
@@ -50,11 +65,8 @@ typedef struct block_t {
         millimeters,                        // The total travel of this block in mm
         acceleration;                       // acceleration mm/sec^2
 
-  // Data used by all move blocks
   union {
-    // Fields used by the Bresenham algorithm for tracing the line
     xyze_ulong_t steps;                     // Step count along each axis
-    // Data used by all sync blocks
     xyze_long_t position;                   // New position to force when this sync block is executed
   };
 
@@ -133,6 +145,8 @@ class Planner {
 
   public: /** Public Parameters */
 
+    static plan_flag_t flag;
+
     /**
      * The move buffer, calculated in stepper steps
      *
@@ -153,18 +167,12 @@ class Planner {
                             block_buffer_tail;        // Index of the busy block, if any
     static uint8_t          delay_before_delivering;  // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
-    static bool cleaning_buffer_flag;                 // A flag to disable queuing of blocks
-
     #if HAS_POSITION_FLOAT
       static xyze_pos_t  position_float;
     #endif
 
     #if IS_KINEMATIC
       static xyze_pos_t position_cart;
-    #endif
-
-    #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
-      static bool abort_on_endstop_hit;
     #endif
 
   private: /** Private Parameters */
@@ -208,6 +216,12 @@ class Planner {
 
     #if HAS_SPI_LCD
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
+    #endif
+
+    #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
+      static float  autotemp_min,
+                    autotemp_max,
+                    autotemp_factor;
     #endif
 
   public: /** Public Function */
@@ -586,8 +600,6 @@ class Planner {
     #endif // HAS_SPI_LCD
 
     #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
-      static float autotemp_min, autotemp_max, autotemp_factor;
-      static bool autotemp_enabled;
       static void getHighESpeed();
       static void autotemp_M104_M109();
     #endif

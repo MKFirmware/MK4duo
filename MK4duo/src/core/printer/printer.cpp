@@ -79,227 +79,103 @@ PrinterModeEnum Printer::mode =
 #endif
 
 /** Public Function */
+void Printer::setup_pinout() {
 
-/**
- * MK4duo entry-point: Set up before the program loop
- *  - Set up Hardware Board
- *  - Set up the kill pin, filament runout, power hold
- *  - Start the serial port
- *  - Print startup messages and diagnostics
- *  - Get EEPROM or default settings
- *  - Initialize managers for:
- *    • temperature
- *    • CNCROUTER
- *    • planner
- *    • watchdog
- *    • stepper
- *    • photo pin
- *    • laserbeam, laser and laser_raster
- *    • servos
- *    • LCD controller
- *    • Digipot I2C
- *    • Z probe sled
- *    • status LEDs
- */
-void Printer::setup() {
-
-  HAL::hwSetup();
-
-  #if ENABLED(MB_SETUP)
-    MB_SETUP;
+  #if PIN_EXISTS(SS)
+    OUT_WRITE(SS_PIN, HIGH);
   #endif
 
-  setup_pinout();
-
-  #if HAS_POWER_CHECK || HAS_POWER_SWITCH
-    powerManager.init();
+  #if ENABLED(LCD_SDSS) && LCD_SDSS >= 0
+    OUT_WRITE(LCD_SDSS, HIGH);
   #endif
 
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    HAL::spiBegin();
-    externaldac.begin();
-  #elif TMC_HAS_SPI && DISABLED(TMC_USE_SW_SPI)
-    SPI.begin();
+  #if PIN_EXISTS(MAX6675_SS)
+    OUT_WRITE(MAX6675_SS_PIN, HIGH);
   #endif
 
-  #if HAS_STEPPER_RESET
-    stepper.disableStepperDrivers();
+  #if PIN_EXISTS(MAX31855_SS0)
+    OUT_WRITE(MAX31855_SS0_PIN, HIGH);
+  #endif
+  #if PIN_EXISTS(MAX31855_SS1)
+    OUT_WRITE(MAX31855_SS1_PIN, HIGH);
+  #endif
+  #if PIN_EXISTS(MAX31855_SS2)
+    OUT_WRITE(MAX31855_SS2_PIN, HIGH);
+  #endif
+  #if PIN_EXISTS(MAX31855_SS3)
+    OUT_WRITE(MAX31855_SS3_PIN, HIGH);
   #endif
 
-  // Init Serial for HOST
-  Com::setBaudrate();
-
-  // Check startup
-  SERIAL_L(START);
-  SERIAL_STR(ECHO);
-
-  #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
-    DLPSerial.begin(PROJECTOR_BAUDRATE);
+  #if HAS_SUICIDE
+    OUT_WRITE(SUICIDE_PIN, HIGH);
   #endif
 
-  // Check startup - does nothing if bootloader sets MCUSR to 0
-  HAL::showStartReason();
-
-  SERIAL_LM(ECHO, BUILD_VERSION);
-
-  #if ENABLED(STRING_REVISION_DATE) && ENABLED(STRING_CONFIG_AUTHOR)
-    SERIAL_LM(ECHO, MSG_HOST_CONFIGURATION_VER STRING_REVISION_DATE MSG_HOST_AUTHOR STRING_CONFIG_AUTHOR);
-    SERIAL_LM(ECHO, MSG_HOST_COMPILED __DATE__);
-  #endif // STRING_REVISION_DATE
-
-  SERIAL_SMV(ECHO, MSG_HOST_FREE_MEMORY, freeMemory());
-  SERIAL_EMV(MSG_HOST_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
-
-  #if HAS_SD_SUPPORT
-    card.mount();
+  #if HAS_KILL
+    SET_INPUT_PULLUP(KILL_PIN);
   #endif
 
-  // Init endstops
-  endstops.init();
-
-  // Init Filament runout
-  #if HAS_FILAMENT_SENSOR
-    filamentrunout.init();
+  #if HAS_PHOTOGRAPH
+    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
 
-  // Initial setup of print job counter
-  print_job_counter.init();
-
-  // Load data from EEPROM if available (or use defaults)
-  // This also updates variables in the planner, elsewhere
-  bool eeprom_loaded = eeprom.load();
-
-  #if ENABLED(WORKSPACE_OFFSETS)
-    // Initialize current position based on data.home_offset
-    mechanics.position = mechanics.data.home_offset;
-  #else
-    mechanics.position.reset();
+  #if HAS_CASE_LIGHT && DISABLED(CASE_LIGHT_USE_NEOPIXEL)
+    SET_OUTPUT(CASE_LIGHT_PIN);
   #endif
 
-  // Vital to init stepper/planner equivalent for position
-  mechanics.sync_plan_position();
-
-  // Initialize stepper. This enables interrupts!
-  stepper.init();
-
-  #if ENABLED(CNCROUTER)
-    cnc.init();
+  #if HAS_Z_PROBE_SLED
+    OUT_WRITE(SLED_PIN, LOW); // turn it off
   #endif
 
-  // Initialize all Servo
-  #if HAS_SERVOS
-    servo_init();
+  #if HAS_HOME
+    SET_INPUT_PULLUP(HOME_PIN);
   #endif
 
-  #if HAS_CASE_LIGHT
-    caselight.update();
+  #if PIN_EXISTS(STAT_LED_RED)
+    OUT_WRITE(STAT_LED_RED_PIN, LOW); // turn it off
   #endif
 
-  #if HAS_SOFTWARE_ENDSTOPS
-    endstops.setSoftEndstop(true);
+  #if PIN_EXISTS(STAT_LED_BLUE)
+    OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
-  #if HAS_STEPPER_RESET
-    stepper.enableStepperDrivers();
+  // Init Servo Pins
+  #if HAS_SERVO_0
+    OUT_WRITE(SERVO0_PIN, LOW);
+  #endif
+  #if HAS_SERVO_1
+    OUT_WRITE(SERVO1_PIN, LOW);
+  #endif
+  #if HAS_SERVO_2
+    OUT_WRITE(SERVO2_PIN, LOW);
+  #endif
+  #if HAS_SERVO_3
+    OUT_WRITE(SERVO3_PIN, LOW);
   #endif
 
-  #if ENABLED(DIGIPOT_I2C)
-    digipot_i2c_init();
+  // Init CS for TMC SPI
+  #if TMC_HAS_SPI
+    tmc.init_cs_pins();
   #endif
 
-  #if HAS_COLOR_LEDS
-    leds.setup();
-  #endif
-
-  #if ENABLED(LASER)
-    laser.init();
-  #endif
-
-  #if ENABLED(FLOWMETER_SENSOR)
-    #if ENABLED(MINFLOW_PROTECTION)
-      flowmeter.flow_firstread = false;
+  #if ENABLED(MKR4) // MKR4 System
+    #if HAS_E0E1
+      OUT_WRITE_RELE(E0E1_CHOICE_PIN, LOW);
     #endif
-    flowmeter.init();
+    #if HAS_E0E2
+      OUT_WRITE_RELE(E0E2_CHOICE_PIN, LOW);
+    #endif
+    #if HAS_E1E3
+      OUT_WRITE_RELE(E1E3_CHOICE_PIN, LOW);
+    #endif
+  #elif ENABLED(MKR6) || ENABLED(MKR12) // MKR6 or MKR12 System
+    #if HAS_EX1
+      OUT_WRITE_RELE(EX1_CHOICE_PIN, LOW);
+    #endif
+    #if HAS_EX2
+      OUT_WRITE_RELE(EX2_CHOICE_PIN, LOW);
+    #endif
   #endif
 
-  #if ENABLED(PCF8574_EXPANSION_IO)
-    pcf8574.begin();
-  #endif
-
-  #if ENABLED(RFID_MODULE)
-    setRfid(rfid522.init());
-    if (IsRfid()) SERIAL_EM("RFID CONNECT");
-  #endif
-
-  lcdui.init();
-  lcdui.reset_status();
-
-  // Show MK4duo boot screen
-  #if HAS_SPI_LCD && ENABLED(SHOW_BOOTSCREEN)
-    lcdui.show_bootscreen();
-  #endif
-
-  #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-    mixer.init();
-  #endif
-
-  #if HAS_BLTOUCH
-    bltouch.init(true);
-  #endif
-
-  // All Initialized set Running to true.
-  setRunning(true);
-
-  #if ENABLED(DELTA_HOME_ON_POWER)
-    mechanics.home();
-  #endif
-
-  zero_fan_speed();
-
-  #if HAS_LCD_MENU && HAS_EEPROM
-    if (!eeprom_loaded) lcdui.goto_screen(lcd_eeprom_allert);
-  #endif
-
-  #if HAS_SD_RESTART
-    restart.check();
-  #endif
-
-  // Reset Watchdog
-  watchdog.reset();
-
-  #if HAS_TRINAMIC && !PS_DEFAULT_OFF
-    tmc.test_connection(true, true, true, true);
-  #endif
-
-  #if HAS_MMU2
-    mmu2.init();
-  #endif
-
-}
-
-/**
- * The main MK4duo program loop
- *
- *  - Save or log commands to SD
- *  - Process available commands (if not saving)
- *  - Call endstop manager
- *  - Call LCD update
- */
-void Printer::loop() {
-
-  do {
-
-    idle();
-
-    #if HAS_SD_SUPPORT
-      card.checkautostart();
-      if (card.isAbortSDprinting()) abort_sd_printing();
-    #endif // HAS_SD_SUPPORT
-
-    commands.advance_queue();
-    endstops.report_state();
-
-  } while (MK_MAIN_LOOP);
 }
 
 void Printer::factory_parameters() {
@@ -336,8 +212,8 @@ void Printer::check_periodical_actions() {
     if (card.isAutoreport()) card.print_status();
   #endif
 
-  if (planner.cleaning_buffer_flag) {
-    planner.cleaning_buffer_flag = false;
+  if (planner.flag.clean_buffer_flag) {
+    planner.flag.clean_buffer_flag = false;
     #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
       commands.inject_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     #endif
@@ -790,104 +666,6 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
 }
 
 /** Private Function */
-void Printer::setup_pinout() {
-
-  #if PIN_EXISTS(SS)
-    OUT_WRITE(SS_PIN, HIGH);
-  #endif
-
-  #if ENABLED(LCD_SDSS) && LCD_SDSS >= 0
-    OUT_WRITE(LCD_SDSS, HIGH);
-  #endif
-
-  #if PIN_EXISTS(MAX6675_SS)
-    OUT_WRITE(MAX6675_SS_PIN, HIGH);
-  #endif
-
-  #if PIN_EXISTS(MAX31855_SS0)
-    OUT_WRITE(MAX31855_SS0_PIN, HIGH);
-  #endif
-  #if PIN_EXISTS(MAX31855_SS1)
-    OUT_WRITE(MAX31855_SS1_PIN, HIGH);
-  #endif
-  #if PIN_EXISTS(MAX31855_SS2)
-    OUT_WRITE(MAX31855_SS2_PIN, HIGH);
-  #endif
-  #if PIN_EXISTS(MAX31855_SS3)
-    OUT_WRITE(MAX31855_SS3_PIN, HIGH);
-  #endif
-
-  #if HAS_SUICIDE
-    OUT_WRITE(SUICIDE_PIN, HIGH);
-  #endif
-
-  #if HAS_KILL
-    SET_INPUT_PULLUP(KILL_PIN);
-  #endif
-
-  #if HAS_PHOTOGRAPH
-    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
-  #endif
-
-  #if HAS_CASE_LIGHT && DISABLED(CASE_LIGHT_USE_NEOPIXEL)
-    SET_OUTPUT(CASE_LIGHT_PIN);
-  #endif
-
-  #if HAS_Z_PROBE_SLED
-    OUT_WRITE(SLED_PIN, LOW); // turn it off
-  #endif
-
-  #if HAS_HOME
-    SET_INPUT_PULLUP(HOME_PIN);
-  #endif
-
-  #if PIN_EXISTS(STAT_LED_RED)
-    OUT_WRITE(STAT_LED_RED_PIN, LOW); // turn it off
-  #endif
-
-  #if PIN_EXISTS(STAT_LED_BLUE)
-    OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
-  #endif
-
-  // Init Servo Pins
-  #if HAS_SERVO_0
-    OUT_WRITE(SERVO0_PIN, LOW);
-  #endif
-  #if HAS_SERVO_1
-    OUT_WRITE(SERVO1_PIN, LOW);
-  #endif
-  #if HAS_SERVO_2
-    OUT_WRITE(SERVO2_PIN, LOW);
-  #endif
-  #if HAS_SERVO_3
-    OUT_WRITE(SERVO3_PIN, LOW);
-  #endif
-
-  // Init CS for TMC SPI
-  #if TMC_HAS_SPI
-    tmc.init_cs_pins();
-  #endif
-
-  #if ENABLED(MKR4) // MKR4 System
-    #if HAS_E0E1
-      OUT_WRITE_RELE(E0E1_CHOICE_PIN, LOW);
-    #endif
-    #if HAS_E0E2
-      OUT_WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-    #endif
-    #if HAS_E1E3
-      OUT_WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-    #endif
-  #elif ENABLED(MKR6) || ENABLED(MKR12) // MKR6 or MKR12 System
-    #if HAS_EX1
-      OUT_WRITE_RELE(EX1_CHOICE_PIN, LOW);
-    #endif
-    #if HAS_EX2
-      OUT_WRITE_RELE(EX2_CHOICE_PIN, LOW);
-    #endif
-  #endif
-
-}
 
 /**
  * Turn off heating after 30 minutes of inactivity
@@ -977,3 +755,225 @@ void Printer::handle_safety_watch() {
   }
 
 #endif
+
+/**
+ * MK4duo setup(): Set up before the program loop
+ *  - Set up Hardware Board
+ *  - Set up the kill pin, filament runout, power hold
+ *  - Start the serial port
+ *  - Print startup messages and diagnostics
+ *  - Get EEPROM or default settings
+ *  - Initialize managers for:
+ *    • temperature
+ *    • CNCROUTER
+ *    • planner
+ *    • watchdog
+ *    • stepper
+ *    • photo pin
+ *    • laserbeam, laser and laser_raster
+ *    • servos
+ *    • LCD controller
+ *    • Digipot I2C
+ *    • Z probe sled
+ *    • status LEDs
+ */
+void setup() {
+
+  HAL::hwSetup();
+
+  #if ENABLED(MB_SETUP)
+    MB_SETUP;
+  #endif
+
+  printer.setup_pinout();
+
+  #if HAS_POWER_CHECK || HAS_POWER_SWITCH
+    powerManager.init();
+  #endif
+
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+    HAL::spiBegin();
+    externaldac.begin();
+  #elif TMC_HAS_SPI && DISABLED(TMC_USE_SW_SPI)
+    SPI.begin();
+  #endif
+
+  #if HAS_STEPPER_RESET
+    stepper.disableStepperDrivers();
+  #endif
+
+  // Init Serial for HOST
+  Com::setBaudrate();
+
+  // Check startup
+  SERIAL_L(START);
+  SERIAL_STR(ECHO);
+
+  #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
+    DLPSerial.begin(PROJECTOR_BAUDRATE);
+  #endif
+
+  // Check startup - does nothing if bootloader sets MCUSR to 0
+  HAL::showStartReason();
+
+  SERIAL_LM(ECHO, BUILD_VERSION);
+
+  #if ENABLED(STRING_REVISION_DATE) && ENABLED(STRING_CONFIG_AUTHOR)
+    SERIAL_LM(ECHO, MSG_HOST_CONFIGURATION_VER STRING_REVISION_DATE MSG_HOST_AUTHOR STRING_CONFIG_AUTHOR);
+    SERIAL_LM(ECHO, MSG_HOST_COMPILED __DATE__);
+  #endif // STRING_REVISION_DATE
+
+  SERIAL_SMV(ECHO, MSG_HOST_FREE_MEMORY, freeMemory());
+  SERIAL_EMV(MSG_HOST_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
+
+  #if HAS_SD_SUPPORT
+    card.mount();
+  #endif
+
+  // Init endstops
+  endstops.init();
+
+  // Init Filament runout
+  #if HAS_FILAMENT_SENSOR
+    filamentrunout.init();
+  #endif
+
+  // Initial setup of print job counter
+  print_job_counter.init();
+
+  // Load data from EEPROM if available (or use defaults)
+  // This also updates variables in the planner, elsewhere
+  bool eeprom_loaded = eeprom.load();
+
+  #if ENABLED(WORKSPACE_OFFSETS)
+    // Initialize current position based on data.home_offset
+    mechanics.position = mechanics.data.home_offset;
+  #else
+    mechanics.position.reset();
+  #endif
+
+  // Vital to init stepper/planner equivalent for position
+  mechanics.sync_plan_position();
+
+  // Initialize stepper. This enables interrupts!
+  stepper.init();
+
+  #if ENABLED(CNCROUTER)
+    cnc.init();
+  #endif
+
+  // Initialize all Servo
+  #if HAS_SERVOS
+    servo_init();
+  #endif
+
+  #if HAS_CASE_LIGHT
+    caselight.update();
+  #endif
+
+  #if HAS_SOFTWARE_ENDSTOPS
+    endstops.setSoftEndstop(true);
+  #endif
+
+  #if HAS_STEPPER_RESET
+    stepper.enableStepperDrivers();
+  #endif
+
+  #if ENABLED(DIGIPOT_I2C)
+    digipot_i2c_init();
+  #endif
+
+  #if HAS_COLOR_LEDS
+    leds.setup();
+  #endif
+
+  #if ENABLED(LASER)
+    laser.init();
+  #endif
+
+  #if ENABLED(FLOWMETER_SENSOR)
+    #if ENABLED(MINFLOW_PROTECTION)
+      flowmeter.flow_firstread = false;
+    #endif
+    flowmeter.init();
+  #endif
+
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    pcf8574.begin();
+  #endif
+
+  #if ENABLED(RFID_MODULE)
+    setRfid(rfid522.init());
+    if (IsRfid()) SERIAL_EM("RFID CONNECT");
+  #endif
+
+  lcdui.init();
+  lcdui.reset_status();
+
+  // Show MK4duo boot screen
+  #if HAS_SPI_LCD && ENABLED(SHOW_BOOTSCREEN)
+    lcdui.show_bootscreen();
+  #endif
+
+  #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+    mixer.init();
+  #endif
+
+  #if HAS_BLTOUCH
+    bltouch.init(true);
+  #endif
+
+  // All Initialized set Running to true.
+  printer.setRunning(true);
+
+  #if ENABLED(DELTA_HOME_ON_POWER)
+    mechanics.home();
+  #endif
+
+  printer.zero_fan_speed();
+
+  #if HAS_LCD_MENU && HAS_EEPROM
+    if (!eeprom_loaded) lcdui.goto_screen(lcd_eeprom_allert);
+  #endif
+
+  #if HAS_SD_RESTART
+    restart.check();
+  #endif
+
+  // Reset Watchdog
+  watchdog.reset();
+
+  #if HAS_TRINAMIC && !PS_DEFAULT_OFF
+    tmc.test_connection(true, true, true, true);
+  #endif
+
+  #if HAS_MMU2
+    mmu2.init();
+  #endif
+
+}
+
+/**
+ * The main MK4duo program loop
+ *
+ *  - Save or log commands to SD
+ *  - Process available commands (if not saving)
+ *  - Call endstop manager
+ *  - Call LCD update
+ */
+void loop() {
+
+  do {
+
+    printer.idle();
+
+    #if HAS_SD_SUPPORT
+      card.checkautostart();
+      if (card.isAbortSDprinting()) printer.abort_sd_printing();
+    #endif // HAS_SD_SUPPORT
+
+    commands.advance_queue();
+    endstops.report_state();
+
+  } while (MK_MAIN_LOOP);
+}

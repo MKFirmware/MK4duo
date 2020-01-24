@@ -111,9 +111,7 @@ class Printer {
 
   public: /** Public Function */
 
-    static void setup();  // Main setup
-    static void loop();   // Main loop
-
+    static void setup_pinout();
     static void factory_parameters();
 
     static void check_periodical_actions();
@@ -211,8 +209,6 @@ class Printer {
     FORCE_INLINE static bool IsRfid() { return various_flag.RFID; }
 
   private: /** Private Function */
-
-    static void setup_pinout();
 
     static void handle_safety_watch();
 

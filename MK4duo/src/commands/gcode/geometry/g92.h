@@ -33,8 +33,8 @@
  */
 inline void gcode_G92() {
 
-  bool  sync_E    = false,
-        sync_XYZ  = false;
+  xyze_bool_t   codes;
+  xyze_float_t  values;
 
   #if USE_GCODE_SUBCODES
     const uint8_t subcode_G92 = parser.subcode;
@@ -42,53 +42,60 @@ inline void gcode_G92() {
     constexpr uint8_t subcode_G92 = 0;
   #endif
 
-  planner.synchronize();
+  LOOP_XYZE(i) {
+    if ((codes[i]   = parser.seenval(axis_codes[i]))) {
+      const float v = parser.value_axis_units((AxisEnum)i);
+      values[i]     = (i == E_AXIS) ? v : LOGICAL_TO_NATIVE(v, (AxisEnum)i);
+    }
+  }
 
   switch (subcode_G92) {
 
     case 0: {
-      LOOP_XYZE(i) {
-        if (parser.seenval(axis_codes[i])) {
-          const float l = parser.value_axis_units((AxisEnum)i),
-                      v = (i == E_AXIS) ? l : LOGICAL_TO_NATIVE(l, (AxisEnum)i),
-                      d = v - mechanics.position[i];
-
-          if (!NEAR_ZERO(d)) {
-            #if IS_SCARA || DISABLED(WORKSPACE_OFFSETS)
-              if (i == E_AXIS) sync_E = true;
-              else sync_XYZ = true;
-              mechanics.position[i] = v;        // For SCARA just set the position directly
-            #elif ENABLED(WORKSPACE_OFFSETS)
-              if (i == E_AXIS) {
-                sync_E = true;
-                mechanics.position.e = v; // When using coordinate spaces, only E is set directly
-              }
-              else {
-                mechanics.position_shift[i] += d;       // Other axes simply offset the coordinate space
-                endstops.update_software_endstops((AxisEnum)i);
-              }
-            #endif
+      if ((codes[E_AXIS] && values[E_AXIS] == 0) && (!codes[X_AXIS] && !codes[Y_AXIS] && !codes[Z_AXIS])) {
+        mechanics.position.e = 0;
+        mechanics.sync_plan_position_e();
+      }
+      else {
+        planner.synchronize();
+        LOOP_XYZE(i) {
+          if (codes[i]) {
+            const float d = values[i] - mechanics.position[i];
+            if (!NEAR_ZERO(d)) {
+              #if IS_SCARA || DISABLED(WORKSPACE_OFFSETS)
+                mechanics.position[i] = values[i];
+              #elif ENABLED(WORKSPACE_OFFSETS)
+                if (i == E_AXIS) {
+                  mechanics.position.e = values[i];        // When using coordinate spaces, only E is set directly
+                }
+                else {
+                  mechanics.position_shift[i] += d;       // Other axes simply offset the coordinate space
+                  endstops.update_software_endstops((AxisEnum)i);
+                }
+              #endif
+            }
           }
         }
+        mechanics.sync_plan_position();
       }
     } break;
 
-    case 9: {
-      LOOP_XYZE(i) {
-        if (parser.seenval(axis_codes[i])) {
-          mechanics.position[i] = parser.value_axis_units((AxisEnum)i);
-          if (i == E_AXIS) sync_E = true;
-          else sync_XYZ = true;
+    #if USE_GCODE_SUBCODES
+      case 9: {
+        planner.synchronize();
+        LOOP_XYZE(i) {
+          if (parser.seenval(axis_codes[i])) {
+            mechanics.position[i] = parser.value_axis_units((AxisEnum)i);
+            if (i == E_AXIS) mechanics.sync_plan_position_e();
+            else mechanics.sync_plan_position();
+          }
         }
-      }
-    } break;
+      } break;
+    #endif
 
     default: break;
 
   } // switch
-
-  if    (sync_XYZ)  mechanics.sync_plan_position();
-  else if (sync_E)  mechanics.sync_plan_position_e();
 
   mechanics.report_position();
 }

@@ -356,11 +356,3 @@
  */
 
 #include "MK4duo.h"
-
-void setup() {
-  printer.setup();
-}
-
-void loop() {
-  printer.loop();
-}

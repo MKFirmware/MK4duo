@@ -436,10 +436,10 @@ void TIMER0_COMPB_vect_bottom(void)
 // Public Variables
 // --------------------------------------------------------------------------
 
-extern hal_timer_t  HAL_pulse_high_tick,
-                    HAL_pulse_low_tick;
-extern uint32_t     HAL_min_pulse_cycle,
-                    HAL_frequency_limit[8];
+extern uint16_t HAL_pulse_high_tick,
+                HAL_pulse_low_tick;
+extern uint32_t HAL_min_pulse_cycle,
+                HAL_frequency_limit[8];
 
 // --------------------------------------------------------------------------
 // Private Variables

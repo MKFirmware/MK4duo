@@ -326,6 +326,7 @@ namespace language_en {
   FSTRINGVALUE(MSG_USERWAIT                         , _UxGT("Click to Resume..."));
   FSTRINGVALUE(MSG_PRINT_PAUSED                     , _UxGT("Print Paused"));
   FSTRINGVALUE(MSG_PRINTING                         , _UxGT("Printing..."));
+  FSTRINGVALUE(MSG_STOPPING                         , _UxGT("Print finish"));
   FSTRINGVALUE(MSG_RESUMING                         , _UxGT("Resuming print"));
   FSTRINGVALUE(MSG_PRINT_ABORTED                    , _UxGT("Print Aborted"));
   FSTRINGVALUE(MSG_NO_MOVE                          , _UxGT("No Move."));

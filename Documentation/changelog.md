@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 13-01-2020
+* Revision 24-01-2020
 *
 * Version EEPROM MKV79
 *
@@ -48,12 +48,15 @@
 * Add Linear advanced K-Factor for Extruder
 *
 * Add Nextion Baudrate
+* Add Nextion CRC on serial
 *
 * Fix JUNCTION_DEVIATION
 * Fix BABYSTEPPING
 * Fix M569 code for extruder
 *
 * Add Vref on STM32 for ADC
+*
+* Fix Alligator V2 DAC
 *
 * Fix problem with STM32core 1_8_0
 * Fix problem with TOOL_CHANGE_FIL_SWAP

@@ -71,7 +71,7 @@ class Probe {
       static void move_z_after_probing();
     #endif
 
-    #if HAS_LEVELING
+    #if HAS_BED_PROBE || HAS_LEVELING
 
       static inline float min_x() {
         return

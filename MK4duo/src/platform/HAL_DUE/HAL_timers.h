@@ -187,10 +187,10 @@ typedef struct {
 
 extern const tTimerConfig TimerConfig[];
 
-extern hal_timer_t  HAL_min_pulse_cycle,
-                    HAL_pulse_high_tick,
-                    HAL_pulse_low_tick,
-                    HAL_frequency_limit[8];
+extern uint32_t HAL_min_pulse_cycle,
+                HAL_pulse_high_tick,
+                HAL_pulse_low_tick,
+                HAL_frequency_limit[8];
 
 // --------------------------------------------------------------------------
 // Private Variables
