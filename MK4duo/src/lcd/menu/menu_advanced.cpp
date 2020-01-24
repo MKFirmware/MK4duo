@@ -116,7 +116,7 @@ void menu_advanced_temperature() {
 
   // Autotemp, Min, Max, Fact
   #if ENABLED(AUTOTEMP)
-    EDIT_ITEM(bool, MSG_AUTOTEMP, &planner.autotemp_enabled);
+    EDIT_ITEM(bool, MSG_AUTOTEMP, &planner.flag.autotemp_enabled);
     EDIT_ITEM(float3, MSG_MIN, &planner.autotemp_min, 0, hotends[0]->data.temp.max - 10);
     EDIT_ITEM(float3, MSG_MAX, &planner.autotemp_max, 0, hotends[0]->data.temp.max - 10);
     EDIT_ITEM(float52, MSG_FACTOR, &planner.autotemp_factor, 0, 1);
@@ -381,7 +381,7 @@ void menu_advanced_settings() {
 
   // M540 S - Abort on endstop hit when SD printing
   #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
-    EDIT_ITEM(bool, MSG_ENDSTOP_ABORT, &planner.abort_on_endstop_hit);
+    EDIT_ITEM(bool, MSG_ENDSTOP_ABORT, &planner.flag.abort_on_endstop_hit);
   #endif
 
   #if ENABLED(EEPROM_SETTINGS) && DISABLED(SLIM_LCD_MENUS)

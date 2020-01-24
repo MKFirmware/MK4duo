@@ -80,7 +80,8 @@
 // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD_HOST printing, 4 SD_HOST paused
 enum SDstatus_enum : uint8_t { NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_HOST_PRINTING = 3, SD_HOST_PAUSE = 4 };
 
-constexpr uint8_t end[3] = { 0xFF, 0xFF, 0xFF };
+constexpr uint8_t     end[3] = { 0xFF, 0xFF, 0xFF },
+                  crc_end[3] = { 0xFE, 0xFE, 0xFE };
 
 class NexObject {
 
@@ -239,9 +240,21 @@ class NextionLCD {
 
     static bool getConnect(char* buffer);
 
-    FORCE_INLINE static void sendCommand_end() { nexSerial.write(end, 3); }
+    FORCE_INLINE static void sendCommand_end()  { nexSerial.write(end, 3); }
+    FORCE_INLINE static void sendCRC_end()      { nexSerial.write(crc_end, 3); }
 
     FORCE_INLINE static void clear_rx() { while (nexSerial.available()) (void)nexSerial.read(); }
+
+    FORCE_INLINE static void crc_modbus(uint16_t *crc, const char c) {
+      *crc ^= (uint16_t)c;
+      for (uint8_t i = 8; i != 0; i--) {
+        if ((*crc & 0x0001) != 0) {
+          *crc >>= 1;
+          *crc ^= 0xA001;
+        }
+        else *crc >>= 1;
+      }
+    }
 
 };
 

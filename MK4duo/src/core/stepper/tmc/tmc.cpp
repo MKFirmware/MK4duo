@@ -903,6 +903,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
     return test_result;
   }
+  return false;
 }
 
 // Stepper config for type

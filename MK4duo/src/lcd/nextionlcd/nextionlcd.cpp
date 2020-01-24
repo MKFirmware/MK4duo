@@ -402,13 +402,25 @@ void NextionLCD::read_serial() {
 }
 
 void NextionLCD::sendCommand(const char* cmd) {
-  nexSerial.print(cmd);
-  sendCommand_end();
+  uint16_t crc_init = 0xFFFF;
+  while (char c = *cmd++) {
+    nexSerial.write(c);
+    crc_modbus(&crc_init, c);
+  }
+  const uint8_t crc[3] = { crc_init & 0xFF, crc_init >> 8, 0x01 };
+  nexSerial.write(crc, 3);
+  sendCRC_end();
 }
 
 void NextionLCD::sendCommandPGM(PGM_P cmd) {
-  while (char c = pgm_read_byte(cmd++)) nexSerial.write(c);
-  sendCommand_end();
+  uint16_t crc_init = 0xFFFF;
+  while (char c = pgm_read_byte(cmd++)) {
+    nexSerial.write(c);
+    crc_modbus(&crc_init, c);
+  }
+  const uint8_t crc[3] = { crc_init & 0xFF, crc_init >> 8, 0x01 };
+  nexSerial.write(crc, 3);
+  sendCRC_end();
 }
 
 void NextionLCD::status_screen_update() {
@@ -419,16 +431,16 @@ void NextionLCD::status_screen_update() {
                     PreviousPercent       = 0xFF,
                     PreviousSD            = 0xFF;
 
-  static int16_t    PreviousDegHotend[MAX_HOTEND] = { 0xFFFF };
+  static int16_t    PreviousDegHotend[MAX_HOTEND] = { 0xFF };
 
   #if HAS_BEDS
-    static int16_t  PreviousDegBed        = 0xFFFF;
+    static int16_t  PreviousDegBed        = 0xFF;
   #endif
   #if HAS_CHAMBERS
-    static int16_t  PreviousDegChamber    = 0xFFFF;
+    static int16_t  PreviousDegChamber    = 0xFF;
   #endif
   #if HAS_DHT
-    static int16_t  PreviousDegDht        = 0xFFFF;
+    static int16_t  PreviousDegDht        = 0xFF;
   #endif
 
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };

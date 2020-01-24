@@ -809,7 +809,7 @@ void Endstops::report_state() {
     #endif
 
     #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
-      if (planner.abort_on_endstop_hit) {
+      if (planner.flag.abort_on_endstop_hit) {
         card.setPrinting(false);
         card.closeFile();
         printer.quickstop_stepper();

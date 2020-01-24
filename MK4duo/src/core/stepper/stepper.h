@@ -326,6 +326,7 @@ class Stepper {
     // Set the current position in steps
     static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
     static void set_position(const AxisEnum a, const int32_t &v);
+    static inline void set_position(const xyze_long_t &pos) { set_position(pos.a, pos.b, pos.c, pos.e); }
 
     #if DISABLED(DISABLE_M503)
       void print_M352();
@@ -414,7 +415,8 @@ class Stepper {
      * Set current position in steps
      */
     static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
-    
+    FORCE_INLINE static void _set_position(const abce_long_t &spos) { _set_position(spos.a, spos.b, spos.c, spos.e); }
+
     #if DISABLED(COLOR_MIXING_EXTRUDER)
       // Get active driver
       static uint8_t get_active_extruder_driver();

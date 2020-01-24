@@ -30,7 +30,7 @@
 #define HAL_TIMER_RATE              ((F_CPU)/2)
 #define NUM_HARDWARE_TIMERS         1                                           // Only Stepper use Hardware Timer
 #define NvicPriorityStepper         2
-#define NvicPrioritySystick         0x0F
+#define NvicPrioritySystick         14
 
 // Stepper Timer
 #define STEPPER_TIMER_NUM           0                                           // Index of timer to use for stepper
@@ -127,10 +127,10 @@
 // ------------------------
 // Public Variables
 // ------------------------
-extern hal_timer_t  HAL_min_pulse_cycle,
-                    HAL_pulse_high_tick,
-                    HAL_pulse_low_tick,
-                    HAL_frequency_limit[8];
+extern uint32_t HAL_min_pulse_cycle,
+                HAL_pulse_high_tick,
+                HAL_pulse_low_tick,
+                HAL_frequency_limit[8];
 
 // ------------------------
 // Hardware Timer
@@ -156,15 +156,11 @@ FORCE_INLINE bool HAL_timer_initialized() {
   return MK_step_timer != nullptr;
 }
 
-FORCE_INLINE bool HAL_timer_interrupt_is_enabled() {
-  return HAL_timer_initialized() && MK_step_timer->hasInterrupt();
-}
-
-FORCE_INLINE hal_timer_t HAL_timer_get_current_count(const uint8_t) {
+FORCE_INLINE uint32_t HAL_timer_get_current_count(const uint8_t) {
   return HAL_timer_initialized() ? MK_step_timer->getCount() : 0;
 }
 
-FORCE_INLINE void HAL_timer_set_count(const uint8_t, const hal_timer_t count) {
+FORCE_INLINE void HAL_timer_set_count(const uint8_t, const uint32_t count) {
   if (HAL_timer_initialized()) {
     MK_step_timer->setOverflow(count + 1, TICK_FORMAT);
     if (count < MK_step_timer->getCount()) STEP_TIMER->EGR |= TIM_EGR_UG; // Generate an immediate update interrupt

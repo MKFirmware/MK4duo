@@ -70,33 +70,34 @@
 
 Planner planner;
 
-/**
- * A ring buffer of moves described in steps
- */
+/** Public Parameters */
+plan_flag_t       Planner::flag;
+
 block_t           Planner::block_buffer[BLOCK_BUFFER_SIZE];
-volatile uint8_t  Planner::block_buffer_head    = 0,
-                  Planner::block_buffer_nonbusy = 0,
-                  Planner::block_buffer_planned = 0,
-                  Planner::block_buffer_tail    = 0;
 
-bool  Planner::cleaning_buffer_flag = false;
+volatile uint8_t  Planner::block_buffer_head        = 0,
+                  Planner::block_buffer_nonbusy     = 0,
+                  Planner::block_buffer_planned     = 0,
+                  Planner::block_buffer_tail        = 0;
 
-uint8_t Planner::delay_before_delivering = 0;
+uint8_t           Planner::delay_before_delivering  = 0;
 
-#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
-  float Planner::autotemp_max     = 250,
-        Planner::autotemp_min     = 210,
-        Planner::autotemp_factor  = 0.1;
-  bool  Planner::autotemp_enabled = false;
+#if HAS_POSITION_FLOAT
+  xyze_pos_t Planner::position_float{0.0f};
 #endif
 
-xyze_long_t Planner::position = { 0, 0 ,0 ,0 };
+#if IS_KINEMATIC
+  xyze_pos_t Planner::position_cart{0.0f};
+#endif
 
-uint32_t Planner::cutoff_long = 0;
+/** Private Parameters */
+xyze_long_t   Planner::position = { 0, 0 ,0 ,0 };
 
-xyze_float_t Planner::previous_speed = { 0.0, 0.0, 0.0, 0.0 };
+xyze_float_t  Planner::previous_speed = { 0.0, 0.0, 0.0, 0.0 };
 
 float Planner::previous_nominal_speed_sqr = 0.0;
+
+uint32_t Planner::cutoff_long = 0;
 
 #if ENABLED(DISABLE_INACTIVE_EXTRUDER)
   uint8_t Planner::g_uc_extruder_last_move[MAX_EXTRUDER] = { 0 };
@@ -109,26 +110,17 @@ float Planner::previous_nominal_speed_sqr = 0.0;
   xy_ulong_t Planner::axis_segment_time_us[3] = { { MAX_FREQ_TIME_US + 1, 0, 0 }, { MAX_FREQ_TIME_US + 1, 0, 0 } };
 #endif
 
-#if HAS_POSITION_FLOAT
-  xyze_pos_t Planner::position_float{0.0f};
-#endif
-
-#if IS_KINEMATIC
-  xyze_pos_t Planner::position_cart{0.0f};
-#endif
-
-#if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
-  bool Planner::abort_on_endstop_hit = false;
-#endif
-
 #if HAS_SPI_LCD
   volatile uint32_t Planner::block_buffer_runtime_us = 0;
 #endif
 
-/**
- * Class and Instance Methods
- */
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
+  float Planner::autotemp_max     = 250,
+        Planner::autotemp_min     = 210,
+        Planner::autotemp_factor  = 0.1;
+#endif
 
+/** Public Function */
 void Planner::init() {
   position.reset();
   #if HAS_POSITION_FLOAT
@@ -142,6 +134,7 @@ void Planner::init() {
   #if ABL_PLANAR
     bedlevel.matrix.set_to_identity();
   #endif
+  flag.all = 0x00;
   clear_block_buffer();
   delay_before_delivering = 0;
 }
@@ -839,7 +832,7 @@ void Planner::quick_stop() {
   #endif
 
   // Make sure to drop any attempt of queuing moves for at least 1 seconds
-  cleaning_buffer_flag = true;
+  flag.clean_buffer_flag = true;
 
   // Reenable Stepper ISR
   if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
@@ -899,7 +892,7 @@ float Planner::get_axis_position_mm(const AxisEnum axis) {
 }
 
 void Planner::synchronize() {
-  while (has_blocks_queued() || cleaning_buffer_flag) {
+  while (has_blocks_queued() || flag.clean_buffer_flag) {
     printer.idle();
     PRINTER_KEEPALIVE(InProcess);
   }
@@ -934,7 +927,7 @@ bool Planner::buffer_steps(const xyze_long_t &target
 ) {
 
   // If we are cleaning, do not accept queuing of movements
-  if (cleaning_buffer_flag) return false;
+  if (flag.clean_buffer_flag) return false;
 
   // Wait for the next available block
   uint8_t next_buffer_head;
@@ -1847,7 +1840,7 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
 ) {
 
   // If we are cleaning, do not accept queuing of movements
-  if (cleaning_buffer_flag) return false;
+  if (flag.clean_buffer_flag) return false;
 
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
@@ -2005,7 +1998,7 @@ void Planner::set_machine_position_mm(const float &a, const float &b, const floa
     buffer_sync_block();
   }
   else
-    stepper.set_position(position.a, position.b, position.c, position.e);
+    stepper.set_position(position);
 
 }
 
@@ -2092,7 +2085,7 @@ void Planner::refresh_positioning() {
 #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::autotemp_M104_M109() {
-    if ((autotemp_enabled = parser.seen('F'))) autotemp_factor = parser.value_float();
+    if ((falg.autotemp_enabled = parser.seen('F'))) autotemp_factor = parser.value_float();
     if (parser.seen('S')) autotemp_min = parser.value_celsius();
     if (parser.seen('B')) autotemp_max = parser.value_celsius();
   }

@@ -349,7 +349,7 @@ void TempManager::spin() {
 void TempManager::disable_all_heaters() {
 
   #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
-    planner.autotemp_enabled = false;
+    planner.flag.autotemp_enabled = false;
   #endif
 
   #if HAS_HOTENDS
