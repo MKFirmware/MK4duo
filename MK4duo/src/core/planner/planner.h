@@ -175,6 +175,12 @@ class Planner {
       static xyze_pos_t position_cart;
     #endif
 
+    #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
+      static float  autotemp_min,
+                    autotemp_max,
+                    autotemp_factor;
+    #endif
+
   private: /** Private Parameters */
 
     /**
@@ -216,12 +222,6 @@ class Planner {
 
     #if HAS_SPI_LCD
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
-    #endif
-
-    #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
-      static float  autotemp_min,
-                    autotemp_max,
-                    autotemp_factor;
     #endif
 
   public: /** Public Function */
