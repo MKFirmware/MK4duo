@@ -174,14 +174,18 @@ void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
     #endif
 
     if (flag.leveling_active) {      // leveling from on to off
+      if (printer.debugFeature()) DEBUG_POS("Leveling ON", mechanics.position);
       // change unleveled position.x to physical position.x without moving steppers.
       apply_leveling(mechanics.position);
       flag.leveling_active = false;  // disable only AFTER calling apply_leveling
+      if (printer.debugFeature()) DEBUG_POS("...Now OFF", mechanics.position);
     }
     else {                          // leveling from off to on
+      if (printer.debugFeature()) DEBUG_POS("Leveling OFF", mechanics.position);
       flag.leveling_active = true;  // enable BEFORE calling unapply_leveling, otherwise ignored
       // change physical position.x to unleveled position.x without moving steppers.
       unapply_leveling(mechanics.position);
+      if (printer.debugFeature()) DEBUG_POS("...Now ON", mechanics.position);
     }
 
     mechanics.sync_plan_position();
@@ -250,7 +254,7 @@ void Bedlevel::reset() {
     #endif
 
     #if ENABLED(SCAD_MESH_OUTPUT)
-      SERIAL_EM("measured_z = [");  // open 2D array
+      SERIAL_EM("measured_z = [");    // open 2D array
     #endif
 
     for (uint8_t y = 0; y < sy; y++) {
