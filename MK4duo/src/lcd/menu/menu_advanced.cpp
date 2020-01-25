@@ -116,7 +116,10 @@ void menu_advanced_temperature() {
 
   // Autotemp, Min, Max, Fact
   #if ENABLED(AUTOTEMP)
-    EDIT_ITEM(bool, MSG_AUTOTEMP, &planner.flag.autotemp_enabled);
+    editable.state = planner.flag.autotemp_enabled;
+    EDIT_ITEM(bool, MSG_AUTOTEMP, &editable.state, []{
+      planner.flag.autotemp_enabled = editable.state;
+    });
     EDIT_ITEM(float3, MSG_MIN, &planner.autotemp_min, 0, hotends[0]->data.temp.max - 10);
     EDIT_ITEM(float3, MSG_MAX, &planner.autotemp_max, 0, hotends[0]->data.temp.max - 10);
     EDIT_ITEM(float52, MSG_FACTOR, &planner.autotemp_factor, 0, 1);

@@ -90,6 +90,12 @@ uint8_t           Planner::delay_before_delivering  = 0;
   xyze_pos_t Planner::position_cart{0.0f};
 #endif
 
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
+  float Planner::autotemp_max     = 250,
+        Planner::autotemp_min     = 210,
+        Planner::autotemp_factor  = 0.1;
+#endif
+
 /** Private Parameters */
 xyze_long_t   Planner::position = { 0, 0 ,0 ,0 };
 
@@ -112,12 +118,6 @@ uint32_t Planner::cutoff_long = 0;
 
 #if HAS_SPI_LCD
   volatile uint32_t Planner::block_buffer_runtime_us = 0;
-#endif
-
-#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
-  float Planner::autotemp_max     = 250,
-        Planner::autotemp_min     = 210,
-        Planner::autotemp_factor  = 0.1;
 #endif
 
 /** Public Function */
@@ -666,7 +666,7 @@ void Planner::init() {
   void Planner::getHighESpeed() {
     static float oldt = 0;
 
-    if (!autotemp_enabled) return;
+    if (!flag.autotemp_enabled) return;
     if (hotends[0]->deg_target() + 2 < autotemp_min) return; // probably temperature set to zero.
 
     float high = 0.0;
