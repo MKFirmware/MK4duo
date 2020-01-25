@@ -61,7 +61,7 @@ void servo_init() {
 
   #if HAS_SERVO_0
     servo[0].attach(SERVO0_PIN);
-    servo[0].detach(); // Just set up the pin. We don't have a position yet. Don't move to a random position.
+    servo[0].detach();
   #endif
   #if HAS_SERVO_1
     servo[1].attach(SERVO1_PIN);

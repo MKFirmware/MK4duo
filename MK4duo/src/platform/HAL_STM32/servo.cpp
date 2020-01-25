@@ -26,8 +26,6 @@
 
 #if HAS_SERVOS
 
-#include <HardwareTimer.h>
-
 ServoInfo_t servo_info[MAX_SERVOS]; // static array of servo structures
 uint8_t ServoCount = 0;             // the total number of attached servo_info
 
@@ -69,7 +67,8 @@ static void Servo_PeriodElapsedCallback(HardwareTimer*) {
 static void TimerServoInit() {
   // prescaler is computed so that timer tick correspond to 1 microsecond
   uint32_t prescaler = TimerServo.getTimerClkFreq() / 1000000;
-  TimerServo.setMode(1, TIMER_OUTPUT_COMPARE, NC);
+  TimerServo.setMode(1, TIMER_OUTPUT_COMPARE);
+  TimerServo.setInterruptPriority(1, 0);
   TimerServo.setPrescaleFactor(prescaler);
   TimerServo.setOverflow(REFRESH_INTERVAL);
   TimerServo.attachInterrupt(Servo_PeriodElapsedCallback);
@@ -102,8 +101,10 @@ int8_t MKServo::attach(const pin_t inPin, const int inMin, const int inMax) {
 
   if (index >= MAX_SERVOS) return -1;
 
-  if (inPin > 0) servo_info[index].Pin.nbr = inPin;
-  HAL::pinMode(servo_info[index].Pin.nbr, OUTPUT); // set servo pin to output
+  if (inPin > 0) {
+    servo_info[index].Pin.nbr = inPin;
+    HAL::pinMode(servo_info[index].Pin.nbr, OUTPUT); // set servo pin to output
+  }
 
   servo_info[index].ticks = DEFAULT_PULSE_WIDTH;
 

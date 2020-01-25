@@ -30,7 +30,7 @@
 #define HAL_TIMER_RATE              ((F_CPU)/2)
 #define NUM_HARDWARE_TIMERS         1                                           // Only Stepper use Hardware Timer
 #define NvicPriorityStepper         2
-#define NvicPrioritySystick         14
+#define NvicPrioritySystick         15
 
 // Stepper Timer
 #define STEPPER_TIMER_NUM           0                                           // Index of timer to use for stepper
