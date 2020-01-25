@@ -21,7 +21,7 @@
  */
 
 /**
- * tmc->cpp
+ * tmc.cpp
  *
  * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  */

@@ -72,7 +72,8 @@ class Com {
     static void print_spaces(uint8_t count);
 
     static void print_logic(PGM_P const label, const bool logic);
-    static void print_onoff(PGM_P const label, const bool onoff);
+    static void print_onoff(PGM_P const label, const bool on);
+    static void print_yesno(PGM_P const label, const bool yes);
 
     // Capabilities string
     static void host_capabilities(PGM_P pstr);
@@ -110,9 +111,11 @@ class Com {
 #define SERIAL_SP(C)                  Com::print_spaces(C)
 #define SERIAL_LOGIC(msg,val)         Com::print_logic(PSTR(msg), val)
 #define SERIAL_ONOFF(msg,val)         Com::print_onoff(PSTR(msg), val)
+#define SERIAL_YESNO(msg,val)         Com::print_YESNO(PSTR(msg), val)
 
 #define SERIAL_ELOGIC(msg,val)        do{ SERIAL_LOGIC(msg, val);                     SERIAL_EOL(); }while(0)
 #define SERIAL_EONOFF(msg,val)        do{ SERIAL_ONOFF(msg, val);                     SERIAL_EOL(); }while(0)
+#define SERIAL_EYESNO(msg,val)        do{ SERIAL_YESNO(msg, val);                     SERIAL_EOL(); }while(0)
 
 #define SERIAL_MT(msg,txt)            do{ SERIAL_MSG(msg);  SERIAL_TXT(txt);                        }while(0)
 #define SERIAL_MV(msg,val,V...)       do{ SERIAL_MSG(msg);  SERIAL_VAL(val, ##V);                   }while(0)
