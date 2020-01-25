@@ -870,13 +870,6 @@ void TempManager::report_temperatures(const bool showRaw/*=false*/) {
   }
 #endif
 
-#if HAS_MCU_TEMPERATURE
-  float TempManager::analog2tempMCU(const int adc_raw) {
-    const float voltage = (float)adc_raw * ((HAL_VOLTAGE_PIN) / (float)AD_RANGE);
-    return (voltage - 0.8f) * (1000.0f / 2.65f) + 27.0f; // + mcuTemperatureAdjust;
-  }
-#endif
-
 void TempManager::print_heater_state(Heater* act, const bool print_ID, const bool showRaw) {
 
   SERIAL_CHR(' ');

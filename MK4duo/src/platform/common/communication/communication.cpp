@@ -130,15 +130,23 @@ void Com::print_logic(PGM_P const label, const bool logic) {
     printPGM(label);
     SERIAL_CHR(':');
   }
-  printPGM(logic ? PSTR("true") : PSTR("false"));
+  printPGM(logic ? PSTR("true ") : PSTR("false"));
 }
 
-void Com::print_onoff(PGM_P const label, const bool onoff) {
+void Com::print_onoff(PGM_P const label, const bool on) {
   if (label) {
     printPGM(label);
     SERIAL_CHR(':');
   }
-  printPGM(onoff ? PSTR("on") : PSTR("off"));
+  printPGM(on ? PSTR("on ") : PSTR("off"));
+}
+
+void Com::print_yesno(PGM_P const label, const bool yes) {
+  if (label) {
+    printPGM(label);
+    SERIAL_CHR(':');
+  }
+  printPGM(yes ? PSTR("YES") : PSTR("NO "));
 }
 
 // Capabilities string

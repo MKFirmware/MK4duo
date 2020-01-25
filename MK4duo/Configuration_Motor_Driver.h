@@ -163,8 +163,8 @@
  *
  * Example:
  * #define TMC_ADV() { \
- *   driver[X_DRV]->tmc.diag0_temp_prewarn(1); \
- *   driver[Y_DRV]->tmc.interpolate(0); \
+ *   driver[X_DRV]->tmc->diag0_temp_prewarn(1); \
+ *   driver[Y_DRV]->tmc->interpolate(0); \
  * }
  */
 #define  TMC_ADV() {  }

@@ -23,7 +23,7 @@
 #if defined(ARDUINO_ARCH_STM32) && !defined(STM32GENERIC)
 
 #include "../../../MK4duo.h"
-#include "stm32yyxx_ll_adc.h"
+//#include "stm32yyxx_ll_adc.h"
 #include <Wire.h>
 
 /** Public Parameters */
@@ -262,13 +262,17 @@ void HAL::Tick() {
 
 }
 
-int32_t HAL::analog2mv(const int16_t adc_raw) {
-  return (__LL_ADC_CALC_DATA_TO_VOLTAGE(HAL_VREF, adc_raw, LL_ADC_RESOLUTION_12B));
-}
+#if HAS_VREF_MONITOR
+  int32_t HAL::analog2mv(const int16_t adc_raw) {
+    return (__LL_ADC_CALC_DATA_TO_VOLTAGE(HAL_VREF, adc_raw, LL_ADC_RESOLUTION_12B));
+  }
+#endif
 
-int32_t HAL::analog2tempMCU(const int16_t adc_raw) {
-  return (__LL_ADC_CALC_TEMPERATURE(HAL_VREF, adc_raw, LL_ADC_RESOLUTION_12B));
-}
+#if HAS_MCU_TEMPERATURE
+  int32_t HAL::analog2tempMCU(const int16_t adc_raw) {
+    return (__LL_ADC_CALC_TEMPERATURE(HAL_VREF, adc_raw, LL_ADC_RESOLUTION_12B));
+  }
+#endif
 
 pin_t HAL::digital_value_pin() {
   const pin_t pin = parser.value_pin();

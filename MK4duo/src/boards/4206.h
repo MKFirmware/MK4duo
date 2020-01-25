@@ -94,12 +94,12 @@
 #define ORIG_SOL7_PIN              NoPin
 
 //###ENDSTOP
-#define ORIG_X_MIN_PIN             NoPin
-#define ORIG_X_MAX_PIN             NoPin
-#define ORIG_Y_MIN_PIN             NoPin
-#define ORIG_Y_MAX_PIN             NoPin
-#define ORIG_Z_MIN_PIN             NoPin
-#define ORIG_Z_MAX_PIN             NoPin
+#define ORIG_X_MIN_PIN             PD8
+#define ORIG_X_MAX_PIN             PD0
+#define ORIG_Y_MIN_PIN             PD9
+#define ORIG_Y_MAX_PIN             PA8
+#define ORIG_Z_MIN_PIN             PD10
+#define ORIG_Z_MAX_PIN             PD11
 #define ORIG_Z2_MIN_PIN            NoPin
 #define ORIG_Z2_MAX_PIN            NoPin
 #define ORIG_Z3_MIN_PIN            NoPin
@@ -109,9 +109,9 @@
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
-#define X_STOP_PIN                 PD8
-#define Y_STOP_PIN                 PD9
-#define Z_STOP_PIN                 PD10
+#define X_STOP_PIN                 NoPin
+#define Y_STOP_PIN                 NoPin
+#define Z_STOP_PIN                 NoPin
 
 //###HEATER
 #define ORIG_HEATER_HE0_PIN        PC7
@@ -190,6 +190,10 @@
 #define HAVE_VREF_MONITOR
 
 //###IF_BLOCKS
+#define L6470_CHAIN_SCK_PIN        PA5
+#define L6470_CHAIN_MISO_PIN       PA6
+#define L6470_CHAIN_MOSI_PIN       PA7
+#define L6470_CHAIN_SS_PIN         PA4
 #define ST7920_DELAY_1             DELAY_NS(350)
 #define ST7920_DELAY_2             DELAY_NS(100)
 #define ST7920_DELAY_3             DELAY_NS(350)
@@ -203,4 +207,12 @@
 #define BTN_EN1                    NoPin
 #define BTN_EN2                    NoPin
 #define BTN_ENC                    NoPin
+
+#define ENABLE_RESET_L64XX_CHIPS(V) do{ OUT_WRITE(X_ENABLE_PIN, V); \
+                                        OUT_WRITE(Y_ENABLE_PIN, V); \
+                                        OUT_WRITE(Z_ENABLE_PIN, V); \
+                                        OUT_WRITE(E0_ENABLE_PIN,V); \
+                                        OUT_WRITE(E1_ENABLE_PIN,V); \
+                                        OUT_WRITE(E2_ENABLE_PIN,V); \
+                                      }while(0)
 //@@@

@@ -31,8 +31,8 @@
 ServoInfo_t servo_info[MAX_SERVOS]; // static array of servo structures
 uint8_t ServoCount = 0;             // the total number of attached servo_info
 
-#define SERVO_MIN() (MIN_PULSE_WIDTH - min * 4)   // minimum value in Âµs for this servo
-#define SERVO_MAX() (MAX_PULSE_WIDTH - max * 4)   // maximum value in Âµs for this servo
+#define SERVO_MIN() (MIN_PULSE_WIDTH - min * 4)   // minimum value in µs for this servo
+#define SERVO_MAX() (MAX_PULSE_WIDTH - max * 4)   // maximum value in µs for this servo
 
 /************ static functions common to all instances ***********************/
 static HardwareTimer TimerServo(SERVO_TIMER);
@@ -108,7 +108,7 @@ int8_t MKServo::attach(const pin_t inPin, const int inMin, const int inMax) {
   servo_info[index].ticks = DEFAULT_PULSE_WIDTH;
 
   // todo min/max check: abs(min - MIN_PULSE_WIDTH) /4 < 128
-  min  = (MIN_PULSE_WIDTH - inMin) / 4; //resolution of min/max is 4 Âµs
+  min  = (MIN_PULSE_WIDTH - inMin) / 4; //resolution of min/max is 4 µs
   max  = (MAX_PULSE_WIDTH - inMax) / 4;
 
   // initialize the timer if it has not already been initialized
