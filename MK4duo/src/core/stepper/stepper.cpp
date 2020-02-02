@@ -1154,10 +1154,10 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 
       #if ENABLED(BABYSTEP_XY)
 
-        case X_AXIS:
+        case X_AXIS: {
           #if CORE_IS_XY
-            const uint8_t old_X_dir = driver.x->dir_read(),
-                          old_Y_dir = driver.y->dir_read(),
+            const bool  old_X_dir = driver.x->dir_read(),
+                        old_Y_dir = driver.y->dir_read(),
             enable_X();
             enable_Y();
             set_X_dir(driver.x->isDir()^direction^false);
@@ -1172,8 +1172,8 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_X_dir(old_X_dir);
             set_Y_dir(old_Y_dir);
           #elif CORE_IS_XZ
-            const uint8_t old_X_dir = driver.x->dir_read(),
-                          old_Z_dir = driver.z->dir_read(),
+            const bool  old_X_dir = driver.x->dir_read(),
+                        old_Z_dir = driver.z->dir_read(),
             enable_X();
             enable_Z();
             set_X_dir(driver.x->isDir()^direction^false);
@@ -1188,7 +1188,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_X_dir(old_X_dir);
             set_Z_dir(old_Z_dir);
           #else
-            const uint8_t old_X_dir = driver.x->dir_read();
+            const bool old_X_dir = driver.x->dir_read();
             enable_X();
             set_X_dir(driver.x->isDir()^direction^false);
             if (data.direction_delay >= 50)
@@ -1198,12 +1198,12 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             stop_X_step();
             set_X_dir(old_X_dir);
           #endif
-          break;
+        } break;
 
-        case Y_AXIS:
+        case Y_AXIS: {
           #if CORE_IS_XY
-            const uint8_t old_X_dir = driver.x->dir_read(),
-                          old_Y_dir = driver.y->dir_read(),
+            const bool  old_X_dir = driver.x->dir_read(),
+                        old_Y_dir = driver.y->dir_read(),
             enable_X();
             enable_Y();
             set_X_dir(driver.x->isDir()^direction^false);
@@ -1218,8 +1218,8 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_X_dir(old_X_dir);
             set_Y_dir(old_Y_dir);
           #elif CORE_IS_YZ
-            const uint8_t old_Y_dir = driver.y->dir_read(),
-                          old_Z_dir = driver.z->dir_read(),
+            const bool  old_Y_dir = driver.y->dir_read(),
+                        old_Z_dir = driver.z->dir_read(),
             enable_Y();
             enable_Z();
             set_Y_dir(driver.y->isDir()^direction^false);
@@ -1234,7 +1234,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             set_Y_dir(old_Y_dir);
             set_Z_dir(old_Z_dir);
           #else
-            const uint8_t old_Y_dir = driver.y->dir_read();
+            const bool old_Y_dir = driver.y->dir_read();
             enable_Y();
             set_Y_dir(driver.y->isDir()^direction^false);
             if (data.direction_delay >= 50)
@@ -1244,15 +1244,15 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
             stop_Y_step();
             set_Y_dir(old_Y_dir);
           #endif
-          break;
+        } break;
 
       #endif
 
       case Z_AXIS: {
 
         #if CORE_IS_XZ
-          const uint8_t old_X_dir = driver.x->dir_read(),
-                        old_Z_dir = driver.z->dir_read(),
+          const bool  old_X_dir = driver.x->dir_read(),
+                      old_Z_dir = driver.z->dir_read(),
           enable_X();
           enable_Z();
           set_X_dir(driver.x->isDir()^direction^BABYSTEP_INVERT_Z);
@@ -1267,8 +1267,8 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           set_X_dir(old_X_dir);
           set_Z_dir(old_Z_dir);
         #elif CORE_IS_YZ
-          const uint8_t old_Y_dir = driver.y->dir_read(),
-                        old_Z_dir = driver.z->dir_read(),
+          const bool  old_Y_dir = driver.y->dir_read(),
+                      old_Z_dir = driver.z->dir_read(),
           enable_Y();
           enable_Z();
           set_Y_dir(driver.y->isDir()^direction^false);
@@ -1283,7 +1283,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           set_Y_dir(old_Y_dir);
           set_Z_dir(old_Z_dir);
         #elif NOMECH(DELTA)
-          const uint8_t old_Z_dir = driver.z->dir_read();
+          const bool old_Z_dir = driver.z->dir_read();
           enable_Z();
           set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z);
           if (data.direction_delay >= 50)
@@ -1300,9 +1300,9 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           enable_Y();
           enable_Z();
 
-          const uint8_t old_x_dir = driver.x->dir_read(),
-                        old_y_dir = driver.y->dir_read(),
-                        old_z_dir = driver.z->dir_read();
+          const bool  old_x_dir = driver.x->dir_read(),
+                      old_y_dir = driver.y->dir_read(),
+                      old_z_dir = driver.z->dir_read();
 
           set_X_dir(driver.x->isDir() ^ z_direction);
           set_Y_dir(driver.y->isDir() ^ z_direction);
