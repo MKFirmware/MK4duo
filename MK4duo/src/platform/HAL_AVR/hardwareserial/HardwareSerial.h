@@ -208,16 +208,16 @@ class MKHardwareSerial {
 
     static void begin(const long);
     static void end();
-    static int peek(void);
-    static int read(void);
-    static void flush(void);
-    static ring_buffer_pos_t available(void);
+    static int peek();
+    static int read();
+    static void flush();
+    static ring_buffer_pos_t available();
     static void write(const uint8_t c);
-    static void flushTX(void);
+    static void flushTX();
     static size_t readBytes(char* buffer, size_t size);
 
     FORCE_INLINE static void store_rxd_char();
-    FORCE_INLINE static void _tx_udr_empty_irq(void);
+    FORCE_INLINE static void _tx_udr_empty_irq();
 
     FORCE_INLINE static uint8_t dropped() { return Cfg::DROPPED_RX ? rx_dropped_bytes : 0; }
     FORCE_INLINE static uint8_t buffer_overruns() { return Cfg::RX_OVERRUNS ? rx_buffer_overruns : 0; }

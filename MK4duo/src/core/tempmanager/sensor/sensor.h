@@ -112,25 +112,26 @@ typedef struct {
       #if HAS_AMPLIFIER
 
         #define PGM_RD_W(x) (short)pgm_read_word(&x)
-        static uint8_t ttbllen_map = COUNT(temptable_amplifier);
-        float celsius = 0;
-        uint8_t i;
 
         if (type == 20) {
-          for (i = 1; i < ttbllen_map; i++) {
-            if (PGM_RD_W(temptable_amplifier[i][0]) > adc_raw) {
-              celsius = PGM_RD_W(temptable_amplifier[i - 1][1]) +
-                        (adc_raw - PGM_RD_W(temptable_amplifier[i - 1][0])) *
-                        (float)(PGM_RD_W(temptable_amplifier[i][1]) - PGM_RD_W(temptable_amplifier[i - 1][1])) /
-                        (float)(PGM_RD_W(temptable_amplifier[i][0]) - PGM_RD_W(temptable_amplifier[i - 1][0]));
-              break;
+          static uint8_t ttbllen_map = COUNT(temptable_pt100);
+          uint8_t i = 0,
+                  j = 0,
+                  len = ttbllen_map;
+          for (;;) {
+            j = (i + len) >> 1;
+            if (!j) return PGM_RD_W(temptable_pt100[0][1]);
+            if (j == i || j == len) return PGM_RD_W(temptable_pt100[ttbllen_map - 1][1]);
+            short v00 = PGM_RD_W(temptable_pt100[j - 1][0]),
+                  v10 = PGM_RD_W(temptable_pt100[j - 0][0]);
+            if (adc_raw < v00) len = j;
+            else if (adc_raw > v10) i = j;
+            else {
+              const short v01 = PGM_RD_W(temptable_pt100[j - 1][1]),
+                          v11 = PGM_RD_W(temptable_pt100[j - 0][1]);
+              return v01 + (adc_raw - v00) * float(v11 - v01) / float(v10 - v00);
             }
           }
-
-          // Overflow: Set to last value in the table
-          if (i == ttbllen_map) celsius = PGM_RD_W(temptable_amplifier[i - 1][1]);
-
-          return celsius;
         }
 
       #endif // HAS_AMPLIFIER
