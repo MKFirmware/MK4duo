@@ -352,7 +352,7 @@ size_t MKHardwareSerial<Cfg>::readBytes(char* buffer, size_t size) {
   size_t count = 0;
   const millis_l timeout = millis() + 1000UL;
 
-  while (count < size) {
+  while (size--) {
 
     do {
       c = read();
