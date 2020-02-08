@@ -6,6 +6,8 @@
 *
 * Version Nextion 1_3_1
 *
+* Add support SdFat library by Bill Greiman 1.1.1 or higher
+*
 * Add Nextion 7" Intelligent
 *
 * Start development for STM32 on board Rumba32
