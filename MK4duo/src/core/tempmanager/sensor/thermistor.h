@@ -634,7 +634,3 @@
   #define COOLER_R25  0.0
   #define COOLER_BETA 0.0
 #endif
-
-#if HAS_AMPLIFIER
-  #include "thermistoramplifier.h"
-#endif

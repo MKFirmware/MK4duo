@@ -75,64 +75,6 @@ void ToolManager::factory_parameters() {
 
 }
 
-void ToolManager::extruder_factory_parameters(const uint8_t e) {
-
-  static const float  tmp_step[]        PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT_E,
-                      tmp_maxfeedrate[] PROGMEM = DEFAULT_MAX_FEEDRATE_E;
-
-  static const uint32_t tmp_maxacc[]    PROGMEM = DEFAULT_MAX_ACCELERATION_E,
-                        tmp_retract[]   PROGMEM = DEFAULT_RETRACT_ACCELERATION;
-
-  static const float    tmp_ejerk[]     PROGMEM = DEFAULT_EJERK;
-
-  extruders[e]->data.axis_steps_per_mm          = pgm_read_float(&tmp_step[e < COUNT(tmp_step) ? e : COUNT(tmp_step) - 1]);
-  extruders[e]->data.max_feedrate_mm_s          = pgm_read_float(&tmp_maxfeedrate[e < COUNT(tmp_maxfeedrate) ? e : COUNT(tmp_maxfeedrate) - 1]);
-  extruders[e]->data.max_acceleration_mm_per_s2 = pgm_read_dword_near(&tmp_maxacc[e < COUNT(tmp_maxacc) ? e : COUNT(tmp_maxacc) - 1]);
-  extruders[e]->data.retract_acceleration       = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
-
-  extruders[e]->flow_percentage     = 100;
-  extruders[e]->density_percentage  = 100;
-  extruders[e]->singlenozzle_temp   = 0;
-
-  #if HAS_CLASSIC_E_JERK
-    extruders[e]->data.max_jerk = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
-  #endif
-
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    extruders[e]->data.load_length   = PAUSE_PARK_FAST_LOAD_LENGTH;
-    extruders[e]->data.unload_length = PAUSE_PARK_UNLOAD_LENGTH;
-  #endif
-
-  #if ENABLED(LIN_ADVANCE)
-    extruders[e]->data.advance_K = LIN_ADVANCE_K;
-    extruder.LA_test = false;
-  #endif
-
-  #if ENABLED(VOLUMETRIC_EXTRUSION)
-    extruders[e]->volumetric_multiplier  = 1.0f;
-    extruders[e]->data.filament_size     = DEFAULT_NOMINAL_FILAMENT_DIA;
-    extruder.volumetric = false;
-  #endif
-
-  #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-    extruders[e]->data.swap_length    = TOOL_CHANGE_FIL_SWAP_LENGTH;
-    extruders[e]->data.purge_lenght   = TOOL_CHANGE_FIL_SWAP_PURGE;
-    extruders[e]->data.prime_speed    = TOOL_CHANGE_FIL_SWAP_PRIME_SPEED;
-    extruders[e]->data.retract_speed  = TOOL_CHANGE_FIL_SWAP_RETRACT_SPEED;
-  #endif
-
-  if (extruder.total == stepper.data.drivers_e)
-    extruders[e]->data.driver = e;
-  else
-    extruders[e]->data.driver = 0;
-
-  if (extruder.total == tempManager.heater.hotends)
-    extruders[e]->data.hotend = e;
-  else
-    extruders[e]->data.hotend = 0;
-
-}
-
 void ToolManager::change_number_extruder(const uint8_t e) {
 
   if (extruder.total < e) {
@@ -202,6 +144,10 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
       no_move = true;
       if (printer.debugFeature()) DEBUG_EM("No move (not homed)");
     }
+
+    #if HAS_LCD_MENU
+      if (!no_move) lcdui.return_to_status();
+    #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
       const bool idex_full_control = mechanics.dual_x_carriage_mode == DXC_FULL_CONTROL_MODE;
@@ -583,6 +529,64 @@ void ToolManager::print_M563() {
 #endif
 
 /** Private Function */
+void ToolManager::extruder_factory_parameters(const uint8_t e) {
+
+  static const float  tmp_step[]        PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT_E,
+                      tmp_maxfeedrate[] PROGMEM = DEFAULT_MAX_FEEDRATE_E;
+
+  static const uint32_t tmp_maxacc[]    PROGMEM = DEFAULT_MAX_ACCELERATION_E,
+                        tmp_retract[]   PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+
+  static const float    tmp_ejerk[]     PROGMEM = DEFAULT_EJERK;
+
+  extruders[e]->data.axis_steps_per_mm          = pgm_read_float(&tmp_step[e < COUNT(tmp_step) ? e : COUNT(tmp_step) - 1]);
+  extruders[e]->data.max_feedrate_mm_s          = pgm_read_float(&tmp_maxfeedrate[e < COUNT(tmp_maxfeedrate) ? e : COUNT(tmp_maxfeedrate) - 1]);
+  extruders[e]->data.max_acceleration_mm_per_s2 = pgm_read_dword_near(&tmp_maxacc[e < COUNT(tmp_maxacc) ? e : COUNT(tmp_maxacc) - 1]);
+  extruders[e]->data.retract_acceleration       = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
+
+  extruders[e]->flow_percentage     = 100;
+  extruders[e]->density_percentage  = 100;
+  extruders[e]->singlenozzle_temp   = 0;
+
+  #if HAS_CLASSIC_E_JERK
+    extruders[e]->data.max_jerk = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
+  #endif
+
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    extruders[e]->data.load_length   = PAUSE_PARK_FAST_LOAD_LENGTH;
+    extruders[e]->data.unload_length = PAUSE_PARK_UNLOAD_LENGTH;
+  #endif
+
+  #if ENABLED(LIN_ADVANCE)
+    extruders[e]->data.advance_K = LIN_ADVANCE_K;
+    extruder.LA_test = false;
+  #endif
+
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
+    extruders[e]->volumetric_multiplier  = 1.0f;
+    extruders[e]->data.filament_size     = DEFAULT_NOMINAL_FILAMENT_DIA;
+    extruder.volumetric = false;
+  #endif
+
+  #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+    extruders[e]->data.swap_length    = TOOL_CHANGE_FIL_SWAP_LENGTH;
+    extruders[e]->data.purge_lenght   = TOOL_CHANGE_FIL_SWAP_PURGE;
+    extruders[e]->data.prime_speed    = TOOL_CHANGE_FIL_SWAP_PRIME_SPEED;
+    extruders[e]->data.retract_speed  = TOOL_CHANGE_FIL_SWAP_RETRACT_SPEED;
+  #endif
+
+  if (extruder.total == stepper.data.drivers_e)
+    extruders[e]->data.driver = e;
+  else
+    extruders[e]->data.driver = 0;
+
+  if (extruder.total == tempManager.heater.hotends)
+    extruders[e]->data.hotend = e;
+  else
+    extruders[e]->data.hotend = 0;
+
+}
+
 void ToolManager::invalid_extruder_error() {
   SERIAL_SMV(ER, "T", (int)extruder.target);
   SERIAL_EM(" " MSG_HOST_INVALID_EXTRUDER);

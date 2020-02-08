@@ -44,7 +44,7 @@ inline void gcode_M9999() { initiateReset(1000); }
  */
 inline void gcode_M9999() {
   enableBackupDomain();
-  setBackupRegister(LL_RTC_BKP_DR2, 0x515B);
+  //setBackupRegister(SYSBL_MAGIC_NUMBER_BKP_INDEX, SYSBL_MAGIC_NUMBER_BKP_VALUE);
   NVIC_SystemReset();
 }
 

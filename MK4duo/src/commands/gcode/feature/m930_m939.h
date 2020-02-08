@@ -45,92 +45,92 @@
   inline void gcode_M930() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_blank_time(driver.x, parser.value_int());
+        tmcManager.set_blank_time(driver.x, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_blank_time(driver.x2, parser.value_int());
+        tmcManager.set_blank_time(driver.x2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_blank_time(driver.y, parser.value_int());
+        tmcManager.set_blank_time(driver.y, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_blank_time(driver.y2, parser.value_int());
+        tmcManager.set_blank_time(driver.y2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_blank_time(driver.z, parser.value_int());
+        tmcManager.set_blank_time(driver.z, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_blank_time(driver.z2, parser.value_int());
+        tmcManager.set_blank_time(driver.z2, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.set_blank_time(driver.z3, parser.value_int());
+        tmcManager.set_blank_time(driver.z3, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_blank_time(driver.e[0], parser.value_int());
+        tmcManager.set_blank_time(driver.e[0], parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_blank_time(driver.x);
+        tmcManager.get_blank_time(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_blank_time(driver.x2);
+        tmcManager.get_blank_time(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_blank_time(driver.y);
+        tmcManager.get_blank_time(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_blank_time(driver.y2);
+        tmcManager.get_blank_time(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_blank_time(driver.z);
+        tmcManager.get_blank_time(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_blank_time(driver.z2);
+        tmcManager.get_blank_time(driver.z2);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.get_blank_time(driver.z3);
+        tmcManager.get_blank_time(driver.z3);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_blank_time(driver.e[0]);
+        tmcManager.get_blank_time(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_blank_time(driver.x);
+        tmcManager.get_blank_time(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_blank_time(driver.y);
+        tmcManager.get_blank_time(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_blank_time(driver.z);
+        tmcManager.get_blank_time(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_blank_time(driver.x2);
+        tmcManager.get_blank_time(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_blank_time(driver.y2);
+        tmcManager.get_blank_time(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_blank_time(driver.z2);
+        tmcManager.get_blank_time(driver.z2);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.get_blank_time(driver.z3);
+        tmcManager.get_blank_time(driver.z3);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_blank_time(driver.e[0]);
+        tmcManager.get_blank_time(driver.e[0]);
       #endif
     }
   }
@@ -141,92 +141,92 @@
   inline void gcode_M931() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_off_time(driver.x, parser.value_int());
+        tmcManager.set_off_time(driver.x, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_off_time(driver.x2, parser.value_int());
+        tmcManager.set_off_time(driver.x2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_off_time(driver.y, parser.value_int());
+        tmcManager.set_off_time(driver.y, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_off_time(driver.y2, parser.value_int());
+        tmcManager.set_off_time(driver.y2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_off_time(driver.z, parser.value_int());
+        tmcManager.set_off_time(driver.z, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_off_time(driver.z2, parser.value_int());
+        tmcManager.set_off_time(driver.z2, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.set_off_time(driver.z3, parser.value_int());
+        tmcManager.set_off_time(driver.z3, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_off_time(driver.e[0], parser.value_int());
+        tmcManager.set_off_time(driver.e[0], parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_off_time(driver.x);
+        tmcManager.get_off_time(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_off_time(driver.x2);
+        tmcManager.get_off_time(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_off_time(driver.y);
+        tmcManager.get_off_time(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_off_time(driver.y2);
+        tmcManager.get_off_time(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_off_time(driver.z);
+        tmcManager.get_off_time(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_off_time(driver.z2);
+        tmcManager.get_off_time(driver.z2);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.get_off_time(driver.z3);
+        tmcManager.get_off_time(driver.z3);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_off_time(driver.e[0]);
+        tmcManager.get_off_time(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_off_time(driver.x);
+        tmcManager.get_off_time(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_off_time(driver.y);
+        tmcManager.get_off_time(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_off_time(driver.z);
+        tmcManager.get_off_time(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_off_time(driver.x2);
+        tmcManager.get_off_time(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_off_time(driver.y2);
+        tmcManager.get_off_time(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_off_time(driver.z2);
+        tmcManager.get_off_time(driver.z2);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.get_off_time(driver.z3);
+        tmcManager.get_off_time(driver.z3);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_off_time(driver.e[0]);
+        tmcManager.get_off_time(driver.e[0]);
       #endif
     }
   }
@@ -237,92 +237,92 @@
   inline void gcode_M932() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_hysteresis_start(driver.x, parser.value_int());
+        tmcManager.set_hysteresis_start(driver.x, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_hysteresis_start(driver.x2, parser.value_int());
+        tmcManager.set_hysteresis_start(driver.x2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_hysteresis_start(driver.y, parser.value_int());
+        tmcManager.set_hysteresis_start(driver.y, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_hysteresis_start(driver.y2, parser.value_int());
+        tmcManager.set_hysteresis_start(driver.y2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_hysteresis_start(driver.z, parser.value_int());
+        tmcManager.set_hysteresis_start(driver.z, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_hysteresis_start(driver.z2, parser.value_int());
+        tmcManager.set_hysteresis_start(driver.z2, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.set_hysteresis_start(driver.z3, parser.value_int());
+        tmcManager.set_hysteresis_start(driver.z3, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_hysteresis_start(driver.e[0], parser.value_int());
+        tmcManager.set_hysteresis_start(driver.e[0], parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_hysteresis_start(driver.x);
+        tmcManager.get_hysteresis_start(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_hysteresis_start(driver.x2);
+        tmcManager.get_hysteresis_start(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_hysteresis_start(driver.y);
+        tmcManager.get_hysteresis_start(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_hysteresis_start(driver.y2);
+        tmcManager.get_hysteresis_start(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_hysteresis_start(driver.z);
+        tmcManager.get_hysteresis_start(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_hysteresis_start(driver.z2);
+        tmcManager.get_hysteresis_start(driver.z2);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.get_hysteresis_start(driver.z3);
+        tmcManager.get_hysteresis_start(driver.z3);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_hysteresis_start(driver.e[0]);
+        tmcManager.get_hysteresis_start(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_hysteresis_start(driver.x);
+        tmcManager.get_hysteresis_start(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_hysteresis_start(driver.y);
+        tmcManager.get_hysteresis_start(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_hysteresis_start(driver.z);
+        tmcManager.get_hysteresis_start(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_hysteresis_start(driver.x2);
+        tmcManager.get_hysteresis_start(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_hysteresis_start(driver.y2);
+        tmcManager.get_hysteresis_start(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_hysteresis_start(driver.z2);
+        tmcManager.get_hysteresis_start(driver.z2);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.get_hysteresis_start(driver.z3);
+        tmcManager.get_hysteresis_start(driver.z3);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_hysteresis_start(driver.e[0]);
+        tmcManager.get_hysteresis_start(driver.e[0]);
       #endif
     }
   }
@@ -333,89 +333,89 @@
   inline void gcode_M933() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_hysteresis_end(driver.x, parser.value_int());
+        tmcManager.set_hysteresis_end(driver.x, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_hysteresis_end(driver.x2, parser.value_int());
+        tmcManager.set_hysteresis_end(driver.x2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_hysteresis_end(driver.y, parser.value_int());
+        tmcManager.set_hysteresis_end(driver.y, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_hysteresis_end(driver.y2, parser.value_int());
+        tmcManager.set_hysteresis_end(driver.y2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_hysteresis_end(driver.z, parser.value_int());
+        tmcManager.set_hysteresis_end(driver.z, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_hysteresis_end(driver.z2, parser.value_int());
+        tmcManager.set_hysteresis_end(driver.z2, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.set_hysteresis_end(driver.z3, parser.value_int());
+        tmcManager.set_hysteresis_end(driver.z3, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_hysteresis_end(driver.e[0], parser.value_int());
+        tmcManager.set_hysteresis_end(driver.e[0], parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_hysteresis_end(driver.x);
+        tmcManager.get_hysteresis_end(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_hysteresis_end(driver.x2);
+        tmcManager.get_hysteresis_end(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_hysteresis_end(driver.y);
+        tmcManager.get_hysteresis_end(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_hysteresis_end(driver.y2);
+        tmcManager.get_hysteresis_end(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_hysteresis_end(driver.z);
+        tmcManager.get_hysteresis_end(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_hysteresis_end(driver.z2);
+        tmcManager.get_hysteresis_end(driver.z2);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.get_hysteresis_end(driver.z3);
+        tmcManager.get_hysteresis_end(driver.z3);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_hysteresis_end(driver.e[0]);
+        tmcManager.get_hysteresis_end(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_hysteresis_end(driver.x);
+        tmcManager.get_hysteresis_end(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_hysteresis_end(driver.y);
+        tmcManager.get_hysteresis_end(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_hysteresis_end(driver.z);
+        tmcManager.get_hysteresis_end(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_hysteresis_end(driver.x2);
+        tmcManager.get_hysteresis_end(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_hysteresis_end(driver.y2);
+        tmcManager.get_hysteresis_end(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_hysteresis_end(driver.z2);
+        tmcManager.get_hysteresis_end(driver.z2);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_hysteresis_end(driver.e[0]);
+        tmcManager.get_hysteresis_end(driver.e[0]);
       #endif
     }
   }
@@ -426,83 +426,83 @@
   inline void gcode_M934() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_fast_decay_time(driver.x, (uint8_t)parser.value_int());
+        tmcManager.set_fast_decay_time(driver.x, (uint8_t)parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_fast_decay_time(driver.x2, (uint8_t)parser.value_int());
+        tmcManager.set_fast_decay_time(driver.x2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_fast_decay_time(driver.y, (uint8_t)parser.value_int());
+        tmcManager.set_fast_decay_time(driver.y, (uint8_t)parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_fast_decay_time(driver.y2, (uint8_t)parser.value_int());
+        tmcManager.set_fast_decay_time(driver.y2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_fast_decay_time(driver.z, (uint8_t)parser.value_int());
+        tmcManager.set_fast_decay_time(driver.z, (uint8_t)parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_fast_decay_time(driver.z2, (uint8_t)parser.value_int());
+        tmcManager.set_fast_decay_time(driver.z2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_fast_decay_time(driver.e[0], (uint8_t)parser.value_int());
+        tmcManager.set_fast_decay_time(driver.e[0], (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_fast_decay_time(driver.x);
+        tmcManager.get_fast_decay_time(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_fast_decay_time(driver.x2);
+        tmcManager.get_fast_decay_time(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_fast_decay_time(driver.y);
+        tmcManager.get_fast_decay_time(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_fast_decay_time(driver.y2);
+        tmcManager.get_fast_decay_time(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_fast_decay_time(driver.z);
+        tmcManager.get_fast_decay_time(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_fast_decay_time(driver.z2);
+        tmcManager.get_fast_decay_time(driver.z2);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_fast_decay_time(driver.e[0]);
+        tmcManager.get_fast_decay_time(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_fast_decay_time(driver.x);
+        tmcManager.get_fast_decay_time(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_fast_decay_time(driver.y);
+        tmcManager.get_fast_decay_time(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_fast_decay_time(driver.z);
+        tmcManager.get_fast_decay_time(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_fast_decay_time(driver.x2);
+        tmcManager.get_fast_decay_time(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_fast_decay_time(driver.y2);
+        tmcManager.get_fast_decay_time(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_fast_decay_time(driver.z2);
+        tmcManager.get_fast_decay_time(driver.z2);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_fast_decay_time(driver.e[0]);
+        tmcManager.get_fast_decay_time(driver.e[0]);
       #endif
     }
   }
@@ -514,83 +514,83 @@
   inline void gcode_M935() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_disable_I_comparator(driver.x, parser.value_bool());
+        tmcManager.set_disable_I_comparator(driver.x, parser.value_bool());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_disable_I_comparator(driver.x2, parser.value_bool());
+        tmcManager.set_disable_I_comparator(driver.x2, parser.value_bool());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_disable_I_comparator(driver.y, parser.value_bool());
+        tmcManager.set_disable_I_comparator(driver.y, parser.value_bool());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_disable_I_comparator(driver.y2, parser.value_bool());
+        tmcManager.set_disable_I_comparator(driver.y2, parser.value_bool());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_disable_I_comparator(driver.z, parser.value_bool());
+        tmcManager.set_disable_I_comparator(driver.z, parser.value_bool());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_disable_I_comparator(driver.z2, parser.value_bool());
+        tmcManager.set_disable_I_comparator(driver.z2, parser.value_bool());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_disable_I_comparator(driver.e[0], parser.value_bool());
+        tmcManager.set_disable_I_comparator(driver.e[0], parser.value_bool());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_disable_I_comparator(driver.x);
+        tmcManager.get_disable_I_comparator(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_disable_I_comparator(driver.x2);
+        tmcManager.get_disable_I_comparator(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_disable_I_comparator(driver.y);
+        tmcManager.get_disable_I_comparator(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_disable_I_comparator(driver.y2);
+        tmcManager.get_disable_I_comparator(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_disable_I_comparator(driver.z);
+        tmcManager.get_disable_I_comparator(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_disable_I_comparator(driver.z2);
+        tmcManager.get_disable_I_comparator(driver.z2);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_disable_I_comparator(driver.e[0]);
+        tmcManager.get_disable_I_comparator(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_disable_I_comparator(driver.x);
+        tmcManager.get_disable_I_comparator(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_disable_I_comparator(driver.y);
+        tmcManager.get_disable_I_comparator(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_disable_I_comparator(driver.z);
+        tmcManager.get_disable_I_comparator(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_disable_I_comparator(driver.x2);
+        tmcManager.get_disable_I_comparator(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_disable_I_comparator(driver.y2);
+        tmcManager.get_disable_I_comparator(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_disable_I_comparator(driver.z2);
+        tmcManager.get_disable_I_comparator(driver.z2);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_disable_I_comparator(driver.e[0]);
+        tmcManager.get_disable_I_comparator(driver.e[0]);
       #endif
     }
   }
@@ -601,83 +601,83 @@
   inline void gcode_M936() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_stealth_gradient(driver.x, parser.value_int());
+        tmcManager.set_stealth_gradient(driver.x, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_stealth_gradient(driver.x2, parser.value_int());
+        tmcManager.set_stealth_gradient(driver.x2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_stealth_gradient(driver.y, parser.value_int());
+        tmcManager.set_stealth_gradient(driver.y, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_stealth_gradient(driver.y2, parser.value_int());
+        tmcManager.set_stealth_gradient(driver.y2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_stealth_gradient(driver.z, parser.value_int());
+        tmcManager.set_stealth_gradient(driver.z, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_stealth_gradient(driver.z2, parser.value_int());
+        tmcManager.set_stealth_gradient(driver.z2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_stealth_gradient(driver.e[0], parser.value_int());
+        tmcManager.set_stealth_gradient(driver.e[0], parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_stealth_gradient(driver.x);
+        tmcManager.get_stealth_gradient(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_stealth_gradient(driver.x2);
+        tmcManager.get_stealth_gradient(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_stealth_gradient(driver.y);
+        tmcManager.get_stealth_gradient(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_stealth_gradient(driver.y2);
+        tmcManager.get_stealth_gradient(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_stealth_gradient(driver.z);
+        tmcManager.get_stealth_gradient(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_stealth_gradient(driver.z2);
+        tmcManager.get_stealth_gradient(driver.z2);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_stealth_gradient(driver.e[0]);
+        tmcManager.get_stealth_gradient(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_stealth_gradient(driver.x);
+        tmcManager.get_stealth_gradient(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_stealth_gradient(driver.y);
+        tmcManager.get_stealth_gradient(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_stealth_gradient(driver.z);
+        tmcManager.get_stealth_gradient(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_stealth_gradient(driver.x2);
+        tmcManager.get_stealth_gradient(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_stealth_gradient(driver.y2);
+        tmcManager.get_stealth_gradient(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_stealth_gradient(driver.z2);
+        tmcManager.get_stealth_gradient(driver.z2);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_stealth_gradient(driver.e[0]);
+        tmcManager.get_stealth_gradient(driver.e[0]);
       #endif
     }
   }
@@ -688,83 +688,83 @@
   inline void gcode_M937() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_stealth_amplitude(driver.x, parser.value_int());
+        tmcManager.set_stealth_amplitude(driver.x, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_stealth_amplitude(driver.x2, parser.value_int());
+        tmcManager.set_stealth_amplitude(driver.x2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_stealth_amplitude(driver.y, parser.value_int());
+        tmcManager.set_stealth_amplitude(driver.y, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_stealth_amplitude(driver.y2, parser.value_int());
+        tmcManager.set_stealth_amplitude(driver.y2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_stealth_amplitude(driver.z, parser.value_int());
+        tmcManager.set_stealth_amplitude(driver.z, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_stealth_amplitude(driver.z2, parser.value_int());
+        tmcManager.set_stealth_amplitude(driver.z2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_stealth_amplitude(driver.e[0], parser.value_int());
+        tmcManager.set_stealth_amplitude(driver.e[0], parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_stealth_amplitude(driver.x);
+        tmcManager.get_stealth_amplitude(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_stealth_amplitude(driver.x2);
+        tmcManager.get_stealth_amplitude(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_stealth_amplitude(driver.y);
+        tmcManager.get_stealth_amplitude(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_stealth_amplitude(driver.y2);
+        tmcManager.get_stealth_amplitude(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_stealth_amplitude(driver.z);
+        tmcManager.get_stealth_amplitude(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_stealth_amplitude(driver.z2);
+        tmcManager.get_stealth_amplitude(driver.z2);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_stealth_amplitude(driver.e[0]);
+        tmcManager.get_stealth_amplitude(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_stealth_amplitude(driver.x);
+        tmcManager.get_stealth_amplitude(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_stealth_amplitude(driver.y);
+        tmcManager.get_stealth_amplitude(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_stealth_amplitude(driver.z);
+        tmcManager.get_stealth_amplitude(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_stealth_amplitude(driver.x2);
+        tmcManager.get_stealth_amplitude(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_stealth_amplitude(driver.y2);
+        tmcManager.get_stealth_amplitude(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_stealth_amplitude(driver.z2);
+        tmcManager.get_stealth_amplitude(driver.z2);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_stealth_amplitude(driver.e[0]);
+        tmcManager.get_stealth_amplitude(driver.e[0]);
       #endif
     }
   }
@@ -775,83 +775,83 @@
   inline void gcode_M938() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_stealth_freq(driver.x, parser.value_int());
+        tmcManager.set_stealth_freq(driver.x, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_stealth_freq(driver.x2, parser.value_int());
+        tmcManager.set_stealth_freq(driver.x2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_stealth_freq(driver.y, parser.value_int());
+        tmcManager.set_stealth_freq(driver.y, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_stealth_freq(driver.y2, parser.value_int());
+        tmcManager.set_stealth_freq(driver.y2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_stealth_freq(driver.z, parser.value_int());
+        tmcManager.set_stealth_freq(driver.z, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_stealth_freq(driver.z2, parser.value_int());
+        tmcManager.set_stealth_freq(driver.z2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_stealth_freq(driver.e[0], parser.value_int());
+        tmcManager.set_stealth_freq(driver.e[0], parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_stealth_freq(driver.x);
+        tmcManager.get_stealth_freq(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_stealth_freq(driver.x2);
+        tmcManager.get_stealth_freq(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_stealth_freq(driver.y);
+        tmcManager.get_stealth_freq(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_stealth_freq(driver.y2);
+        tmcManager.get_stealth_freq(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_stealth_freq(driver.z);
+        tmcManager.get_stealth_freq(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_stealth_freq(driver.z2);
+        tmcManager.get_stealth_freq(driver.z2);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_stealth_freq(driver.e[0]);
+        tmcManager.get_stealth_freq(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_stealth_freq(driver.x);
+        tmcManager.get_stealth_freq(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_stealth_freq(driver.y);
+        tmcManager.get_stealth_freq(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_stealth_freq(driver.z);
+        tmcManager.get_stealth_freq(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_stealth_freq(driver.x2);
+        tmcManager.get_stealth_freq(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_stealth_freq(driver.y2);
+        tmcManager.get_stealth_freq(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_stealth_freq(driver.z2);
+        tmcManager.get_stealth_freq(driver.z2);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_stealth_freq(driver.e[0]);
+        tmcManager.get_stealth_freq(driver.e[0]);
       #endif
     }
   }
@@ -862,83 +862,83 @@
   inline void gcode_M939() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.set_stealth_autoscale(driver.x, parser.value_int());
+        tmcManager.set_stealth_autoscale(driver.x, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.set_stealth_autoscale(driver.x2, parser.value_int());
+        tmcManager.set_stealth_autoscale(driver.x2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.set_stealth_autoscale(driver.y, parser.value_int());
+        tmcManager.set_stealth_autoscale(driver.y, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.set_stealth_autoscale(driver.y2, parser.value_int());
+        tmcManager.set_stealth_autoscale(driver.y2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.set_stealth_autoscale(driver.z, parser.value_int());
+        tmcManager.set_stealth_autoscale(driver.z, parser.value_int());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.set_stealth_autoscale(driver.z2, parser.value_int());
+        tmcManager.set_stealth_autoscale(driver.z2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.set_stealth_autoscale(driver.e[0], parser.value_int());
+        tmcManager.set_stealth_autoscale(driver.e[0], parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_stealth_autoscale(driver.x);
+        tmcManager.get_stealth_autoscale(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_stealth_autoscale(driver.x2);
+        tmcManager.get_stealth_autoscale(driver.x2);
       #endif
     }
     if (parser.seen('Y')) {
       #if AXIS_HAS_TMC(Y)
-        tmc.get_stealth_autoscale(driver.y);
+        tmcManager.get_stealth_autoscale(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_stealth_autoscale(driver.y2);
+        tmcManager.get_stealth_autoscale(driver.y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if AXIS_HAS_TMC(Z)
-        tmc.get_stealth_autoscale(driver.z);
+        tmcManager.get_stealth_autoscale(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_stealth_autoscale(driver.z2);
+        tmcManager.get_stealth_autoscale(driver.z2);
       #endif
     }
     if (parser.seen('E')) {
       #if AXIS_HAS_TMC(E0)
-        tmc.get_stealth_autoscale(driver.e[0]);
+        tmcManager.get_stealth_autoscale(driver.e[0]);
       #endif
     }
     if (!parser.seen_axis()) {
       #if AXIS_HAS_TMC(X)
-        tmc.get_stealth_autoscale(driver.x);
+        tmcManager.get_stealth_autoscale(driver.x);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.get_stealth_autoscale(driver.y);
+        tmcManager.get_stealth_autoscale(driver.y);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.get_stealth_autoscale(driver.z);
+        tmcManager.get_stealth_autoscale(driver.z);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.get_stealth_autoscale(driver.x2);
+        tmcManager.get_stealth_autoscale(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.get_stealth_autoscale(driver.y2);
+        tmcManager.get_stealth_autoscale(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.get_stealth_autoscale(driver.z2);
+        tmcManager.get_stealth_autoscale(driver.z2);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.get_stealth_autoscale(driver.e[0]);
+        tmcManager.get_stealth_autoscale(driver.e[0]);
       #endif
     }
   }

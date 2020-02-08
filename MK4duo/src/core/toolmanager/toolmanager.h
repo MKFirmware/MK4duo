@@ -75,11 +75,6 @@ class ToolManager {
     static void factory_parameters();
 
     /**
-     * Initialize Extruder Factory parameters
-     */
-    static void extruder_factory_parameters(const uint8_t e);
-
-    /**
      * Change number extruder
      */
     static void change_number_extruder(const uint8_t e);
@@ -129,6 +124,11 @@ class ToolManager {
     #endif
 
   private: /** Private Function */
+
+    /**
+     * Initialize Extruder Factory parameters
+     */
+    static void extruder_factory_parameters(const uint8_t e);
 
     static void invalid_extruder_error();
 

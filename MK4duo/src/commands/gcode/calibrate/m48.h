@@ -26,7 +26,7 @@
  * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
+#if ENABLED(PROBE_REPEATABILITY_TEST)
 
   #define CODE_M48
 
@@ -273,4 +273,4 @@
     mechanics.report_position();
   }
 
-#endif // ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
+#endif // ENABLED(PROBE_REPEATABILITY_TEST)

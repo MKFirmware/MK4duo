@@ -202,6 +202,7 @@
 #include "probe/g31_g32.h"
 #include "probe/g38.h"
 #include "probe/m401_m402.h"              // Lower e Raise probe
+#include "probe/m672.h"                   // Set probe smart effector
 #include "probe/m851.h"                   // Set probe offset
 
 // Rfid Commands

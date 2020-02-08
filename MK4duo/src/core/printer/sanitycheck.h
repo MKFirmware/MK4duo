@@ -66,9 +66,9 @@
   #if NUM_SERVOS < 1
     #error "DEPENDENCY ERROR: NUM_SERVOS has to be at least one if you enable ENABLE_SERVOS."
   #endif
-  #if Z_PROBE_SERVO_NR >= 0
-    #if Z_PROBE_SERVO_NR >= NUM_SERVOS
-      #error "DEPENDENCY ERROR: Z_PROBE_SERVO_NR must be smaller than NUM_SERVOS."
+  #if PROBE_SERVO_NR >= 0
+    #if PROBE_SERVO_NR >= NUM_SERVOS
+      #error "DEPENDENCY ERROR: PROBE_SERVO_NR must be smaller than NUM_SERVOS."
     #endif
   #endif
 #endif

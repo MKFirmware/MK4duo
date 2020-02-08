@@ -26,7 +26,7 @@
 #define OV(N)                             int16_t((N) * (THERMISTOR_TABLE_SCALE))
 
 // Pt100 with INA826 amp on Ultimaker v2.0 electronics
-const short temptable_pt100[][2] PROGMEM = {
+const short pt100[][2] PROGMEM = {
   { OV(  0),    0 },
   { OV(227),    1 },
   { OV(236),   10 },

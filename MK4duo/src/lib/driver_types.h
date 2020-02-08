@@ -26,6 +26,9 @@
 #define _A5984              0x5984
 #define _DRV8825            0x8825
 #define _LV8729             0x8729
+#define _L6470              0x6470
+#define _L6474              0x6474
+#define _L6480              0x6480
 #define _TB6560             0x6560
 #define _TB6600             0x6600
 #define _TMC2100            0x2100
@@ -80,7 +83,12 @@
 #define AXIS_HAS_STALLGUARD(ST)   (ST##_HAS_DRV(TMC2130)  || ST##_HAS_DRV(TMC2160)  || ST##_HAS_DRV(TMC2660)  || ST##_HAS_DRV(TMC5130)  || ST##_HAS_DRV(TMC5160)  || ST##_HAS_DRV(TMC5161))
 #define AXIS_HAS_STEALTHCHOP(ST)  (ST##_HAS_DRV(TMC2130)  || ST##_HAS_DRV(TMC2160)  || ST##_HAS_DRV(TMC2208)  || ST##_HAS_DRV(TMC5130)  || ST##_HAS_DRV(TMC5160)  || ST##_HAS_DRV(TMC5161))
 
-#define HAS_SENSORLESS            (TMC_HAS_STALLGUARD && (ENABLED(SENSORLESS_HOMING) || ENABLED(Z_PROBE_SENSORLESS)))
+#define HAS_SENSORLESS            (TMC_HAS_STALLGUARD && (ENABLED(SENSORLESS_HOMING) || ENABLED(PROBE_SENSORLESS)))
+
+#define HAS_L64XX                 (HAVE_DRV(L6470) || HAVE_DRV(L6474) || HAVE_DRV(L6480))
+#define HAS_L64XX_NOT_L6474       (HAS_L64XX && !HAVE_DRV(L6474))
+
+#define AXIS_HAS_L64XX(ST)        (ST##_HAS_DRV(L6470) || ST##_HAS_DRV(L6474) || ST##_HAS_DRV(L6480))
 
 // Disable Z axis sensorless homing if a probe is used to home the Z axis
 #if HAS_TRINAMIC

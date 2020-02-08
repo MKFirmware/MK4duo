@@ -27,22 +27,6 @@
  * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  */
 
-#define DRV_X_LABEL "X", 0
-#define DRV_Y_LABEL "Y", 1
-#define DRV_Z_LABEL "Z", 2
-
-#define DRV_X2_LABEL "X2", 0
-#define DRV_Y2_LABEL "Y2", 1
-#define DRV_Z2_LABEL "Z2", 2
-#define DRV_Z3_LABEL "Z3", 2
-
-#define DRV_E0_LABEL "T0", 3
-#define DRV_E1_LABEL "T1", 4
-#define DRV_E2_LABEL "T2", 5
-#define DRV_E3_LABEL "T3", 6
-#define DRV_E4_LABEL "T4", 7
-#define DRV_E5_LABEL "T5", 8
-
 union driver_flag_t {
   bool all;
   struct {
@@ -87,6 +71,8 @@ class Driver {
 
     #if HAS_TRINAMIC
       MKTMC* tmc = nullptr;
+    #elif HAS_L64XX
+      MKL64XX* l64 = nullptr;
     #endif
 
   public: /** Public Function */
@@ -97,6 +83,7 @@ class Driver {
     void init();
 
     FORCE_INLINE void printLabel()                    { SERIAL_TXT(axis_letter); }
+    FORCE_INLINE void debugLabel()                    { DEBUG_TXT(axis_letter); }
 
     FORCE_INLINE void setEnable(const bool onoff)     { data.flag.enable = onoff; }
     FORCE_INLINE bool isEnable()                      { return data.flag.enable; }
@@ -111,6 +98,8 @@ class Driver {
     FORCE_INLINE void enable_init() {
       #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
         if (tmc) return;
+      #elif HAS_L64XX
+        if (l64) return;
       #endif
       HAL::pinMode(data.pin.enable, OUTPUT);
       if (!isEnable()) enable_write(HIGH);
@@ -119,6 +108,8 @@ class Driver {
       #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
         if (tmc)
           return tmc->toff(state == isEnable() ? chopper_timing.toff : 0);
+      #elif HAS_L64XX
+        if (l64) return (state ? NOOP : l64->free());
       #endif
       HAL::digitalWrite(data.pin.enable, state);
       data.flag.enable_status = state;
@@ -126,6 +117,8 @@ class Driver {
     FORCE_INLINE bool enable_read() {
       #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
         if (tmc) return tmc->isEnabled();
+      #elif HAS_L64XX
+        if (l64) return (l64->getStatus() & STATUS_HIZ);
       #endif
       return data.flag.enable_status;
     }
@@ -134,14 +127,30 @@ class Driver {
      * Function for dir
      */
     FORCE_INLINE void dir_init() {
-      HAL::pinMode(data.pin.dir, OUTPUT);
+      #if HAS_L64XX_NOT_L6474
+        NOOP;
+      #else
+        HAL::pinMode(data.pin.dir, OUTPUT);
+      #endif
     }
     FORCE_INLINE void dir_write(const bool state) {
+      #if HAVE_DRV(L6474)
+        if (l64) l64->dir_command = dSPIN_L6474_ENABLE;
+      #elif HAS_L64XX_NOT_L6474
+        if (l64) {
+          l64->dir_command = state ? dSPIN_STEP_CLOCK_REV : dSPIN_STEP_CLOCK_FWD;
+          return;
+        }
+      #endif
       HAL::digitalWrite(data.pin.dir, state);
       data.flag.dir_status = state;
     }
     FORCE_INLINE bool dir_read() {
-      return data.flag.dir_status;
+      #if HAS_L64XX_NOT_L6474
+        if (l64) return (l64->getStatus() & STATUS_DIR);
+      #else
+        return data.flag.dir_status;
+      #endif
     }
 
     /**
@@ -152,7 +161,7 @@ class Driver {
       step_write(isStep());
     }
     FORCE_INLINE void step_write(const bool state) {
-      #if ENABLED(SQUARE_WAVE_STEPPING)
+      #if HAS_TRINAMIC && ENABLED(SQUARE_WAVE_STEPPING)
         if (tmc) return step_toggle(state);
       #endif
       HAL::digitalWrite(data.pin.step, state);

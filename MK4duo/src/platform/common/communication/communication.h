@@ -75,9 +75,6 @@ class Com {
     static void print_onoff(PGM_P const label, const bool on);
     static void print_yesno(PGM_P const label, const bool yes);
 
-    // Capabilities string
-    static void host_capabilities(PGM_P pstr);
-
     // A delay to provide brittle hosts time to receive bytes
     static void serial_delay(const millis_l ms);
 
@@ -145,9 +142,6 @@ class Com {
 
 // Flush
 #define SERIAL_FLUSH()                Com::serialFlush()
-
-// HOST Capabilities string
-#define SERIAL_CAP(msg)               Com::host_capabilities(PSTR(msg))
 
 // Serial overrun protection
 #define SERIAL_DLY(ms)                Com::serial_delay(ms)

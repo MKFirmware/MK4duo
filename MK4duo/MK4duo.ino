@@ -57,8 +57,8 @@
  *          S = [bool] Stows the probe if 1 (default=1)
  *          Z = [bool] with a non-zero value will apply the result to current delta_height (ONLY DELTA)
  *          P = [bool] with a non-zero value will apply the result to current probe_offset_Z (ONLY DELTA)
- * G31  - Dock sled (Z_PROBE_SLED only)
- * G32  - Undock sled (Z_PROBE_SLED only)
+ * G31  - Dock sled (PROBE_SLED only)
+ * G32  - Undock sled (PROBE_SLED only)
  * G33  - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
  *          F[nfactor] p[npoint] Q[debugging] (Requires DELTA_AUTO_CALIBRATION_1)
  *          P[points] [F] [O] [T] V[verbose] (Requires DELTA_AUTO_CALIBRATION_2)
@@ -305,6 +305,7 @@
  * M649 - Set laser options. S[intensity] L[duration] P[ppm] B[set mode] R[raster mm per pulse] F[feedrate]
  * M666 - Delta geometry adjustment
  * M666 - Set Two Endstops offsets for X, Y, and/or Z (requires TWO ENDSTOPS)
+ * M672 - Set/reset Probe Smart Effector sensitivity, S[sensitivity] 0-255, R reset sensitivity to default
  * M701 - Load Filament T[toolhead] Z[distance] L[Extrude distance]
  * M702 - Unload Filament T[toolhead] Z[distance] U[Retract distance]
  * M800 - S goto to lcd menu. With no parameters run restart commands.

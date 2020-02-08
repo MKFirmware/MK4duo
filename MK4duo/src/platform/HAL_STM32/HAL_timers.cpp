@@ -90,8 +90,7 @@ void HAL_timer_start() {
   if (!HAL_timer_initialized()) {
     MK_step_timer = new HardwareTimer(STEP_TIMER);
     MK_step_timer->setMode(1, TIMER_OUTPUT_COMPARE);
-    //MK_step_timer->setInterruptPriority(NvicPriorityStepper, 0);
-    HAL_NVIC_SetPriority(STEP_TIMER_IRQ_NAME, NvicPriorityStepper, 0);
+    MK_step_timer->setInterruptPriority(NvicPriorityStepper, 0);
     MK_step_timer->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
     MK_step_timer->setOverflow(200, TICK_FORMAT);
     MK_step_timer->attachInterrupt(Step_Handler);

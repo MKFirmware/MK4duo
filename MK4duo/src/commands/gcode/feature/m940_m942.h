@@ -45,7 +45,7 @@ inline void gcode_M940() {
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M940 report.
     if (!parser.seen("XYZE")) {
-      tmc.print_M940();
+      tmcManager.print_M940();
       return;
     }
   #endif

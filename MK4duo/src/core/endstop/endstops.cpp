@@ -599,7 +599,7 @@ void Endstops::update() {
         #else
           if (X_MIN_TEST) PROCESS_ENDSTOP(X, MIN);
         #endif
-      #elif MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
+      #elif MECH(DELTA) && ENABLED(PROBE_SENSORLESS)
         PROCESS_ENDSTOP(X, MAX);
       #endif
     }
@@ -622,7 +622,7 @@ void Endstops::update() {
         #else
           PROCESS_ENDSTOP(Y, MIN);
         #endif
-      #elif MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
+      #elif MECH(DELTA) && ENABLED(PROBE_SENSORLESS)
         PROCESS_ENDSTOP(Y, MAX);
       #endif
     }
@@ -647,7 +647,7 @@ void Endstops::update() {
         #else
           PROCESS_ENDSTOP(Z, MIN);
         #endif
-      #elif MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
+      #elif MECH(DELTA) && ENABLED(PROBE_SENSORLESS)
         PROCESS_ENDSTOP(Z, MAX);
       #endif
 

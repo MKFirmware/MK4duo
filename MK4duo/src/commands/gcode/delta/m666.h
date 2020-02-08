@@ -70,15 +70,15 @@ inline void gcode_M666() {
   if (parser.seen('S')) mechanics.data.segments_per_second_print  = parser.value_ushort();
   if (parser.seen('F')) mechanics.data.segments_per_second_move   = parser.value_ushort();
   if (parser.seen('L')) mechanics.data.segments_per_line          = parser.value_byte();
-  if (parser.seen('A')) mechanics.data.diagonal_rod_adj[A_AXIS]   = parser.value_linear_units();
-  if (parser.seen('B')) mechanics.data.diagonal_rod_adj[B_AXIS]   = parser.value_linear_units();
-  if (parser.seen('C')) mechanics.data.diagonal_rod_adj[C_AXIS]   = parser.value_linear_units();
-  if (parser.seen('I')) mechanics.data.tower_angle_adj[A_AXIS]    = parser.value_linear_units();
-  if (parser.seen('J')) mechanics.data.tower_angle_adj[B_AXIS]    = parser.value_linear_units();
-  if (parser.seen('K')) mechanics.data.tower_angle_adj[C_AXIS]    = parser.value_linear_units();
-  if (parser.seen('U')) mechanics.data.tower_radius_adj[A_AXIS]   = parser.value_linear_units();
-  if (parser.seen('V')) mechanics.data.tower_radius_adj[B_AXIS]   = parser.value_linear_units();
-  if (parser.seen('W')) mechanics.data.tower_radius_adj[C_AXIS]   = parser.value_linear_units();
+  if (parser.seen('A')) mechanics.data.diagonal_rod_adj.a         = parser.value_linear_units();
+  if (parser.seen('B')) mechanics.data.diagonal_rod_adj.b         = parser.value_linear_units();
+  if (parser.seen('C')) mechanics.data.diagonal_rod_adj.c         = parser.value_linear_units();
+  if (parser.seen('I')) mechanics.data.tower_angle_adj.a          = parser.value_linear_units();
+  if (parser.seen('J')) mechanics.data.tower_angle_adj.b          = parser.value_linear_units();
+  if (parser.seen('K')) mechanics.data.tower_angle_adj.c          = parser.value_linear_units();
+  if (parser.seen('U')) mechanics.data.tower_radius_adj.a         = parser.value_linear_units();
+  if (parser.seen('V')) mechanics.data.tower_radius_adj.b         = parser.value_linear_units();
+  if (parser.seen('W')) mechanics.data.tower_radius_adj.c         = parser.value_linear_units();
   if (parser.seen('O')) mechanics.data.print_radius               = parser.value_linear_units();
   if (parser.seen('P')) mechanics.data.probe_radius               = parser.value_linear_units();
 

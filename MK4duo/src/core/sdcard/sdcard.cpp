@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
 #include "sanitycheck.h"
 
 #if HAS_SD_SUPPORT
@@ -195,7 +195,7 @@ void SDCard::unmount() {
 
 void SDCard::ls() {
   setroot();
-  root.ls();
+  lsRecursive(&root);
 }
 
 void SDCard::getfilename(uint16_t nr, PGM_P const match/*=nullptr*/) {
@@ -864,6 +864,70 @@ uint16_t SDCard::get_num_Files() {
 /** Private Function */
 void SDCard::openFailed(const char * const path) {
   SERIAL_LMT(ER, MSG_HOST_SD_OPEN_FILE_FAIL, path);
+}
+
+void SDCard::lsRecursive(FatFile *dir, uint8_t level/*=0*/) {
+
+  FatFile file;
+
+  if (!dir->isDir() || dir->getError()) return;
+
+  dir->rewind();
+
+  while (file.openNext(dir, O_READ)) {
+    file.getName(tempLongFilename, LONG_FILENAME_LENGTH);
+    if (file.isHidden()) {
+      file.close();
+      continue;
+    }
+    // if (! (file.isFile() || file.isDir())) continue;
+    if (strcmp(tempLongFilename, "..") == 0) {
+      file.close();
+      continue;
+    }
+    if (tempLongFilename[0] == '.') {
+      file.close();
+      continue; // MAC CRAP
+    }
+    if (file.isDir()) {
+      if (level >= SD_MAX_FOLDER_DEPTH) {
+        file.close();
+        continue; // can't go deeper
+      }
+      if (level) {
+        SERIAL_TXT(fileName);
+        SERIAL_CHR('/');
+      }
+      SERIAL_TXT(card.tempLongFilename);
+      SERIAL_CHR('/');
+      SERIAL_EOL();
+
+      char* tmp;
+      // Add directory name
+      if (level) strcat(fileName, "/");
+      strcat(fileName, tempLongFilename);
+      lsRecursive(&file, level + 1);
+
+      // remove added directory name
+      if ((tmp = strrchr(fileName, '/')) != NULL)
+        *tmp = 0;
+      else
+        *fileName = 0;
+    }
+    else { // is filename
+      if (level) {
+        SERIAL_TXT(fileName);
+        SERIAL_CHR('/');
+      }
+      SERIAL_TXT(tempLongFilename);
+      #ifdef SD_EXTENDED_DIR
+        SERIAL_MV(" ", (long)file.fileSize());
+      #endif
+      SERIAL_EOL();
+    }
+    file.close();
+  }
+
 }
 
 /**

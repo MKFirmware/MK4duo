@@ -26,6 +26,7 @@
  */
 
 #include "thermistor.h"
+#include "pt100.h"
 
 typedef struct {
 
@@ -109,32 +110,26 @@ typedef struct {
           return dhtsensor.temperature;
       #endif
 
-      #if HAS_AMPLIFIER
-
-        #define PGM_RD_W(x) (short)pgm_read_word(&x)
-
-        if (type == 20) {
-          static uint8_t ttbllen_map = COUNT(temptable_pt100);
-          uint8_t i = 0,
-                  j = 0,
-                  len = ttbllen_map;
-          for (;;) {
-            j = (i + len) >> 1;
-            if (!j) return PGM_RD_W(temptable_pt100[0][1]);
-            if (j == i || j == len) return PGM_RD_W(temptable_pt100[ttbllen_map - 1][1]);
-            short v00 = PGM_RD_W(temptable_pt100[j - 1][0]),
-                  v10 = PGM_RD_W(temptable_pt100[j - 0][0]);
-            if (adc_raw < v00) len = j;
-            else if (adc_raw > v10) i = j;
-            else {
-              const short v01 = PGM_RD_W(temptable_pt100[j - 1][1]),
-                          v11 = PGM_RD_W(temptable_pt100[j - 0][1]);
-              return v01 + (adc_raw - v00) * float(v11 - v01) / float(v10 - v00);
-            }
+      if (type == 20) {
+        static uint8_t ttbllen_map = COUNT(pt100);
+        uint8_t i = 0,
+                j = 0,
+                len = ttbllen_map;
+        for (;;) {
+          j = (i + len) >> 1;
+          if (!j) return short(pgm_read_word(&pt100[0][1]));
+          if (j == i || j == len) return short(pgm_read_word(&pt100[ttbllen_map - 1][1]));
+          short v00 = short(pgm_read_word(&pt100[j - 1][0])),
+                v10 = short(pgm_read_word(&pt100[j - 0][0]));
+          if (adc_raw < v00) len = j;
+          else if (adc_raw > v10) i = j;
+          else {
+            const short v01 = short(pgm_read_word(&pt100[j - 1][1])),
+                        v11 = short(pgm_read_word(&pt100[j - 0][1]));
+            return v01 + (adc_raw - v00) * float(v11 - v01) / float(v10 - v00);
           }
         }
-
-      #endif // HAS_AMPLIFIER
+      }
 
       if (type == 998) return DUMMY_THERMISTOR_998_VALUE;
       if (type == 999) return DUMMY_THERMISTOR_999_VALUE;

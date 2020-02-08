@@ -172,11 +172,11 @@
  * disastrous outcomes. Use with caution and do your homework.                           *
  *                                                                                       *
  *****************************************************************************************/
-// Z Servo Endstop
+// Probe Servo
 // Remember active servos in Configuration_Feature.h
 // Define nr servo for endstop -1 not define. Servo index start 0
-#define Z_PROBE_SERVO_NR -1
-#define Z_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
+#define PROBE_SERVO_NR -1
+#define PROBE_SERVO_ANGLES {90,0} // Probe Servo Deploy and Stow angles
 
 // The "Manual Probe" provides a means to do "Auto" Bed Leveling without a probe.
 // Use Host or LCD for adjust Z height.
@@ -184,9 +184,7 @@
 
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
 // For example an inductive probe, or a setup that uses the nozzle to probe.
-// An inductive probe must be deactivated to go below
-// its trigger-point if hardware endstops are active.
-//#define Z_PROBE_FIX_MOUNTED
+//#define PROBE_FIX_MOUNTED
 
 // The BLTouch probe uses a Hall effect sensor and emulates a servo.
 // The default connector is SERVO 0.
@@ -197,10 +195,10 @@
 // CAUTION: This could cause damage to machines that use a lead screw or threaded rod
 //          to move the Z axis. Take extreme care when attempting to enable this feature.
 //
-//#define Z_PROBE_SENSORLESS
+//#define PROBE_SENSORLESS
 
 // Enable if you have a Z probe mounted on a sled like those designed by Charles Bell.
-//#define Z_PROBE_SLED
+//#define PROBE_SLED
 // The extra distance the X axis must travel to pick up the sled.
 // 0 should be fine but you can push it further if you'd like.
 #define SLED_DOCKING_OFFSET 5
@@ -233,7 +231,7 @@
 #define Z_PROBE_REPETITIONS 1
 
 // Enable Z Probe Repeatability test to see how accurate your probe is
-//#define Z_MIN_PROBE_REPEATABILITY_TEST
+//#define PROBE_REPEATABILITY_TEST
 
 // Before deploy/stow pause for user confirmation
 //#define PAUSE_BEFORE_DEPLOY_STOW
@@ -265,7 +263,7 @@
 
 // Add a menu item to move between bed corners for manual bed adjustment
 //#define LEVEL_BED_CORNERS
-#define LEVEL_CORNERS_INSET  30   // (mm) An inset for corner leveling
+#define LEVEL_CORNERS_INSET_LFRB { 30, 30, 30, 30 } // (mm) Left, Front, Right, Back insets
 #define LEVEL_CORNERS_Z_HOP   4.0 // (mm) Move nozzle up before moving between corners
 #define LEVEL_CORNERS_HEIGHT  0.0 // (mm) Z height of nozzle at leveling points
 //#define LEVEL_CENTER_TOO        // Move to the center after the last corner
@@ -561,8 +559,8 @@
 #define DEFAULT_MAX_FEEDRATE          {300, 300, 2}
 //                                      E0, ...(per extruder). (mm/sec)
 #define DEFAULT_MAX_FEEDRATE_E        {100, 100, 100, 100}
-// Feedrates for manual moves along        X,     Y,     Z,  E from panel
-#define MANUAL_FEEDRATE               {50*60, 50*60, 4*60, 10*60}
+// Feedrates for manual moves along     X,  Y, Z,  E from panel (mm/sec)
+#define MANUAL_FEEDRATE               {50, 50, 4, 10}
 // (mm) Smallest manual Z move (< 0.1mm)
 #define SHORT_MANUAL_Z_MOVE           0.025
 // Minimum feedrate

@@ -61,7 +61,7 @@
     #if DISABLED(DISABLE_M503)
       // No arguments? Show M906 report.
       if (!parser.seen("XYZE")) {
-        tmc.print_M906();
+        tmcManager.print_M906();
         return;
       }
     #endif

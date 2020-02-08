@@ -86,7 +86,7 @@
       case MeshStart:
         mbl.factory_parameters();
         mbl_probe_index = 0;
-        if (!lcdui.wait_for_bl_move) {
+        if (!lcdui.wait_for_move) {
           commands.enqueue_now_P(PSTR("G28\nG29 S2"));
           return;
         }
@@ -145,7 +145,7 @@
           #endif
 
           #if ENABLED(LCD_BED_LEVELING)
-            lcdui.wait_for_bl_move = false;
+            lcdui.wait_for_move = false;
           #endif
         }
         break;

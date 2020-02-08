@@ -21,15 +21,13 @@
  */
 #pragma once
 
-#if HAS_SD_SUPPORT
-  #include "../sdcard/sdcard.h"
-#endif
-
 #define LCD_MESSAGEPGM_P(x)       lcdui.set_status_P(x)
 #define LCD_ALERTMESSAGEPGM_P(x)  lcdui.set_alert_status_P(x)
 
 #define LCD_MESSAGEPGM(x)         LCD_MESSAGEPGM_P(GET_TEXT(x))
 #define LCD_ALERTMESSAGEPGM(x)    LCD_ALERTMESSAGEPGM_P(GET_TEXT(x))
+
+#define LCD_HAS_WAIT_FOR_MOVE     MECH(DELTA) || (ENABLED(LCD_BED_LEVELING) && (HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING)))
 
 #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
   #define LCD_SET_CHARSET(C)      set_custom_characters(C)
@@ -158,10 +156,10 @@ class LcdUI {
       static constexpr bool external_control = false;
     #endif
 
-    #if ENABLED(LCD_BED_LEVELING) && (HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING))
-      static bool wait_for_bl_move;
+    #if LCD_HAS_WAIT_FOR_MOVE
+      static bool wait_for_move;
     #else
-      static constexpr bool wait_for_bl_move = false;
+      static constexpr bool wait_for_move = false;
     #endif
 
     #if HAS_ENCODER_ACTION

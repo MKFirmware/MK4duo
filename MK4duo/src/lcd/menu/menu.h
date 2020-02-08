@@ -24,7 +24,7 @@
 #if HAS_LCD_MENU
 
 // Manual Movement
-constexpr XYZEval<const float> manual_feedrate_mm_m = MANUAL_FEEDRATE;
+constexpr xyze_feedrate_t manual_feedrate_mm_s = MANUAL_FEEDRATE;
 extern float move_menu_scale;
 
 extern int8_t encoderLine, encoderTopLine, screen_items;

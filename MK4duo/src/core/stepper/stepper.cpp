@@ -184,7 +184,9 @@ void Stepper::create_driver() {
   create_xyz_driver();
   create_ext_driver();
   #if HAS_TRINAMIC
-    tmc.create_tmc();
+    tmcManager.create_tmc();
+  #elif HAS_L64XX
+    l64xxManager.create_l64();
   #endif
 }
 
@@ -325,9 +327,11 @@ void Stepper::factory_parameters() {
   LOOP_DRV_EXT()      if (driver[d]) driver_factory_parameters(driver.e[d], d, false);
 
   #if HAS_TRINAMIC
-    tmc.factory_parameters();
+    tmcManager.factory_parameters();
+  #elif HAS_L64XX
+    l64xxManager.factory_parameters();
   #endif
-  
+
 }
 
 /**
@@ -568,7 +572,7 @@ void Stepper::reset_drivers() {
  *   COREXZ: X_AXIS=A_AXIS and Z_AXIS=C_AXIS
  *   COREZX: X_AXIS=A_AXIS and Z_AXIS=C_AXIS
  */
-void Stepper::set_directions() {
+void Stepper::set_directions(const bool init/*=false*/) {
 
   // Pre changing directions, an small delay could be needed.
   // Min delay is 50 Nanoseconds
@@ -631,6 +635,30 @@ void Stepper::set_directions() {
 
   #if HAS_EXT_ENCODER
     toolManager.encLastDir[active_extruder] = count_direction.e;
+  #endif
+
+  #if HAS_L64XX
+    uint8_t L64XX_buf[MAX_DRIVER];
+    if (init) {
+      if (l64xxManager.flag.spi_active) {
+        l64xxManager.flag.spi_abort = true;
+        LOOP_DRV() L64XX_buf[d] = dSPIN_NOP;
+        l64xxManager.transfer(L64XX_buf, L64XX::chain[0]);
+        l64xxManager.transfer(L64XX_buf, L64XX::chain[0]);
+        l64xxManager.transfer(L64XX_buf, L64XX::chain[0]);
+      }
+      LOOP_DRV_ALL_XYZ() {
+        Driver* drv = driver[d];
+        if (drv && drv->l64) L64XX_buf[d] = drv->l64->dir_command;
+      }
+      LOOP_DRV_EXT() {
+        Driver* drv = driver.e[d];
+        if (drv && drv->l64) L64XX_buf[d+7] = drv->l64->dir_command;
+      }
+      l64xxManager.transfer(L64XX_buf, L64XX::chain[0]);
+    }
+  #else
+    UNUSED(init);
   #endif
 
   // After changing directions, an small delay could be needed.
@@ -1744,17 +1772,26 @@ uint32_t Stepper::block_phase_step() {
         else LA_isr_rate = LA_ADV_NEVER;
       #endif
 
-      if (current_block->direction_bits != last_direction_bits
-        #if DISABLED(COLOR_MIXING_EXTRUDER)
-          || active_extruder != last_moved_extruder
-        #endif
-      ) {
+      #if HAS_L64XX
+        // Always set direction for L64xx (This also enables the chips)
         last_direction_bits = current_block->direction_bits;
         #if MAX_EXTRUDER > 1
           last_moved_extruder = active_extruder;
         #endif
-        set_directions();
-      }
+        set_directions(true);
+      #else
+        if (current_block->direction_bits != last_direction_bits
+          #if DISABLED(COLOR_MIXING_EXTRUDER)
+            || active_extruder != last_moved_extruder
+          #endif
+        ) {
+          last_direction_bits = current_block->direction_bits;
+          #if MAX_EXTRUDER > 1
+            last_moved_extruder = active_extruder;
+          #endif
+          set_directions();
+        }
+      #endif
 
       // At this point, we must ensure the movement about to execute isn't
       // trying to force the head against a limit switch. If using interrupt-

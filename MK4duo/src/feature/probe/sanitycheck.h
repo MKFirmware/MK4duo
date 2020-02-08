@@ -32,37 +32,37 @@
  */
 #if 1 < 0 \
   + ENABLED(PROBE_MANUALLY)                   \
-  + ENABLED(Z_PROBE_FIX_MOUNTED)              \
+  + ENABLED(PROBE_FIX_MOUNTED)              \
   + (HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH))  \
   + ENABLED(BLTOUCH)                          \
-  + ENABLED(Z_PROBE_ALLEN_KEY)                \
-  + ENABLED(Z_PROBE_SLED)                     \
-  + ENABLED(Z_PROBE_SENSORLESS)
-  #error "DEPENDENCY ERROR: Please enable only one probe: PROBE_MANUALLY, Z_PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_SENSORLESS."
+  + ENABLED(PROBE_ALLEN_KEY)                \
+  + ENABLED(PROBE_SLED)                     \
+  + ENABLED(PROBE_SENSORLESS)
+  #error "DEPENDENCY ERROR: Please enable only one probe: PROBE_MANUALLY, PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, PROBE_ALLEN_KEY, PROBE_SLED, or PROBE_SENSORLESS."
 #endif
 
 #if HAS_BED_PROBE
 
-  // Z_PROBE_SLED is incompatible with DELTA
-  #if ENABLED(Z_PROBE_SLED) && MECH(DELTA)
-    #error "DEPENDENCY ERROR: You cannot use Z_PROBE_SLED with DELTA."
+  // PROBE_SLED is incompatible with DELTA
+  #if ENABLED(PROBE_SLED) && MECH(DELTA)
+    #error "DEPENDENCY ERROR: You cannot use PROBE_SLED with DELTA."
   #endif
 
   // NUM_SERVOS is required for a Z servo probe
   #if HAS_Z_SERVO_PROBE
     #ifndef NUM_SERVOS
-      #error "DEPENDENCY ERROR: You must set NUM_SERVOS for a Z servo probe (Z_PROBE_SERVO_NR)."
-    #elif Z_PROBE_SERVO_NR >= NUM_SERVOS
-      #error "DEPENDENCY ERROR: Z_PROBE_SERVO_NR must be less than NUM_SERVOS."
+      #error "DEPENDENCY ERROR: You must set NUM_SERVOS for a servo probe (PROBE_SERVO_NR)."
+    #elif PROBE_SERVO_NR >= NUM_SERVOS
+      #error "DEPENDENCY ERROR: PROBE_SERVO_NR must be less than NUM_SERVOS."
     #endif
   #endif
 
   // Require pin options and pins to be defined
-  #if ENABLED(Z_PROBE_SENSORLESS)
+  #if ENABLED(PROBE_SENSORLESS)
     #if MECH(DELTA) && (!AXIS_HAS_STALLGUARD(X) || !AXIS_HAS_STALLGUARD(Y) || !AXIS_HAS_STALLGUARD(Z))
-      #error "Z_PROBE_SENSORLESS requires TMC2130 drivers on X, Y, and Z."
+      #error "PROBE_SENSORLESS requires TMC2130 drivers on X, Y, and Z."
     #elif !AXIS_HAS_STALLGUARD(Z)
-      #error "Z_PROBE_SENSORLESS requires a TMC2130 driver on Z."
+      #error "PROBE_SENSORLESS requires a TMC2130 driver on Z."
     #endif
   #else
     #if DISABLED(PROBE_MANUALLY) && !PROBE_PIN_CONFIGURED
@@ -85,21 +85,21 @@
 
   // Require some kind of probe for bed leveling and probe testing
   #if OLD_ABL
-    #error "DEPENDENCY ERROR: Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+    #error "DEPENDENCY ERROR: Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, PROBE_ALLEN_KEY, PROBE_SLED, or PROBE_FIX_MOUNTED."
   #elif ENABLED(DELTA_AUTO_CALIBRATION_1)
-    #error "DEPENDENCY ERROR: DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+    #error "DEPENDENCY ERROR: DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, PROBE_ALLEN_KEY, PROBE_SLED, or PROBE_FIX_MOUNTED."
   #elif ENABLED(DELTA_AUTO_CALIBRATION_2)
-    #error "DEPENDENCY ERROR: DELTA_AUTO_CALIBRATION_2 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+    #error "DEPENDENCY ERROR: DELTA_AUTO_CALIBRATION_2 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, PROBE_ALLEN_KEY, PROBE_SLED, or PROBE_FIX_MOUNTED."
   #endif
 
 #endif
 
-#if (!HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)) && ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
-  #error "DEPENDENCY ERROR: Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+#if (!HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)) && ENABLED(PROBE_REPEATABILITY_TEST)
+  #error "DEPENDENCY ERROR: PROBE_REPEATABILITY_TEST requires a probe! Define a Probe Servo, BLTOUCH, PROBE_ALLEN_KEY, PROBE_SLED, or PROBE_FIX_MOUNTED."
 #endif
 
-#if ENABLED(Z_PROBE_SLED) && !PIN_EXISTS(SLED)
-  #error "DEPENDENCY ERROR: You have to set SLED_PIN to a valid pin if you enable Z_PROBE_SLED."
+#if ENABLED(PROBE_SLED) && !PIN_EXISTS(SLED)
+  #error "DEPENDENCY ERROR: You have to set SLED_PIN to a valid pin if you enable PROBE_SLED."
 #endif
 
 // G38 Probe Target
