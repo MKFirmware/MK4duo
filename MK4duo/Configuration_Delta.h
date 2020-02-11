@@ -226,11 +226,11 @@
  * disastrous outcomes. Use with caution and do your homework.                           *
  *                                                                                       *
  *****************************************************************************************/
-// Z Servo Endstop
+// Probe Servo
 // Remember active servos in Configuration_Feature.h
 // Define nr servo for endstop -1 not define. Servo index start 0
-#define Z_PROBE_SERVO_NR -1
-#define Z_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
+#define PROBE_SERVO_NR -1
+#define PROBE_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
 // The "Manual Probe" provides a means to do "Auto" Bed Leveling and calibration without a probe.
 // Use G29 or G30 A repeatedly, adjusting the Z height at each point with movement commands
@@ -239,9 +239,7 @@
 
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
 // For example an inductive probe, or a setup that uses the nozzle to probe.
-// An inductive probe must be deactivated to go below
-// its trigger-point if hardware endstops are active.
-//#define Z_PROBE_FIX_MOUNTED
+//#define PROBE_FIX_MOUNTED
 
 // The BLTouch probe uses a Hall effect sensor and emulates a servo.
 // The default connector is SERVO 0.
@@ -249,14 +247,18 @@
 
 // Allen key retractable z-probe as seen on many Kossel delta printers - http://reprap.org/wiki/Kossel#Automatic_bed_leveling_probe
 // Deploys by touching z-axis belt. Retracts by pushing the probe down.
-//#define Z_PROBE_ALLEN_KEY
+//#define PROBE_ALLEN_KEY
+
+// Duet Smart Effector (for delta printers) - https://bit.ly/2ul5U7J
+// When the pin is defined you can use M672 to set/reset the probe sensivity.
+//#define PROBE_SMART_EFFECTOR
 
 // If you have TMC2130 or TMC5130 you can use StallGuard2 to probe the bed with the nozzle.
 //
 // CAUTION: This could cause damage to machines that use a lead screw or threaded rod
 //          to move the Z axis. Take extreme care when attempting to enable this feature.
 //
-//#define Z_PROBE_SENSORLESS
+//#define PROBE_SENSORLESS
 
 // Start and end location values are used to deploy/retract the probe (will move from start to end and back again)
 #define Z_PROBE_DEPLOY_START_LOCATION   {0, 0, 30}  // X, Y, Z, start location for z-probe deployment sequence
@@ -292,7 +294,7 @@
 #define Z_PROBE_REPETITIONS 1
 
 // Enable Z Probe Repeatability test to see how accurate your probe is
-//#define Z_MIN_PROBE_REPEATABILITY_TEST
+//#define PROBE_REPEATABILITY_TEST
 
 // Before deploy/stow pause for user confirmation
 //#define PAUSE_BEFORE_DEPLOY_STOW
@@ -547,8 +549,8 @@
 #define DEFAULT_MAX_FEEDRATE          {300, 300, 300}
 //                                      E0, ...(per extruder). (mm/sec)
 #define DEFAULT_MAX_FEEDRATE_E        {100, 100, 100, 100}
-// Feedrates for manual moves along        X,     Y,     Z,  E from panel
-#define MANUAL_FEEDRATE               {50*60, 50*60, 50*60, 10*60}
+// Feedrates for manual moves along     X,  Y,  Z,  E from panel (mm/sec)
+#define MANUAL_FEEDRATE               {50, 50, 50, 10}
 // (mm) Smallest manual Z move (< 0.1mm)
 #define SHORT_MANUAL_Z_MOVE           0.025
 // Minimum feedrate

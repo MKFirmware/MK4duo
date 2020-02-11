@@ -41,6 +41,7 @@
  * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "l64xx/l64xx.h"
 #include "tmc/tmc.h"
 #include "driver/driver.h"
 
@@ -222,7 +223,7 @@ class Stepper {
     /**
      * Set direction bits for all steppers
      */
-    static void set_directions();
+    static void set_directions(const bool init=false);
 
     /**
      * The stepper subsystem goes to sleep when it runs out of things to execute. Call this

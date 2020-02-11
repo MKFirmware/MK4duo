@@ -21,10 +21,10 @@ before_install:
   - export DISPLAY=:1.0
 
 install:
-  # Install arduino 1.8.9
-  - wget http://downloads.arduino.cc/arduino-1.8.9-linux64.tar.xz
-  - tar xf arduino-1.8.9-linux64.tar.xz
-  - sudo mv arduino-1.8.9 /usr/local/share/arduino
+  # Install arduino 1.8.10
+  - wget http://downloads.arduino.cc/arduino-1.8.10-linux64.tar.xz
+  - tar xf arduino-1.8.10-linux64.tar.xz
+  - sudo mv arduino-1.8.10 /usr/local/share/arduino
   - ln -s /usr/local/share/arduino/arduino ${TRAVIS_BUILD_DIR}/buildroot/bin/arduino
   - eval \"${TRAVIS_BUILD_DIR}/buildroot/bin/arduino\" --pref "compiler.warning_level=none" --save-prefs
 
@@ -35,6 +35,10 @@ install:
   # Install: LiquidTWI2 library
   - git clone https://github.com/lincomatic/LiquidTWI2.git
   - sudo mv LiquidTWI2 /usr/local/share/arduino/libraries/LiquidTWI2
+
+  # Install: SDFAT library
+  - git clone https://github.com/greiman/SdFat.git
+  - sudo mv SdFat /usr/local/share/arduino/libraries/SdFat
 
   # Install: Monochrome Graphics Library for LCDs and OLEDs
   - git clone https://github.com/olikraus/U8glib_Arduino.git

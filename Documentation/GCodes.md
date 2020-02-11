@@ -21,8 +21,8 @@
 |  G28 | X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point. O Home only if position is unknown
 |  G29 | Detailed Z probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.<br/>`G29   Fyyy Lxxx Rxxx Byyy` for customer grid.
 |  G30 | Single Z Probe, probes bed at current XY location.
-|  G31 | Dock Z Probe sled (if enabled)
-|  G32 | Undock Z Probe sled (if enabled)
+|  G31 | Dock sled (PROBE_SLED only)
+|  G32 | Undock sled (PROBE_SLED only)
 |  G33 | Delta geometry Autocalibration F[nfactor] P[npoint] Q[debugging] (Requires **DELTA AUTO CALIBRATION 1**) P[npoints] V[nverbose] (Requires **DELTA AUTO CALIBRATION 2**)
 |  G34 | Set Delta Height calculated from toolhead position (only DELTA)
 |  G34 | Z Stepper auto allign I[iterations] T[accuracy] A[amplification] (Requires Z_STEPPER_AUTO_ALIGN)
@@ -202,6 +202,7 @@
 | M649 | - | Set laser options. S[intensity] L[duration] P[ppm] B[set mode] R[raster mm per pulse] F[feedrate]
 | M666 | DELTA | Delta geometry adjustment
 | M666 | TWO ENDSTOPS | Set Two Endstops offsets for X, Y, and/or Z. X[float] Y[float] Z[float]
+| M672 | PROBE SMART EFFECTOR | Set/reset Probe Smart Effector sensitivity, S[sensitivity] 0-255, R reset sensitivity to default
 | M701 | ADVANCED PAUSE FEATURE | Load Filament T[toolhead] Z[distance] L[Extrude distance]
 | M702 | ADVANCED PAUSE FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
 | M800 | SD_RESTART_FILE | S goto to lcd menu. With no parameters run restart commands

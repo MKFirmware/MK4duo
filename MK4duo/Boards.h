@@ -145,5 +145,6 @@
 /**
  * STM32 ARM Cortex-M4F
  */
-#define BOARD_RUMBA32         4203    // RUMBA32 STM32F446 based controller
+#define BOARD_RUMBA32_AUS3D   4203    // RUMBA32 STM32F446VET6 based controller from Aus3D
+#define BOARD_RUMBA32_MKS     4204    // RUMBA32 STM32F446VET6 based controller from MKS
 #define BOARD_STEVAL_3DP001V1 4206    // STEVAL-3DP001V1 3D PRINTER BOARD

@@ -96,6 +96,7 @@ The new features are:
 * Added save in EEPROM ABL, MBL or UBL
 * Added Door switch for stop job when door is open
 * Added Support for TMC2130 - TMC2208 - TMC2660 - TMC2160 - TMC5130 - TMC5160 motor driver
+* Added Support for L6470 - L6474 - L6480 motor driver
 * Added Power Check pin for restart job
 * Added two serial for host.
 * Added Probe BLTouch

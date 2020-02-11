@@ -284,8 +284,12 @@
   #define POWER_CHECK_PIN     NoPin
 #endif
 
-#if ENABLED(Z_PROBE_SLED)
+#if ENABLED(PROBE_SLED)
   #define SLED_PIN            NoPin
+#endif
+
+#if ENABLED(PROBE_SMART_EFFECTOR)
+  #define SMART_EFFECTOR_PIN  NoPin
 #endif
 
 #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)

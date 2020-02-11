@@ -32,11 +32,11 @@ void Debug::log_machine_info() {
   #if HAS_PROBE_MANUALLY
     DEBUG_EM("PROBE_MANUALLY");
   #elif HAS_PROBE_FIX
-    DEBUG_EM("Z_PROBE_FIX_MOUNTED");
+    DEBUG_EM("PROBE_FIX_MOUNTED");
   #elif HAS_BLTOUCH
     DEBUG_EM("BLTOUCH");
   #elif HAS_SLED
-    DEBUG_EM("Z_PROBE_SLED");
+    DEBUG_EM("PROBE_SLED");
   #elif HAS_ALLEN_KEY
     DEBUG_EM("ALLEN KEY");
   #elif HAS_Z_SERVO_PROBE

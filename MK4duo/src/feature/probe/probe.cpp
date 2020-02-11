@@ -275,11 +275,11 @@ void Probe::servo_test() {
 
   #elif !HAS_Z_SERVO_PROBE
 
-    SERIAL_LM(ER, "Z_PROBE_SERVO_NR not setup");
+    SERIAL_LM(ER, "PROBE_SERVO_NR not setup");
 
   #elif DISABLED(BLTOUCH)// HAS_Z_SERVO_PROBE
 
-    const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : Z_PROBE_SERVO_NR;
+    const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : PROBE_SERVO_NR;
 
     SERIAL_EM("Servo probe test.");
     SERIAL_EMV(".  Using index:  ", probe_index);
@@ -383,7 +383,8 @@ void Probe::specific_action(const bool deploy) {
 
     sound.feedback();
 
-    PGM_P const ds_str = deploy ? PSTR(MSG_MANUAL_DEPLOY) : PSTR(MSG_MANUAL_STOW);
+    PGM_P const ds_str = deploy ? GET_TEXT(MSG_MANUAL_DEPLOY) : GET_TEXT(MSG_MANUAL_STOW);
+    lcdui.return_to_status();
     lcdui.set_status_P(ds_str);
     SERIAL_STR(ds_str);
     SERIAL_EOL();
@@ -400,7 +401,7 @@ void Probe::specific_action(const bool deploy) {
   #elif HAS_BLTOUCH && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
     deploy ? bltouch.cmd_deploy() : bltouch.cmd_stow();
   #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
-    MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[(deploy ? 0 : 1)]);
+    MOVE_SERVO(PROBE_SERVO_NR, servo[PROBE_SERVO_NR].angle[(deploy ? 0 : 1)]);
   #elif HAS_ALLEN_KEY
     deploy ? run_deploy_moves_script() : run_stow_moves_script();
   #elif DISABLED(PAUSE_BEFORE_DEPLOY_STOW)
@@ -426,13 +427,13 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   #endif
 
   // Disable stealthChop if used. Enable diag1 pin on driver.
-  #if ENABLED(Z_PROBE_SENSORLESS)
+  #if ENABLED(PROBE_SENSORLESS)
     sensorless_flag_t stealth_states;
     #if MECH(DELTA)
-      stealth_states.x = tmc.enable_stallguard(driver.x);
-      stealth_states.y = tmc.enable_stallguard(driver.y);
+      stealth_states.x = tmcManager.enable_stallguard(driver.x);
+      stealth_states.y = tmcManager.enable_stallguard(driver.y);
     #endif
-    stealth_states.z = tmc.enable_stallguard(driver.z);
+    stealth_states.z = tmcManager.enable_stallguard(driver.z);
     endstops.setEnabled(true);
   #endif
 
@@ -445,7 +446,7 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
 
   // Check to see if the probe was triggered
   const bool probe_triggered =
-    #if MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
+    #if MECH(DELTA) && ENABLED(PROBE_SENSORLESS)
       endstops.trigger_state() & (_BV(X_MAX) | _BV(Y_MAX) | _BV(Z_MAX))
     #else
       TEST(endstops.trigger_state(),
@@ -463,12 +464,12 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   #endif
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
-  #if ENABLED(Z_PROBE_SENSORLESS)
+  #if ENABLED(PROBE_SENSORLESS)
     #if MECH(DELTA)
-      tmc.disable_stallguard(driver.x, stealth_states.x);
-      tmc.disable_stallguard(driver.y, stealth_states.y);
+      tmcManager.disable_stallguard(driver.x, stealth_states.x);
+      tmcManager.disable_stallguard(driver.y, stealth_states.y);
     #endif
-    tmc.disable_stallguard(driver.z, stealth_states.z);
+    tmcManager.disable_stallguard(driver.z, stealth_states.z);
   #endif
 
   // Retract BLTouch immediately after a probe if it was triggered
@@ -620,4 +621,4 @@ void Probe::print_error() {
     WRITE(SLED_PIN, !stow); // switch solenoid
   }
 
-#endif // Z_PROBE_SLED
+#endif // PROBE_SLED

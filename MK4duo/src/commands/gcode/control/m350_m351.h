@@ -68,7 +68,7 @@
     #if DISABLED(DISABLE_M503)
       // No arguments? Show M350 report.
       if (!parser.seen("XYZE")) {
-        tmc.print_M350();
+        tmcManager.print_M350();
         return;
       }
     #endif

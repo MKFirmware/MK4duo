@@ -904,8 +904,8 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
 
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_flag_t stealth_states;
-      stealth_states.x = tmc.enable_stallguard(driver.x);
-      stealth_states.y = tmc.enable_stallguard(driver.y);
+      stealth_states.x = tmcManager.enable_stallguard(driver.x);
+      stealth_states.y = tmcManager.enable_stallguard(driver.y);
     #endif
 
     do_blocking_move_to_xy(1.5f * data.base_pos.max.x * home_dir.x, 1.5f * data.base_pos.max.y * home_dir.y, fr_mm_s);
@@ -915,8 +915,8 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     position.x = position.y = 0.0f;
 
     #if ENABLED(SENSORLESS_HOMING)
-      tmc.disable_stallguard(driver.x, stealth_states.x);
-      tmc.disable_stallguard(driver.y, stealth_states.y);
+      tmcManager.disable_stallguard(driver.x, stealth_states.x);
+      tmcManager.disable_stallguard(driver.y, stealth_states.y);
     #endif
   }
 

@@ -31,8 +31,8 @@
 
 #include <TMCStepper.h>
 
-#if TMCSTEPPER_VERSION < 0x000600
-  #error "Update TMCStepper library to 0.6.0 or newer."
+#if TMCSTEPPER_VERSION < 0x000601
+  #error "Update TMCStepper library to 0.6.1 or newer."
 #endif
 
 #if HAVE_DRV(TMC2130)
@@ -376,11 +376,11 @@ class TMCStorage {
 
 #endif
 
-class TMC_Stepper {
+class TMC_Manager {
 
   public: /** Constructor */
 
-    TMC_Stepper() {}
+    TMC_Manager() {}
 
   public: /** Public Parameters */
 
@@ -501,6 +501,6 @@ class TMC_Stepper {
 
 };
 
-extern TMC_Stepper tmc;
+extern TMC_Manager tmcManager;
 
 #endif // HAS_TRINAMIC

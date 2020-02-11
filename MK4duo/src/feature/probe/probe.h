@@ -28,8 +28,8 @@
  */
 
 #if HAS_Z_SERVO_PROBE
-  #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[0])
-  #define STOW_Z_SERVO()   MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[1])
+  #define DEPLOY_Z_SERVO() MOVE_SERVO(PROBE_SERVO_NR, servo[PROBE_SERVO_NR].angle[0])
+  #define STOW_Z_SERVO()   MOVE_SERVO(PROBE_SERVO_NR, servo[PROBE_SERVO_NR].angle[1])
 #endif
 
 #if HAS_BED_PROBE
@@ -76,7 +76,7 @@ class Probe {
       static inline float min_x() {
         return
           #if MECH(DELTA) || IS_SCARA
-            MESH_MIN_X;
+            -mechanics.data.probe_radius;
           #else
             MAX((X_MIN_BED) + (MIN_PROBE_EDGE), (X_MIN_POS) + data.offset.x);
           #endif
@@ -85,7 +85,7 @@ class Probe {
       static inline float max_x() {
         return 
           #if MECH(DELTA) || IS_SCARA
-            MESH_MAX_X;
+            mechanics.data.probe_radius;
           #else
             MIN((X_MAX_BED) - (MIN_PROBE_EDGE), (X_MAX_POS) + data.offset.x);
           #endif
@@ -94,7 +94,7 @@ class Probe {
       static inline float min_y() {
         return
           #if MECH(DELTA) || IS_SCARA
-            MESH_MIN_Y;
+            -mechanics.data.probe_radius;
           #else
             MAX((Y_MIN_BED) + (MIN_PROBE_EDGE), (Y_MIN_POS) + data.offset.y);
           #endif
@@ -103,7 +103,7 @@ class Probe {
       static inline float max_y() {
         return
           #if MECH(DELTA) || IS_SCARA
-            MESH_MAX_Y;
+            mechanics.data.probe_radius;
           #else
             MIN((Y_MAX_BED) - (MIN_PROBE_EDGE), (Y_MAX_POS) + data.offset.y);
           #endif

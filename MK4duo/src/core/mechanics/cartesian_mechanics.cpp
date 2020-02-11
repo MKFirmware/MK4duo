@@ -1088,13 +1088,13 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_flag_t stealth_states;
-      stealth_states.x = tmc.enable_stallguard(driver.x);
-      stealth_states.y = tmc.enable_stallguard(driver.y);
+      stealth_states.x = tmcManager.enable_stallguard(driver.x);
+      stealth_states.y = tmcManager.enable_stallguard(driver.y);
       #if X2_HAS_SENSORLESS
-        stealth_states.x2 = tmc.enable_stallguard(driver.x2);
+        stealth_states.x2 = tmcManager.enable_stallguard(driver.x2);
       #endif
       #if Y2_HAS_SENSORLESS
-        stealth_states.y2 = tmc.enable_stallguard(driver.y2);
+        stealth_states.y2 = tmcManager.enable_stallguard(driver.y2);
       #endif
     #endif
 
@@ -1105,13 +1105,13 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     position.x = position.y = 0.0f;
 
     #if ENABLED(SENSORLESS_HOMING)
-      tmc.disable_stallguard(driver.x, stealth_states.x);
-      tmc.disable_stallguard(driver.y, stealth_states.y);
+      tmcManager.disable_stallguard(driver.x, stealth_states.x);
+      tmcManager.disable_stallguard(driver.y, stealth_states.y);
       #if X2_HAS_SENSORLESS
-        tmc.disable_stallguard(driver.x2, stealth_states.x2);
+        tmcManager.disable_stallguard(driver.x2, stealth_states.x2);
       #endif
       #if Y2_HAS_SENSORLESS
-        tmc.disable_stallguard(driver.y2, stealth_states.y2);
+        tmcManager.disable_stallguard(driver.y2, stealth_states.y2);
       #endif
     #endif
   }

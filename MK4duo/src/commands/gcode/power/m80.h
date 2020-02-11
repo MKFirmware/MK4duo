@@ -54,7 +54,7 @@
     HAL::delayMilliseconds(100); // Wait for power to settle
 
     #if HAS_TRINAMIC
-      tmc.restore();
+      tmcManager.restore();
     #endif
 
     #if ENABLED(LASER) && ENABLED(LASER_PERIPHERALS)

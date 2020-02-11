@@ -33,28 +33,24 @@
  */
 static int8_t bed_corner;
 void _lcd_goto_next_corner() {
-  mechanics.do_blocking_move_to_z(LEVEL_CORNERS_Z_HOP, MMM_TO_MMS(manual_feedrate_mm_m.z));
+
+  constexpr float lfrb[4] = LEVEL_CORNERS_INSET_LFRB;
+  const xy_pos_t  lf { (X_MIN_BED) + lfrb[0], (Y_MIN_BED) + lfrb[1] },
+                  rb { (X_MAX_BED) - lfrb[2], (Y_MAX_BED) - lfrb[3] };
+
+  mechanics.do_blocking_move_to_z(LEVEL_CORNERS_Z_HOP, manual_feedrate_mm_s.z);
+
   switch (bed_corner) {
-    case 0:
-      mechanics.position.set(X_MIN_BED + LEVEL_CORNERS_INSET, Y_MIN_BED + LEVEL_CORNERS_INSET);
-      break;
-    case 1:
-      mechanics.position.x = X_MAX_BED - (LEVEL_CORNERS_INSET);
-      break;
-    case 2:
-      mechanics.position.y = Y_MAX_BED - (LEVEL_CORNERS_INSET);
-      break;
-    case 3:
-      mechanics.position.x = X_MIN_BED + (LEVEL_CORNERS_INSET);
-      break;
+    case 0: mechanics.position    = lf;   break;
+    case 1: mechanics.position.x  = rb.x; break;
+    case 2: mechanics.position.y  = rb.y; break;
+    case 3: mechanics.position.x  = lf.x; break;
     #if ENABLED(LEVEL_CENTER_TOO)
-      case 4:
-        mechanics.position.set(X_CENTER, Y_CENTER);
-        break;
+      case 4: mechanics.position.set(X_CENTER, Y_CENTER); break;
     #endif
   }
-  mechanics.line_to_position(MMM_TO_MMS(manual_feedrate_mm_m.x));
-  mechanics.do_blocking_move_to_z(LEVEL_CORNERS_HEIGHT, MMM_TO_MMS(manual_feedrate_mm_m.z));
+  mechanics.line_to_position(manual_feedrate_mm_s.x);
+  mechanics.do_blocking_move_to_z(LEVEL_CORNERS_HEIGHT, manual_feedrate_mm_s.z);
   if (++bed_corner > 3
     #if ENABLED(LEVEL_CENTER_TOO)
       + 1

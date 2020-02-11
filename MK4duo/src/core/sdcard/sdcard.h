@@ -23,7 +23,11 @@
 
 #if HAS_SD_SUPPORT
 
-#include "SdFat/SdFat.h"
+#include <SdFat.h>
+
+#if SD_FAT_VERSION < 10101
+  #error "Update SDFAT library to 1.1.1 or newer."
+#endif
 
 union flagcard_t {
   uint8_t all;
@@ -268,7 +272,7 @@ class SDCard {
   private: /** Private Function */
 
     static void openFailed(const char * const path);
-
+    static void lsRecursive(FatFile *dir, uint8_t level=0);
     static void lsDive(SdFile parent, PGM_P const match = NULL);
     static void parsejson(SdFile &parser_file);
     static bool findGeneratedBy(char* buf, char* genBy);

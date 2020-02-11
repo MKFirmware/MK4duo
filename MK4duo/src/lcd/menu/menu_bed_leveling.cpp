@@ -29,15 +29,15 @@
 #if HAS_LCD_MENU && (HAS_PROBE_MANUALLY || MECH(DELTA))
 
   void _man_probe_pt(const xy_pos_t &xy) {
-    mechanics.do_blocking_move_to_xy_z(xy, MANUAL_PROBE_HEIGHT);
-    lcdui.synchronize();
-    move_menu_scale = LCD_Z_STEP;
-    lcdui.goto_screen(lcd_move_z);
+    if (!lcdui.wait_for_move) {
+      lcdui.wait_for_move = true;
+      mechanics.do_blocking_move_to_xy_z(xy, MANUAL_PROBE_HEIGHT);
+      lcdui.wait_for_move = false;
+      lcdui.synchronize();
+      move_menu_scale = LCD_Z_STEP;
+      lcdui.goto_screen(lcd_move_z);
+    }
   }
-
-#endif
-
-#if HAS_LCD_MENU && HAS_PROBE_MANUALLY
 
   float lcd_probe_pt(const xy_pos_t &xy) {
     _man_probe_pt(xy);
@@ -71,8 +71,6 @@
     #endif
   );
 
-  bool LcdUI::wait_for_bl_move; // = false
-
   //
   // Bed leveling is done. Wait for G29 to complete.
   // A flag is used so that this can release control
@@ -85,10 +83,10 @@
   // ** This blocks the command queue! **
   //
   void _lcd_level_bed_done() {
-    if (!lcdui.wait_for_bl_move) {
+    if (!lcdui.wait_for_move) {
       #if MANUAL_PROBE_HEIGHT > 0 && DISABLED(MESH_BED_LEVELING)
         // Display "Done" screen and wait for moves to complete
-        mechanics.do_blocking_move_to_z(MANUAL_PROBE_HEIGHT, MMM_TO_MMS(manual_feedrate_mm_m.z));
+        mechanics.do_blocking_move_to_z(MANUAL_PROBE_HEIGHT, manual_feedrate_mm_s.z);
         lcdui.synchronize(GET_TEXT(MSG_LEVEL_BED_DONE));
       #endif
       lcdui.goto_previous_screen_no_defer();
@@ -116,7 +114,7 @@
         //
         // The last G29 records the point and enables bed leveling
         //
-        lcdui.wait_for_bl_move = true;
+        lcdui.wait_for_move = true;
         lcdui.goto_screen(_lcd_level_bed_done);
         #if ENABLED(MESH_BED_LEVELING)
           commands.inject_P(PSTR("G29 S2"));
@@ -161,7 +159,7 @@
       MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_LEVEL_BED_NEXT_POINT), msg);
     }
     lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
-    if (!lcdui.wait_for_bl_move) lcdui.goto_screen(_lcd_level_bed_get_z);
+    if (!lcdui.wait_for_move) lcdui.goto_screen(_lcd_level_bed_get_z);
   }
 
   //
@@ -171,7 +169,7 @@
     lcdui.goto_screen(_lcd_level_bed_moving);
 
     // G29 Records Z, moves, and signals when it pauses
-    lcdui.wait_for_bl_move = true;
+    lcdui.wait_for_move = true;
     #if ENABLED(MESH_BED_LEVELING)
       commands.inject_P(manual_probe_index ? PSTR("G29 S2") : PSTR("G29 S1"));
     #elif HAS_PROBE_MANUALLY

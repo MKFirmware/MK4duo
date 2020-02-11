@@ -64,9 +64,6 @@ void Com::setBaudrate() {
     serial_connect_timeout = millis() + 1000UL;
     while (!MKSERIAL2 && PENDING(millis(), serial_connect_timeout)) { /* nada */ }
   #endif
-
-  printPGM(START);
-  SERIAL_EOL();
 }
 
 void Com::serialFlush() {
@@ -147,13 +144,6 @@ void Com::print_yesno(PGM_P const label, const bool yes) {
     SERIAL_CHR(':');
   }
   printPGM(yes ? PSTR("YES") : PSTR("NO "));
-}
-
-// Capabilities string
-void Com::host_capabilities(PGM_P pstr) {
-  printPGM(CAP);
-  printPGM(pstr);
-  SERIAL_EOL();
 }
 
 void Com::serial_delay(const millis_l ms) {

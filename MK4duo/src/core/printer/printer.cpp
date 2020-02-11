@@ -138,23 +138,9 @@ void Printer::setup_pinout() {
     OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
-  // Init Servo Pins
-  #if HAS_SERVO_0
-    OUT_WRITE(SERVO0_PIN, LOW);
-  #endif
-  #if HAS_SERVO_1
-    OUT_WRITE(SERVO1_PIN, LOW);
-  #endif
-  #if HAS_SERVO_2
-    OUT_WRITE(SERVO2_PIN, LOW);
-  #endif
-  #if HAS_SERVO_3
-    OUT_WRITE(SERVO3_PIN, LOW);
-  #endif
-
   // Init CS for TMC SPI
   #if TMC_HAS_SPI
-    tmc.init_cs_pins();
+    tmcManager.init_cs_pins();
   #endif
 
   #if ENABLED(MKR4) // MKR4 System
@@ -187,9 +173,9 @@ void Printer::factory_parameters() {
       servo[DONDOLO_SERVO_INDEX].angle[1] = DONDOLO_SERVOPOS_E1;
     #endif
     #if HAS_Z_SERVO_PROBE
-      constexpr uint8_t z_probe_angles[2] = Z_SERVO_ANGLES;
-      servo[Z_PROBE_SERVO_NR].angle[0] = z_probe_angles[0];
-      servo[Z_PROBE_SERVO_NR].angle[1] = z_probe_angles[1];
+      constexpr uint8_t z_probe_angles[2] = PROBE_SERVO_ANGLES;
+      servo[PROBE_SERVO_NR].angle[0] = z_probe_angles[0];
+      servo[PROBE_SERVO_NR].angle[1] = z_probe_angles[1];
     #endif
   #endif // HAS_SERVOS
 }
@@ -393,7 +379,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(SPI_ENDSTOPS)
     if (endstops.tmc_spi_homing.any
       #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-        && ELAPSED(millis(), tmc.sg_guard_period)
+        && ELAPSED(millis(), tmcManager.sg_guard_period)
       #endif
     ) {
       for (uint8_t i = 4; i--;) // Read SGT 4 times per idle loop
@@ -574,7 +560,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(MONITOR_DRIVER_STATUS)
-    tmc.monitor_drivers();
+    tmcManager.monitor_drivers();
   #endif
 
   #if HAS_MMU2
@@ -944,7 +930,7 @@ void setup() {
   watchdog.reset();
 
   #if HAS_TRINAMIC && !PS_DEFAULT_OFF
-    tmc.test_connection(true, true, true, true);
+    tmcManager.test_connection(true, true, true, true);
   #endif
 
   #if HAS_MMU2

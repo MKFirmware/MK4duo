@@ -488,9 +488,9 @@ void Delta_Mechanics::home(const bool report/*=true*/) {
   // Disable stealthChop if used. Enable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
     sensorless_flag_t stealth_states;
-    stealth_states.x = tmc.enable_stallguard(driver.x);
-    stealth_states.y = tmc.enable_stallguard(driver.y);
-    stealth_states.z = tmc.enable_stallguard(driver.z);
+    stealth_states.x = tmcManager.enable_stallguard(driver.x);
+    stealth_states.y = tmcManager.enable_stallguard(driver.y);
+    stealth_states.z = tmcManager.enable_stallguard(driver.z);
     #if ENABLED(SPI_ENDSTOPS)
       endstops.clear_state();
       endstops.tmc_spi_homing.any = true;
@@ -504,9 +504,9 @@ void Delta_Mechanics::home(const bool report/*=true*/) {
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
-    tmc.disable_stallguard(driver.x, stealth_states.x);
-    tmc.disable_stallguard(driver.y, stealth_states.y);
-    tmc.disable_stallguard(driver.z, stealth_states.z);
+    tmcManager.disable_stallguard(driver.x, stealth_states.x);
+    tmcManager.disable_stallguard(driver.y, stealth_states.y);
+    tmcManager.disable_stallguard(driver.z, stealth_states.z);
     #if ENABLED(SPI_ENDSTOPS)
       endstops.tmc_spi_homing.any = false;
       endstops.clear_state();

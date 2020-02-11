@@ -62,8 +62,8 @@ struct IF<true, L, R> { typedef L type; };
 typedef float feedrate_t;
 
 // Feedrate scaling and conversion
-#define MMM_TO_MMS(MM_M)  feedrate_t((MM_M)/60.0f)
-#define MMS_TO_MMM(MM_S)  ((MM_S)*60.0f)
+#define MMM_TO_MMS(MM_M)  feedrate_t(float(MM_M)/60.0f)
+#define MMS_TO_MMM(MM_S)  (float(MM_S)*60.0f)
 #define MMS_SCALED(MM_S)  ((MM_S)* 0.01f * mechanics.feedrate_percentage)
 /***********************************************************/
 
@@ -113,6 +113,10 @@ typedef struct XYZEval<volatile int32_t> xyze_vlong_t;
 typedef struct XYval<float>            xy_float_t;
 typedef struct XYZval<float>          xyz_float_t;
 typedef struct XYZEval<float>        xyze_float_t;
+
+typedef struct XYval<float>         xy_feedrate_t;
+typedef struct XYZval<float>       xyz_feedrate_t;
+typedef struct XYZEval<float>     xyze_feedrate_t;
 
 typedef xy_uint8_t                      xy_byte_t;
 typedef xyz_uint8_t                    xyz_byte_t;

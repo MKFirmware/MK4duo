@@ -1782,19 +1782,19 @@ void EEPROM::reset() {
     #if HAS_TRINAMIC
 
       // Trinamic stepper driver microsteps
-      tmc.print_M350();
+      tmcManager.print_M350();
 
       // Trinamic stepper driver current
-      tmc.print_M906();
+      tmcManager.print_M906();
 
       // Trinamic Hybrid Threshold
-      tmc.print_M913();
+      tmcManager.print_M913();
 
       // TMC2130 StallGuard threshold
-      tmc.print_M914();
+      tmcManager.print_M914();
 
       // Trinamic stepping mode
-      tmc.print_M940();
+      tmcManager.print_M940();
 
     #endif // HAS_TRINAMIC
 

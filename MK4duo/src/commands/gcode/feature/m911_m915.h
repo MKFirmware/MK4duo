@@ -39,11 +39,11 @@
     inline void gcode_M911() {
       LOOP_DRV_ALL_XYZ() {
         Driver* drv = driver[d];
-        if (drv && drv->tmc) tmc.report_otpw(drv);
+        if (drv && drv->tmc) tmcManager.report_otpw(drv);
       }
       LOOP_DRV_EXT() {
         Driver* drv = driver[d];
-        if (drv && drv->tmc) tmc.report_otpw(drv);
+        if (drv && drv->tmc) tmcManager.report_otpw(drv);
       }
     }
 
@@ -71,40 +71,40 @@
       #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(X2)
         const int8_t xval = int8_t(parser.byteval(axis_codes.x, 0xFF));
         #if AXIS_HAS_TMC(X)
-          if (hasNone || xval == 1 || (hasX && xval < 0)) tmc.clear_otpw(driver.x);
+          if (hasNone || xval == 1 || (hasX && xval < 0)) tmcManager.clear_otpw(driver.x);
         #endif
         #if AXIS_HAS_TMC(X2)
-          if (hasNone || xval == 2 || (hasX && xval < 0)) tmc.clear_otpw(driver.x2);
+          if (hasNone || xval == 2 || (hasX && xval < 0)) tmcManager.clear_otpw(driver.x2);
         #endif
       #endif
 
       #if AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Y2)
         const int8_t yval = int8_t(parser.byteval(axis_codes.x, 0xFF));
         #if AXIS_HAS_TMC(Y)
-          if (hasNone || yval == 1 || (hasY && yval < 0)) tmc.clear_otpw(driver.y);
+          if (hasNone || yval == 1 || (hasY && yval < 0)) tmcManager.clear_otpw(driver.y);
         #endif
         #if AXIS_HAS_TMC(Y2)
-          if (hasNone || yval == 2 || (hasY && yval < 0)) tmc.clear_otpw(driver.y2);
+          if (hasNone || yval == 2 || (hasY && yval < 0)) tmcManager.clear_otpw(driver.y2);
         #endif
       #endif
 
       #if AXIS_HAS_TMC(Z) || AXIS_HAS_TMC(Z2) || AXIS_HAS_TMC(Z3)
         const int8_t zval = int8_t(parser.byteval(axis_codes.z, 0xFF));
         #if AXIS_HAS_TMC(Z)
-          if (hasNone || zval == 1 || (hasZ && zval < 0)) tmc.clear_otpw(driver.z);
+          if (hasNone || zval == 1 || (hasZ && zval < 0)) tmcManager.clear_otpw(driver.z);
         #endif
         #if AXIS_HAS_TMC(Z2)
-          if (hasNone || zval == 2 || (hasZ && zval < 0)) tmc.clear_otpw(driver.z2);
+          if (hasNone || zval == 2 || (hasZ && zval < 0)) tmcManager.clear_otpw(driver.z2);
         #endif
         #if AXIS_HAS_TMC(Z3)
-          if (hasNone || zval == 3 || (hasZ && zval < 0)) tmc.clear_otpw(driver.z3);
+          if (hasNone || zval == 3 || (hasZ && zval < 0)) tmcManager.clear_otpw(driver.z3);
         #endif
       #endif
 
       const uint8_t eval = int8_t(parser.byteval(axis_codes.e, 0xFF));
       LOOP_DRV_EXT() {
         Driver* drv = driver.e[d];
-        if (drv && drv->tmc && (hasNone || eval == d || (hasE && eval < 0))) tmc.clear_otpw(drv);
+        if (drv && drv->tmc && (hasNone || eval == d || (hasE && eval < 0))) tmcManager.clear_otpw(drv);
       }
 
     }
@@ -125,7 +125,7 @@
       #if DISABLED(DISABLE_M503)
         // No arguments? Show M913 report.
         if (!parser.seen("XYZE")) {
-          tmc.print_M913();
+          tmcManager.print_M913();
           return;
         }
       #endif
@@ -187,7 +187,7 @@
       #if DISABLED(DISABLE_M503)
         // No arguments? Show M914 report.
         if (!parser.seen("XYZ")) {
-          tmc.print_M914();
+          tmcManager.print_M914();
           return;
         }
       #endif

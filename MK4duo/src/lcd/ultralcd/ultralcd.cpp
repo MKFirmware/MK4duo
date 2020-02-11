@@ -24,6 +24,10 @@
 
 #if HAS_SPI_LCD
 
+#if LCD_HAS_WAIT_FOR_MOVE
+  bool LcdUI::wait_for_move = false;
+#endif
+
 #if ENABLED(STATUS_MESSAGE_SCROLLING)
   uint8_t LcdUI::status_scroll_offset; // = 0
   constexpr uint8_t MAX_MESSAGE_LENGTH = MAX(LONG_FILENAME_LENGTH, MAX_LANG_CHARSIZE * 2 * (LCD_WIDTH));
@@ -557,7 +561,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
       #if IS_KINEMATIC
 
         const float old_feedrate = mechanics.feedrate_mm_s;
-        mechanics.feedrate_mm_s = MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]);
+        mechanics.feedrate_mm_s = manual_feedrate_mm_s[manual_move_axis];
 
         toolManager.extruder.previous = toolManager.extruder.active;
         if (manual_move_axis == E_AXIS) toolManager.extruder.active = manual_move_e_index;
@@ -583,7 +587,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
 
       #else
 
-        planner.buffer_line(mechanics.position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), toolManager.extruder.active);
+        planner.buffer_line(mechanics.position, manual_feedrate_mm_s[manual_move_axis], toolManager.extruder.active);
         manual_move_axis = (int8_t)NO_AXIS;
 
       #endif

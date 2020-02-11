@@ -35,18 +35,18 @@
   #include <HardwareSerial.h>
 #endif
 
-TMC_Stepper tmc;
+TMC_Manager tmcManager;
 
 /** Public Parameters */
 #if HAS_SENSORLESS && ENABLED(IMPROVE_HOMING_RELIABILITY)
-  millis_l TMC_Stepper::sg_guard_period = 0;
+  millis_l TMC_Manager::sg_guard_period = 0;
 #endif
 
 /** Private Parameters */
-uint16_t TMC_Stepper::report_status_interval = 0;
+uint16_t TMC_Manager::report_status_interval = 0;
 
 /** Public Function */
-void TMC_Stepper::init_cs_pins() {
+void TMC_Manager::init_cs_pins() {
   #if PIN_EXISTS(X_CS)
     OUT_WRITE(X_CS_PIN, HIGH);
   #endif
@@ -88,7 +88,7 @@ void TMC_Stepper::init_cs_pins() {
   #endif
 }
 
-void TMC_Stepper::create_tmc() {
+void TMC_Manager::create_tmc() {
 
   #if HAVE_DRV(TMC2208)
 
@@ -385,7 +385,7 @@ void TMC_Stepper::create_tmc() {
 // Use internal reference voltage for current calculations. This is the default.
 // Following values from Trinamic's spreadsheet with values for a NEMA17 (42BYGHW609)
 // https://www.trinamic.com/products/integrated-circuits/details/tmc2130/
-void TMC_Stepper::factory_parameters() {
+void TMC_Manager::factory_parameters() {
 
   constexpr uint16_t  tmc_stepper_current[]     = { X_CURRENT, Y_CURRENT, Z_CURRENT,
                                                     X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT },
@@ -436,11 +436,11 @@ void TMC_Stepper::factory_parameters() {
 
 }
 
-void TMC_Stepper::restore() {
+void TMC_Manager::restore() {
   LOOP_DRV() if (driver[d] && driver[d]->tmc) driver[d]->tmc->push();
 }
 
-void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e) {
+void TMC_Manager::test_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e) {
   uint8_t axis_connection = 0;
 
   if (test_x) {
@@ -499,7 +499,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
-  void TMC_Stepper::monitor_drivers() {
+  void TMC_Manager::monitor_drivers() {
 
     static short_timer_t next_poll_timer(millis());
 
@@ -529,7 +529,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
 #if HAS_SENSORLESS
 
-  bool TMC_Stepper::enable_stallguard(Driver* drv) {
+  bool TMC_Manager::enable_stallguard(Driver* drv) {
     bool old_stealthChop = drv->tmc->en_pwm_mode();
 
     drv->tmc->TCOOLTHRS(0xFFFFF);
@@ -539,7 +539,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     return old_stealthChop;
   }
 
-  void TMC_Stepper::disable_stallguard(Driver* drv, const bool enable) {
+  void TMC_Manager::disable_stallguard(Driver* drv, const bool enable) {
     drv->tmc->TCOOLTHRS(0);
     drv->tmc->en_pwm_mode(enable);
     drv->tmc->diag1_stall(false);
@@ -553,7 +553,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
    * M922 [S<0|1>] [Pnnn] Enable periodic status reports
    */
   #if ENABLED(MONITOR_DRIVER_STATUS)
-    void TMC_Stepper::set_report_interval(const uint16_t update_interval) {
+    void TMC_Manager::set_report_interval(const uint16_t update_interval) {
       if ((report_status_interval = update_interval)) {
         SERIAL_EM("axis:pwm_scale"
         #if TMC_HAS_STEALTHCHOP
@@ -571,7 +571,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
   /**
    * M922 report functions
    */
-  void TMC_Stepper::report_all(bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+  void TMC_Manager::report_all(bool print_x, const bool print_y, const bool print_z, const bool print_e) {
     #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL);  debug_loop(ITEM, print_x, print_y, print_z, print_e); }while(0)
     #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL); status_loop(ITEM, print_x, print_y, print_z, print_e); }while(0)
     TMC_REPORT("\t\t",                TMC_CODES);
@@ -628,7 +628,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     SERIAL_EOL();
   }
 
-  void TMC_Stepper::get_registers(bool print_x, bool print_y, bool print_z, bool print_e) {
+  void TMC_Manager::get_registers(bool print_x, bool print_y, bool print_z, bool print_e) {
     #define _TMC_GET_REG(LABEL, ITEM) do{ SERIAL_MSG(LABEL); get_registers(ITEM, print_x, print_y, print_z, print_e); }while(0)
     #define TMC_GET_REG(NAME, TABS)   _TMC_GET_REG(STRINGIFY(NAME) TABS, TMC_GET_##NAME)
     _TMC_GET_REG("\t", TMC_AXIS_CODES);
@@ -652,7 +652,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
 #if DISABLED(DISABLE_M503)
 
-  void TMC_Stepper::print_M350() {
+  void TMC_Manager::print_M350() {
 
     SERIAL_LM(CFG, "Stepper driver microsteps");
 
@@ -676,7 +676,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
   }
 
-  void TMC_Stepper::print_M906() {
+  void TMC_Manager::print_M906() {
 
     SERIAL_LM(CFG, "Stepper driver current (mA)");
 
@@ -700,7 +700,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
   }
 
-  void TMC_Stepper::print_M913() {
+  void TMC_Manager::print_M913() {
 
     #if ENABLED(HYBRID_THRESHOLD)
 
@@ -728,7 +728,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
   }
 
-  void TMC_Stepper::print_M914() {
+  void TMC_Manager::print_M914() {
     #if HAS_SENSORLESS
       SERIAL_LM(CFG, "Stepper driver StallGuard threshold:");
       #if X_HAS_SENSORLESS || Y_HAS_SENSORLESS || Z_HAS_SENSORLESS
@@ -753,7 +753,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     #endif // HAS_SENSORLESS
   }
 
-  void TMC_Stepper::print_M940() {
+  void TMC_Manager::print_M940() {
     #if TMC_HAS_STEALTHCHOP
       SERIAL_LM(CFG, "Stepper driver StealthChop:");
       SERIAL_SM(CFG, "  M940");
@@ -783,12 +783,12 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
-  void TMC_Stepper::report_otpw(Driver* drv) {
+  void TMC_Manager::report_otpw(Driver* drv) {
     drv->printLabel();
     SERIAL_ELOGIC(" temperature prewarn triggered:", drv->tmc->getOTPW());
   }
 
-  void TMC_Stepper::clear_otpw(Driver* drv) {
+  void TMC_Manager::clear_otpw(Driver* drv) {
     drv->tmc->clear_otpw();
     drv->printLabel();
     SERIAL_EM(" prewarn flag cleared");
@@ -796,93 +796,93 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
 #endif
 
-void TMC_Stepper::get_off_time(Driver* drv) {
+void TMC_Manager::get_off_time(Driver* drv) {
   drv->printLabel();
   SERIAL_EMV(" off_time:", drv->tmc->toff());
 }
 
-void TMC_Stepper::set_off_time(Driver* drv, const uint8_t off_time_val) {
+void TMC_Manager::set_off_time(Driver* drv, const uint8_t off_time_val) {
   drv->tmc->toff(off_time_val);
 }
 
 #if HAVE_DRV(TMC2130)
 
-  void TMC_Stepper::get_blank_time(Driver* drv) {
+  void TMC_Manager::get_blank_time(Driver* drv) {
     drv->printLabel();
     SERIAL_EMV(" blank_time: ", drv->tmc->blank_time());
   }
 
-  void TMC_Stepper::set_blank_time(Driver* drv, const uint8_t blank_time_val) {
+  void TMC_Manager::set_blank_time(Driver* drv, const uint8_t blank_time_val) {
     drv->tmc->blank_time(blank_time_val);
   }
 
-  void TMC_Stepper::get_hysteresis_end(Driver* drv) {
+  void TMC_Manager::get_hysteresis_end(Driver* drv) {
     drv->printLabel();
     SERIAL_EMV(" hysteresis_end: ", drv->tmc->hysteresis_end());
   }
 
-  void TMC_Stepper::set_hysteresis_end(Driver* drv, const int8_t hysteresis_end_val) {
+  void TMC_Manager::set_hysteresis_end(Driver* drv, const int8_t hysteresis_end_val) {
     drv->tmc->hysteresis_end(hysteresis_end_val);
   }
 
-  void TMC_Stepper::get_hysteresis_start(Driver* drv) {
+  void TMC_Manager::get_hysteresis_start(Driver* drv) {
     drv->printLabel();
     SERIAL_EMV(" hysteresis_start: ", drv->tmc->hysteresis_start());
   }
 
-  void TMC_Stepper::set_hysteresis_start(Driver* drv, const uint8_t hysteresis_start_val) {
+  void TMC_Manager::set_hysteresis_start(Driver* drv, const uint8_t hysteresis_start_val) {
     drv->tmc->hysteresis_start(hysteresis_start_val);
   }
 
-  void TMC_Stepper::get_disable_I_comparator(Driver* drv) {
+  void TMC_Manager::get_disable_I_comparator(Driver* drv) {
     drv->printLabel();
     SERIAL_EMV(" disable_I_comparator: ", drv->tmc->disfdcc());
   }
 
-  void TMC_Stepper::set_disable_I_comparator(Driver* drv, const bool onoff) {
+  void TMC_Manager::set_disable_I_comparator(Driver* drv, const bool onoff) {
     drv->tmc->disfdcc(onoff);
   }
 
-  void TMC_Stepper::get_stealth_gradient(Driver* drv) {
+  void TMC_Manager::get_stealth_gradient(Driver* drv) {
     drv->printLabel();
     SERIAL_EMV(" stealth_gradient: ", drv->tmc->pwm_grad());
   }
 
-  void TMC_Stepper::set_stealth_gradient(Driver* drv, const uint8_t stealth_gradient_val) {
+  void TMC_Manager::set_stealth_gradient(Driver* drv, const uint8_t stealth_gradient_val) {
     drv->tmc->pwm_grad(stealth_gradient_val);
   }
 
-  void TMC_Stepper::get_stealth_amplitude(Driver* drv) {
+  void TMC_Manager::get_stealth_amplitude(Driver* drv) {
     drv->printLabel();
     SERIAL_EMV(" stealth_amplitude: ", drv->tmc->pwm_ampl());
   }
 
-  void TMC_Stepper::set_stealth_amplitude(Driver* drv, const uint8_t stealth_amplitude_val) {
+  void TMC_Manager::set_stealth_amplitude(Driver* drv, const uint8_t stealth_amplitude_val) {
     drv->tmc->pwm_ampl(stealth_amplitude_val);
   }
 
-  void TMC_Stepper::get_stealth_freq(Driver* drv) {
+  void TMC_Manager::get_stealth_freq(Driver* drv) {
     drv->printLabel();
     SERIAL_EMV(" stealth_freq: ", drv->tmc->pwm_freq());
   }
 
-  void TMC_Stepper::set_stealth_freq(Driver* drv, const uint8_t stealth_freq_val) {
+  void TMC_Manager::set_stealth_freq(Driver* drv, const uint8_t stealth_freq_val) {
     drv->tmc->pwm_freq(stealth_freq_val);
   }
 
-  void TMC_Stepper::get_stealth_autoscale(Driver* drv) {
+  void TMC_Manager::get_stealth_autoscale(Driver* drv) {
     drv->printLabel();
     SERIAL_EMV(" stealth_autoscale: ", drv->tmc->pwm_autoscale());
   }
 
-  void TMC_Stepper::set_stealth_autoscale(Driver* drv, const bool onoff) {
+  void TMC_Manager::set_stealth_autoscale(Driver* drv, const bool onoff) {
     drv->tmc->pwm_autoscale(onoff);
   }
 
 #endif // HAVE_DRV(TMC2130)
 
 /** Private Function */
-bool TMC_Stepper::test_connection(Driver* drv) {
+bool TMC_Manager::test_connection(Driver* drv) {
   if (drv->tmc) {
     SERIAL_MSG("Testing ");
     drv->printLabel();
@@ -909,7 +909,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 // Stepper config for type
 #if HAVE_DRV(TMC2130)
   
-  void TMC_Stepper::config(Driver* drv, const bool stealth/*=false*/) {
+  void TMC_Manager::config(Driver* drv, const bool stealth/*=false*/) {
 
     drv->tmc->begin();
 
@@ -945,7 +945,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
 #elif HAVE_DRV(TMC2160)
 
-  void TMC_Stepper::config(Driver* drv, const bool stealth/*=false*/) {
+  void TMC_Manager::config(Driver* drv, const bool stealth/*=false*/) {
 
     drv->tmc->begin();
 
@@ -983,7 +983,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
 #elif HAVE_DRV(TMC2208)
 
-  void TMC_Stepper::config(Driver* drv, const bool stealth/*=false*/) {
+  void TMC_Manager::config(Driver* drv, const bool stealth/*=false*/) {
 
     TMC2208_n::GCONF_t gconf{0};
     gconf.pdn_disable = true;       // Use UART
@@ -1023,7 +1023,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
 #elif HAVE_DRV(TMC2660)
 
-  void TMC_Stepper::config(Driver* drv, const bool) {
+  void TMC_Manager::config(Driver* drv, const bool) {
 
     drv->tmc->begin();
 
@@ -1049,7 +1049,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
 #elif HAVE_DRV(TMC5130)
 
-  void TMC_Stepper::config(Driver* drv, const bool stealth/*=false*/) {
+  void TMC_Manager::config(Driver* drv, const bool stealth/*=false*/) {
 
     drv->tmc->begin();
 
@@ -1083,7 +1083,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
 #elif HAVE_DRV(TMC5160) || HAVE_DRV(TMC5161)
   
-  void TMC_Stepper::config(Driver* drv, const bool stealth/*=false*/) {
+  void TMC_Manager::config(Driver* drv, const bool stealth/*=false*/) {
 
     drv->tmc->begin();
 
@@ -1124,17 +1124,17 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #if ENABLED(TMC_DEBUG)
     #if HAVE_DRV(TMC2208)
-      uint32_t TMC_Stepper::get_pwm_scale(Driver* drv) { return drv->tmc->pwm_scale_sum(); }
+      uint32_t TMC_Manager::get_pwm_scale(Driver* drv) { return drv->tmc->pwm_scale_sum(); }
     #elif HAVE_DRV(TMC2660)
-      uint32_t TMC_Stepper::get_pwm_scale(Driver* drv) { UNUSED(drv); return 0; }
+      uint32_t TMC_Manager::get_pwm_scale(Driver* drv) { UNUSED(drv); return 0; }
     #elif HAS_TMCX1XX
-      uint32_t TMC_Stepper::get_pwm_scale(Driver* drv) { return drv->tmc->PWM_SCALE(); }
+      uint32_t TMC_Manager::get_pwm_scale(Driver* drv) { return drv->tmc->PWM_SCALE(); }
     #endif
   #endif
 
   #if HAVE_DRV(TMC2208)
 
-    TMC_driver_data TMC_Stepper::get_driver_data(Driver* drv) {
+    TMC_driver_data TMC_Manager::get_driver_data(Driver* drv) {
       constexpr uint8_t OTPW_bp = 0, OT_bp = 1;
       constexpr uint8_t S2G_bm = 0b11110;
       TMC_driver_data data;
@@ -1165,7 +1165,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #elif HAVE_DRV(TMC2660)
 
-    TMC_driver_data TMC_Stepper::get_driver_data(Driver* drv) {
+    TMC_driver_data TMC_Manager::get_driver_data(Driver* drv) {
       constexpr uint8_t OT_bp = 1, OTPW_bp = 2;
       constexpr uint8_t S2G_bm = 0b11000;
       TMC_driver_data data;
@@ -1188,7 +1188,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #elif HAS_TMCX1XX
 
-    TMC_driver_data TMC_Stepper::get_driver_data(Driver* drv) {
+    TMC_driver_data TMC_Manager::get_driver_data(Driver* drv) {
       constexpr uint8_t OT_bp = 25, OTPW_bp = 26;
       constexpr uint32_t S2G_bm = 0x18000000;
       #if ENABLED(TMC_DEBUG)
@@ -1242,7 +1242,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #endif
 
-  void TMC_Stepper::monitor_driver(Driver* drv, const bool need_update_error_counters, const bool need_debug_reporting) {
+  void TMC_Manager::monitor_driver(Driver* drv, const bool need_update_error_counters, const bool need_debug_reporting) {
 
     TMC_driver_data data = get_driver_data(drv);
     if ((data.drv_status == 0xFFFFFFFF) || (data.drv_status == 0x0)) return;
@@ -1340,16 +1340,16 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 #if ENABLED(TMC_DEBUG)
 
   #if HAVE_DRV(TMC2160) || HAVE_DRV(TMC5160) || HAVE_DRV(TMC5161)
-    void TMC_Stepper::print_vsense(Driver* drv) { UNUSED(drv); }
+    void TMC_Manager::print_vsense(Driver* drv) { UNUSED(drv); }
   #else
-    void TMC_Stepper::print_vsense(Driver* drv) { SERIAL_STR(drv->tmc->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
+    void TMC_Manager::print_vsense(Driver* drv) { SERIAL_STR(drv->tmc->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
   #endif
 
   #define PRINT_TMC_REGISTER(REG_CASE) case TMC_GET_##REG_CASE: print_hex_long(drv->tmc->REG_CASE(), ':'); break
 
   #if HAVE_DRV(TMC2208)
 
-    void TMC_Stepper::status(Driver* drv, const TMCdebugEnum i) {
+    void TMC_Manager::status(Driver* drv, const TMCdebugEnum i) {
       switch (i) {
         case TMC_PWM_SCALE: SERIAL_VAL(drv->tmc->pwm_scale_sum()); break;
         case TMC_STEALTHCHOP: SERIAL_LOGIC(nullptr, drv->tmc->stealth()); break;
@@ -1359,7 +1359,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       }
     }
 
-    void TMC_Stepper::parse_type_drv_status(Driver* drv, const TMCdrvStatusEnum i) {
+    void TMC_Manager::parse_type_drv_status(Driver* drv, const TMCdrvStatusEnum i) {
       switch (i) {
         case TMC_T157: if (drv->tmc->t157()) SERIAL_CHR('X'); break;
         case TMC_T150: if (drv->tmc->t150()) SERIAL_CHR('X'); break;
@@ -1370,13 +1370,13 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       }
     }
 
-    void TMC_Stepper::get_ic_registers(Driver* drv, const TMCgetRegistersEnum i) {
+    void TMC_Manager::get_ic_registers(Driver* drv, const TMCgetRegistersEnum i) {
       UNUSED(drv);
       UNUSED(i);
       SERIAL_CHR('\t');
     }
 
-    void TMC_Stepper::get_registers(Driver* drv, const TMCgetRegistersEnum i) {
+    void TMC_Manager::get_registers(Driver* drv, const TMCgetRegistersEnum i) {
       switch (i) {
         case TMC_AXIS_CODES: SERIAL_CHR('\t'); drv->printLabel(); break;
         PRINT_TMC_REGISTER(GCONF);
@@ -1397,11 +1397,11 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #elif HAVE_DRV(TMC2660)
 
-    void TMC_Stepper::status(Driver* drv, const TMCdebugEnum i)                    { UNUSED(drv); UNUSED(i); }
-    void TMC_Stepper::parse_type_drv_status(Driver* drv, const TMCdrvStatusEnum i) { UNUSED(drv); UNUSED(i); }
-    void TMC_Stepper::get_ic_registers(Driver* drv, const TMCgetRegistersEnum i)   { UNUSED(drv); UNUSED(i); }
+    void TMC_Manager::status(Driver* drv, const TMCdebugEnum i)                    { UNUSED(drv); UNUSED(i); }
+    void TMC_Manager::parse_type_drv_status(Driver* drv, const TMCdrvStatusEnum i) { UNUSED(drv); UNUSED(i); }
+    void TMC_Manager::get_ic_registers(Driver* drv, const TMCgetRegistersEnum i)   { UNUSED(drv); UNUSED(i); }
 
-    void TMC_Stepper::get_registers(Driver* drv, const TMCgetRegistersEnum i) {
+    void TMC_Manager::get_registers(Driver* drv, const TMCgetRegistersEnum i) {
       switch (i) {
         case TMC_AXIS_CODES: SERIAL_CHR('\t'); drv->printLabel(); break;
         PRINT_TMC_REGISTER(DRVCONF);
@@ -1417,7 +1417,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #elif HAS_TMCX1XX
 
-    void TMC_Stepper::status(Driver* drv, const TMCdebugEnum i) {
+    void TMC_Manager::status(Driver* drv, const TMCdebugEnum i) {
       switch (i) {
         case TMC_PWM_SCALE: SERIAL_VAL(drv->tmc->PWM_SCALE()); break;
         case TMC_SGT: SERIAL_VAL(drv->tmc->sgt()); break;
@@ -1426,7 +1426,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       }
     }
 
-    void TMC_Stepper::parse_type_drv_status(Driver* drv, const TMCdrvStatusEnum i) {
+    void TMC_Manager::parse_type_drv_status(Driver* drv, const TMCdrvStatusEnum i) {
       switch (i) {
         case TMC_STALLGUARD: if (drv->tmc->stallguard()) SERIAL_CHR('X'); break;
         case TMC_SG_RESULT:  SERIAL_VAL(drv->tmc->sg_result());           break;
@@ -1436,7 +1436,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       }
     }
 
-    void TMC_Stepper::get_ic_registers(Driver* drv, const TMCgetRegistersEnum i) {
+    void TMC_Manager::get_ic_registers(Driver* drv, const TMCgetRegistersEnum i) {
       UNUSED(drv);
       switch (i) {
         PRINT_TMC_REGISTER(TCOOLTHRS);
@@ -1446,7 +1446,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       }
     }
 
-    void TMC_Stepper::get_registers(Driver* drv, const TMCgetRegistersEnum i) {
+    void TMC_Manager::get_registers(Driver* drv, const TMCgetRegistersEnum i) {
       switch (i) {
         case TMC_AXIS_CODES: SERIAL_CHR('\t'); drv->printLabel(); break;
         PRINT_TMC_REGISTER(GCONF);
@@ -1469,7 +1469,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #if HAVE_DRV(TMC2660)
   
-    void TMC_Stepper::status(Driver* drv, const TMCdebugEnum i, const float spmm) {
+    void TMC_Manager::status(Driver* drv, const TMCdebugEnum i, const float spmm) {
       SERIAL_CHR('\t');
       switch (i) {
         case TMC_CODES: drv->printLabel(); break;
@@ -1496,7 +1496,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #else
 
-    void TMC_Stepper::status(Driver* drv, const TMCdebugEnum i, const float spmm) {
+    void TMC_Manager::status(Driver* drv, const TMCdebugEnum i, const float spmm) {
       SERIAL_CHR('\t');
       switch (i) {
         case TMC_CODES: drv->printLabel(); break;
@@ -1544,7 +1544,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
   #endif
 
-  void TMC_Stepper::parse_drv_status(Driver* drv, const TMCdrvStatusEnum i) {
+  void TMC_Manager::parse_drv_status(Driver* drv, const TMCdrvStatusEnum i) {
     SERIAL_CHR('\t');
     switch (i) {
       case TMC_DRV_CODES:     drv->printLabel();                          break;
@@ -1569,7 +1569,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
     }
   }
 
-  void TMC_Stepper::debug_loop(const TMCdebugEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+  void TMC_Manager::debug_loop(const TMCdebugEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
 
     if (print_x) {
       #if AXIS_HAS_TMC(X)
@@ -1608,7 +1608,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
     SERIAL_EOL();
   }
 
-  void TMC_Stepper::status_loop(const TMCdrvStatusEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+  void TMC_Manager::status_loop(const TMCdrvStatusEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
     if (print_x) {
       #if AXIS_HAS_TMC(X)
         parse_drv_status(driver.x, i);
@@ -1646,7 +1646,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
     SERIAL_EOL();
   }
 
-  void TMC_Stepper::get_registers(const TMCgetRegistersEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+  void TMC_Manager::get_registers(const TMCgetRegistersEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
 
     if (print_x) {
       #if AXIS_HAS_TMC(X)

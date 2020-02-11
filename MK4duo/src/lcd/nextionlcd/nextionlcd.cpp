@@ -75,6 +75,10 @@ uint8_t LcdUI::alert_level = 0,
 
   int8_t        LcdUI::manual_move_e_index = 0;
 
+  #if LCD_HAS_WAIT_FOR_MOVE
+    bool LcdUI::wait_for_move = false;
+  #endif
+
   #if HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
   #endif
@@ -834,13 +838,13 @@ void NextionLCD::set_status_page() {
   sendCommandPGM(PSTR("p[2].b[10].val=" NEXTION_EXTRUDERS));
 
   ZERO(temp);
-  itoa(manual_feedrate_mm_m.x, temp, 10);
+  itoa(manual_feedrate_mm_s.x, temp, 10);
   setText(SpeedX, temp);
   ZERO(temp);
-  itoa(manual_feedrate_mm_m.y, temp, 10);
+  itoa(manual_feedrate_mm_s.y, temp, 10);
   setText(SpeedY, temp);
   ZERO(temp);
-  itoa(manual_feedrate_mm_m.z, temp, 10);
+  itoa(manual_feedrate_mm_s.z, temp, 10);
   setText(SpeedZ, temp);
 
   #if HAS_SD_SUPPORT
@@ -1218,7 +1222,7 @@ bool NextionLCD::getConnect(char* buffer) {
       #if IS_KINEMATIC
 
         const float old_feedrate = mechanics.feedrate_mm_s;
-        mechanics.feedrate_mm_s = MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]);
+        mechanics.feedrate_mm_s = manual_feedrate_mm_s[manual_move_axis];
 
         toolManager.extruder.previous = toolManager.extruder.active;
         if (manual_move_axis == E_AXIS) toolManager.extruder.active = manual_move_e_index;
@@ -1244,7 +1248,7 @@ bool NextionLCD::getConnect(char* buffer) {
 
       #else
 
-        planner.buffer_line(mechanics.position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), toolManager.extruder.active);
+        planner.buffer_line(mechanics.position, manual_feedrate_mm_s[manual_move_axis], toolManager.extruder.active);
         manual_move_axis = (int8_t)NO_AXIS;
 
       #endif

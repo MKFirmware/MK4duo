@@ -41,8 +41,6 @@
 #define STEPPER_TIMER_MIN_INTERVAL  1                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
 
-#define STEP_TIMER_IRQ_NAME         TIM2_IRQn
-
 #define START_STEPPER_INTERRUPT()   HAL_timer_start()
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt()
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt()

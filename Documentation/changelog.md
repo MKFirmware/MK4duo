@@ -1,10 +1,12 @@
 ### Version 4.4.0
 *
-* Revision 26-01-2020
+* Revision 08-02-2020
 *
 * Version EEPROM MKV79
 *
 * Version Nextion 1_3_1
+*
+* Add support SdFat library by Bill Greiman 1.1.1 or higher
 *
 * Add Nextion 7" Intelligent
 *
@@ -36,6 +38,9 @@
 *   D[int]  Set Driver for tool
 *   H[int]  Set Hotend for tool
 *
+* M672: Set/reset Probe Smart Effector sensitivity
+*   S[sensitivity] 0-255, R reset sensitivity to default
+*
 * M890: Run User GCode
 *   S[int]    - Run 1 - 5 user gcode
 *
@@ -54,8 +59,12 @@
 * Fix BABYSTEPPING
 * Fix M569 code for extruder
 *
-* Add Vref on STM32 for ADC
+* Add Board RUMBA32 MKS
+* Add Board STEVAL-3DP001V1
 *
+* Add L64xx driver
+*
+* Add Duet Smart Effector (for delta printers) - https://bit.ly/2ul5U7J
 * Fix Alligator V2 DAC
 *
 * Fix problem with STM32core 1_8_0

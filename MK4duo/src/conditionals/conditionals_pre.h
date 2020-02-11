@@ -431,13 +431,13 @@
   #if DISABLED(ENABLE_SERVOS)
     #define ENABLE_SERVOS
   #endif
-  #if Z_PROBE_SERVO_NR < 0
-    #undef Z_PROBE_SERVO_NR
-    #define Z_PROBE_SERVO_NR 0
+  #if PROBE_SERVO_NR < 0
+    #undef PROBE_SERVO_NR
+    #define PROBE_SERVO_NR 0
   #endif
   #if NUM_SERVOS < 1
     #undef NUM_SERVOS
-    #define NUM_SERVOS (Z_PROBE_SERVO_NR + 1)
+    #define NUM_SERVOS (PROBE_SERVO_NR + 1)
   #endif
   #undef DEACTIVATE_SERVOS_AFTER_MOVE
   #undef SERVO_DEACTIVATION_DELAY
@@ -445,8 +445,8 @@
   #if DISABLED(BLTOUCH_DELAY)
     #define BLTOUCH_DELAY 500
   #endif
-  #undef Z_SERVO_ANGLES
-  #define Z_SERVO_ANGLES { BLTOUCH_CMD_DEPLOY, BLTOUCH_CMD_STOW }
+  #undef PROBE_SERVO_ANGLES
+  #define PROBE_SERVO_ANGLES { BLTOUCH_CMD_DEPLOY, BLTOUCH_CMD_STOW }
 
 #endif
 

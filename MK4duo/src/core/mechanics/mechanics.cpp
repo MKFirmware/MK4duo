@@ -336,41 +336,41 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
       default: break;
       #if X_HAS_SENSORLESS
         case X_AXIS:
-          stealth_states.x = tmc.enable_stallguard(driver.x);
+          stealth_states.x = tmcManager.enable_stallguard(driver.x);
           #if X2_HAS_SENSORLESS
-            stealth_states.x2 = tmc.enable_stallguard(driver.x2);
+            stealth_states.x2 = tmcManager.enable_stallguard(driver.x2);
           #elif CORE_IS_XY && Y_HAS_SENSORLESS
-            stealth_states.y = tmc.enable_stallguard(driver.y);
+            stealth_states.y = tmcManager.enable_stallguard(driver.y);
           #elif CORE_IS_XZ && Z_HAS_SENSORLESS
-            stealth_states.z = tmc.enable_stallguard(driver.z);
+            stealth_states.z = tmcManager.enable_stallguard(driver.z);
           #endif
           break;
       #endif
       #if Y_HAS_SENSORLESS
         case Y_AXIS:
-          stealth_states.y = tmc.enable_stallguard(driver.y);
+          stealth_states.y = tmcManager.enable_stallguard(driver.y);
           #if Y2_HAS_SENSORLESS
-            stealth_states.y2 = tmc.enable_stallguard(driver.y2);
+            stealth_states.y2 = tmcManager.enable_stallguard(driver.y2);
           #elif CORE_IS_XY && X_HAS_SENSORLESS
-            stealth_states.x = tmc.enable_stallguard(driver.x);
+            stealth_states.x = tmcManager.enable_stallguard(driver.x);
           #elif CORE_IS_YZ && Z_HAS_SENSORLESS
-            stealth_states.z = tmc.enable_stallguard(driver.z);
+            stealth_states.z = tmcManager.enable_stallguard(driver.z);
           #endif
           break;
       #endif
       #if Z_HAS_SENSORLESS
         case Z_AXIS:
-          stealth_states.z = tmc.enable_stallguard(driver.z);
+          stealth_states.z = tmcManager.enable_stallguard(driver.z);
           #if Z2_HAS_SENSORLESS
-            stealth_states.z2 = tmc.enable_stallguard(driver.z2);
+            stealth_states.z2 = tmcManager.enable_stallguard(driver.z2);
           #endif
           #if Z3_HAS_SENSORLESS
-            stealth_states.z3 = tmc.enable_stallguard(driver.z3);
+            stealth_states.z3 = tmcManager.enable_stallguard(driver.z3);
           #endif
           #if CORE_IS_XZ && X_HAS_SENSORLESS
-            stealth_states.x = tmc.enable_stallguard(driver.x);
+            stealth_states.x = tmcManager.enable_stallguard(driver.x);
           #elif CORE_IS_YZ && Y_HAS_SENSORLESS
-            stealth_states.z = tmc.enable_stallguard(driver.y);
+            stealth_states.z = tmcManager.enable_stallguard(driver.y);
           #endif
           break;
       #endif
@@ -393,7 +393,7 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
     #endif
 
     #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-      tmc.sg_guard_period = millis() + tmc.default_sg_guard_duration;
+      tmcManager.sg_guard_period = millis() + tmcManager.default_sg_guard_duration;
     #endif
 
     return stealth_states;
@@ -408,41 +408,41 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
       default: break;
       #if X_HAS_SENSORLESS
         case X_AXIS:
-          tmc.disable_stallguard(driver.x, enable_stealth.x);
+          tmcManager.disable_stallguard(driver.x, enable_stealth.x);
           #if X2_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.x2, enable_stealth.x2);
+            tmcManager.disable_stallguard(driver.x2, enable_stealth.x2);
           #elif CORE_IS_XY && Y_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.y, enable_stealth.y);
+            tmcManager.disable_stallguard(driver.y, enable_stealth.y);
           #elif CORE_IS_XZ && Z_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.z, enable_stealth.z);
+            tmcManager.disable_stallguard(driver.z, enable_stealth.z);
           #endif
           break;
       #endif
       #if Y_HAS_SENSORLESS
         case Y_AXIS:
-          tmc.disable_stallguard(driver.y, enable_stealth.y);
+          tmcManager.disable_stallguard(driver.y, enable_stealth.y);
           #if Y2_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.y2, enable_stealth.y2);
+            tmcManager.disable_stallguard(driver.y2, enable_stealth.y2);
           #elif CORE_IS_XY && X_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.x, enable_stealth.x);
+            tmcManager.disable_stallguard(driver.x, enable_stealth.x);
           #elif CORE_IS_YZ && Z_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.z, enable_stealth.z);
+            tmcManager.disable_stallguard(driver.z, enable_stealth.z);
           #endif
           break;
       #endif
       #if Z_HAS_SENSORLESS
         case Z_AXIS:
-          tmc.disable_stallguard(driver.z, enable_stealth.z);
+          tmcManager.disable_stallguard(driver.z, enable_stealth.z);
           #if Z2_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.z2, enable_stealth.z2);
+            tmcManager.disable_stallguard(driver.z2, enable_stealth.z2);
           #endif
           #if Z3_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.z3, enable_stealth.z3);
+            tmcManager.disable_stallguard(driver.z3, enable_stealth.z3);
           #endif
           #if CORE_IS_XZ && X_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.x, enable_stealth.x);
+            tmcManager.disable_stallguard(driver.x, enable_stealth.x);
           #elif CORE_IS_YZ && Y_HAS_SENSORLESS
-            tmc.disable_stallguard(driver.y, enable_stealth.y);
+            tmcManager.disable_stallguard(driver.y, enable_stealth.y);
           #endif
           break;
       #endif

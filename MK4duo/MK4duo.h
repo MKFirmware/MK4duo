@@ -129,6 +129,7 @@
 #include "src/core/stepper/stepper.h"
 #include "src/core/tempmanager/tempmanager.h"
 #include "src/core/printcounter/printcounter.h"
+#include "src/core/sdcard/sdcard.h"
 #include "src/core/sound/sound.h"
 
 // Command modules
@@ -149,9 +150,6 @@
 
 // Menu modules
 #include "src/lcd/menu/menu.h"
-
-// SDCARD modules
-#include "src/sdcard/sdcard.h"
 
 // Feature modules
 #include "src/feature/bezier/bezier.h"
