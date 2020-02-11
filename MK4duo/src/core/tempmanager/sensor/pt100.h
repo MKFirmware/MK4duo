@@ -22,8 +22,8 @@
 
 #define THERMISTOR_TABLE_ADC_RESOLUTION   _BV(10)
 #define THERMISTOR_TABLE_SCALE            (AD_RANGE / (THERMISTOR_TABLE_ADC_RESOLUTION))
-#define OV_SCALE(N)                       (float(OV_SCALE(N) * 5) / float(HAL_VOLTAGE_PIN))
-#define OV(N)                             int16_t((N) * (THERMISTOR_TABLE_SCALE))
+#define OV_SCALE(N)                       (float((N) * 5) / float(HAL_VOLTAGE_PIN))
+#define OV(N)                             int16_t(OV_SCALE(N) * (THERMISTOR_TABLE_SCALE))
 
 // Pt100 with INA826 amp on Ultimaker v2.0 electronics
 const short pt100[][2] PROGMEM = {
