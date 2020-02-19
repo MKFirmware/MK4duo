@@ -104,7 +104,7 @@ Power powerManager;
         powersupply_on = true;
         #if HAS_TRINAMIC
           HAL::delayMilliseconds(100); // Wait for power to settle
-          tmc.restore();
+          tmcManager.restore();
         #endif
         HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
       }
