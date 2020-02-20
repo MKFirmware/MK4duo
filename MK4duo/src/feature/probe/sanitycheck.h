@@ -110,3 +110,7 @@
     #error "DEPENDENCY ERROR: G38_PROBE_TARGET requires a Cartesian or Core machine."
   #endif
 #endif
+
+#if HOMING_Z_WITH_PROBE && DISABLED(Z_SAFE_HOMING)
+  #error "Z_SAFE_HOMING is recommended when homing with a probe. Enable it or comment out this line to continue."
+#endif
