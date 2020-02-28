@@ -35,7 +35,12 @@
   void _lcd_babystep(const AxisEnum axis, PGM_P msg) {
     if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
     if (lcdui.encoderPosition) {
-      const int16_t steps = int16_t(lcdui.encoderPosition) * (BABYSTEP_MULTIPLICATOR);
+      const int16_t steps = int16_t(lcdui.encoderPosition) * (
+        #if ENABLED(BABYSTEP_XY)
+          axis != Z_AXIS ? BABYSTEP_MULTIPLICATOR_XY :
+        #endif
+        BABYSTEP_MULTIPLICATOR_Z
+      );
       lcdui.encoderPosition = 0;
       lcdui.refresh(LCDVIEW_REDRAW_NOW);
       babystep.add_steps(axis, steps);
@@ -56,8 +61,9 @@
           #else
             lcd_moveto(0, LCD_HEIGHT - 1);
           #endif
-          lcd_put_u8str_P(PSTR(MSG_BABYSTEP_TOTAL ":"));
-          lcd_put_u8str(LCD_Z_OFFSET_FUNC(spm * babystep.axis_total[BS_TOTAL_AXIS(axis)]));
+          lcd_put_u8str_P(GET_TEXT(MSG_BABYSTEP_TOTAL));
+          lcd_put_wchar(':');
+          lcd_put_u8str(LCD_Z_OFFSET_FUNC(spm * babystep.axis_total[BS_TOTAL_IND(axis)]));
         }
       #endif
     }

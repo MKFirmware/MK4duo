@@ -39,6 +39,14 @@
 
 /**
  * M290: Babystepping
+ *
+ *  X<linear> - Distance to step X
+ *  Y<linear> - Distance to step Y
+ *  Z<linear> - Distance to step Z
+ *  S<linear> - Distance to step Z (alias for Z)
+ *
+ * With BABYSTEP_ZPROBE_OFFSET:
+ *  P0 - Don't adjust the Z probe offset
  */
 inline void gcode_M290() {
   #if ENABLED(BABYSTEP_XY)

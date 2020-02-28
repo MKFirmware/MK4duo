@@ -126,7 +126,8 @@ class Printer {
 
     static void zero_fan_speed();
 
-    static void idle(const bool ignore_stepper_queue=false);
+    static void idle(const bool no_stepper_sleep=false);
+    inline static void idle_no_sleep() { idle(true); }
 
     static bool isPrinting();
     static bool isPaused();
@@ -137,6 +138,7 @@ class Printer {
 
     #if HAS_SD_SUPPORT
       static void abort_sd_printing();
+      static void finish_sd_printing();
     #endif
 
     #if HAS_SUICIDE

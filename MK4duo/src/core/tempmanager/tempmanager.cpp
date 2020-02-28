@@ -384,7 +384,7 @@ void TempManager::disable_all_heaters() {
 
   // Unpause and reset everything
   #if HAS_BED_PROBE && ENABLED(PROBING_HEATERS_OFF)
-    probe.probing_pause(false);
+    probe.set_paused(false);
   #endif
 
   // If all heaters go down then for sure our print job has stopped

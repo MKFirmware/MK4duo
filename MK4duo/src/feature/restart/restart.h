@@ -34,6 +34,7 @@
 #endif
 
 typedef struct {
+
   uint8_t valid_head;
 
   // SD file e position
@@ -119,7 +120,7 @@ class Restart {
     static void start_job();
     static void purge_job();
     static void load_job();
-    static void save_job(const bool force_save=false, const bool save_count=true);
+    static void save_job(const bool force_save=false);
     static void resume_job();
 
     static inline bool exists()               { return card.exist_restart_file(); }

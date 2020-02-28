@@ -40,6 +40,8 @@ xy_float_t  AutoBedLevel::bilinear_grid_factor;
  */
 void AutoBedLevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
 
+  if (!isnan(z_values[x][y])) return;
+
   if (printer.debugFeature()) {
     DEBUG_MSG("Extrapolate [");
     if (x < 10) DEBUG_CHR(' ');
@@ -50,13 +52,8 @@ void AutoBedLevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const
     DEBUG_VAL((int)y);
     DEBUG_CHR(ydir ? (ydir > 0 ? '+' : '-') : ' ');
     DEBUG_CHR(']');
+    SERIAL_EOL();
   }
-
-  if (!isnan(z_values[x][y])) {
-    if (printer.debugFeature()) DEBUG_EM(" (done)");
-    return;  // Don't overwrite good values.
-  }
-  SERIAL_EOL();
 
   // Get X neighbors, Y neighbors, and XY neighbors
   const uint8_t x1 = x + xdir, y1 = y + ydir, x2 = x1 + xdir, y2 = y1 + ydir;

@@ -48,7 +48,7 @@ mechanics_data_t Cartesian_Mechanics::data;
 #endif
 
 /** Private Parameters */
-constexpr float slop = 0.0001;
+constexpr float fslop = 0.0001;
 
 /** Public Function */
 void Cartesian_Mechanics::factory_parameters() {
@@ -428,7 +428,7 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
   if (is_home_dir) {
 
     #if HOMING_Z_WITH_PROBE && QUIET_PROBING
-      if (axis == Z_AXIS) probe.probing_pause(true);
+      if (axis == Z_AXIS) probe.set_paused(true);
     #endif
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
@@ -450,7 +450,7 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
   if (is_home_dir) {
 
     #if HOMING_Z_WITH_PROBE && QUIET_PROBING
-      if (axis == Z_AXIS) probe.probing_pause(false);
+      if (axis == Z_AXIS) probe.set_paused(false);
     #endif
 
     endstops.validate_homing_move();
@@ -624,22 +624,22 @@ float Cartesian_Mechanics::z_home_pos() {
 
 // Return true if the given position is within the machine bounds.
 bool Cartesian_Mechanics::position_is_reachable(const float &rx, const float &ry) {
-  if (!WITHIN(ry, data.base_pos.min.y - slop, data.base_pos.max.y + slop)) return false;
+  if (!WITHIN(ry, data.base_pos.min.y - fslop, data.base_pos.max.y + fslop)) return false;
   #if ENABLED(DUAL_X_CARRIAGE)
     if (toolManager.extruder.active)
-      return WITHIN(rx, X2_MIN_POS - slop, X2_MAX_POS + slop);
+      return WITHIN(rx, X2_MIN_POS - fslop, X2_MAX_POS + fslop);
     else
-      return WITHIN(rx, X1_MIN_POS - slop, X1_MAX_POS + slop);
+      return WITHIN(rx, X1_MIN_POS - fslop, X1_MAX_POS + fslop);
   #else
-    return WITHIN(rx, data.base_pos.min.x - slop, data.base_pos.max.x + slop);
+    return WITHIN(rx, data.base_pos.min.x - fslop, data.base_pos.max.x + fslop);
   #endif
 }
 // Return whether the given position is within the bed, and whether the nozzle
 //  can reach the position required to put the probe at the given position.
 bool Cartesian_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
   return position_is_reachable(rx - probe.data.offset.x, ry - probe.data.offset.y)
-      && WITHIN(rx, probe.min_x() - slop, probe.max_x() + slop)
-      && WITHIN(ry, probe.min_y() - slop, probe.max_y() + slop);
+      && WITHIN(rx, probe.min_x() - fslop, probe.max_x() + fslop)
+      && WITHIN(ry, probe.min_y() - fslop, probe.max_y() + fslop);
 }
 
 // Report detail current position to host

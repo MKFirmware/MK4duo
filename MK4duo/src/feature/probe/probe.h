@@ -138,7 +138,7 @@ class Probe {
     #endif
 
     #if QUIET_PROBING
-      static void probing_pause(const bool onoff);
+      static void set_paused(const bool onoff);
     #endif
 
     static void print_M851();
@@ -149,7 +149,7 @@ class Probe {
 
     static void specific_action(const bool deploy);
 
-    static bool move_to_z(const float z, const feedrate_t fr_mm_s);
+    static bool down_to_z(const float z, const feedrate_t fr_mm_s);
 
     static void do_raise(const float z_raise);
 

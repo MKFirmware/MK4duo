@@ -44,25 +44,107 @@ void _lcd_user_gcode(PGM_P const cmd) {
   #endif
 }
 
-void menu_user() {
-  START_MENU();
-  BACK_ITEM(MSG_MAIN);
-  #if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
-    ACTION_ITEM_P(PSTR(USER_DESC_1), []{ _lcd_user_gcode(PSTR(USER_GCODE_1 _DONE_SCRIPT)); });
-  #endif
-  #if ENABLED(USER_DESC_2) && ENABLED(USER_GCODE_2)
-    ACTION_ITEM_P(PSTR(USER_DESC_2), []{ _lcd_user_gcode(PSTR(USER_GCODE_2 _DONE_SCRIPT)); });
-  #endif
-  #if ENABLED(USER_DESC_3) && ENABLED(USER_GCODE_3)
-    ACTION_ITEM_P(PSTR(USER_DESC_3), []{ _lcd_user_gcode(PSTR(USER_GCODE_3 _DONE_SCRIPT)); });
-  #endif
-  #if ENABLED(USER_DESC_4) && ENABLED(USER_GCODE_4)
-    ACTION_ITEM_P(PSTR(USER_DESC_4), []{ _lcd_user_gcode(PSTR(USER_GCODE_4 _DONE_SCRIPT)); });
-  #endif
-  #if ENABLED(USER_DESC_5) && ENABLED(USER_GCODE_5)
-    ACTION_ITEM_P(PSTR(USER_DESC_5), []{ _lcd_user_gcode(PSTR(USER_GCODE_5 _DONE_SCRIPT)); });
-  #endif
-  END_MENU();
-}
+#if ENABLED(CUSTOM_USER_MENUS)
+
+  #define HAS_USER_ITEM(N)  (defined(USER_DESC_##N) && defined(USER_GCODE_##N))
+  #define USER_ITEM(N)      ACTION_ITEM_P(PSTR(USER_DESC_##N), []{ _lcd_user_gcode(PSTR(USER_GCODE_##N _DONE_SCRIPT)); });
+  
+  void menu_user() {
+    START_MENU();
+    BACK_ITEM(MSG_MAIN);
+    #if HAS_USER_ITEM(1)
+      USER_ITEM(1);
+    #endif
+    #if HAS_USER_ITEM(2)
+      USER_ITEM(2);
+    #endif
+    #if HAS_USER_ITEM(3)
+      USER_ITEM(3);
+    #endif
+    #if HAS_USER_ITEM(4)
+      USER_ITEM(4);
+    #endif
+    #if HAS_USER_ITEM(5)
+      USER_ITEM(5);
+    #endif
+    #if HAS_USER_ITEM(6)
+      USER_ITEM(6);
+    #endif
+    #if HAS_USER_ITEM(7)
+      USER_ITEM(7);
+    #endif
+    #if HAS_USER_ITEM(8)
+      USER_ITEM(8);
+    #endif
+    #if HAS_USER_ITEM(9)
+      USER_ITEM(9);
+    #endif
+    #if HAS_USER_ITEM(10)
+      USER_ITEM(10);
+    #endif
+    #if HAS_USER_ITEM(11)
+      USER_ITEM(11);
+    #endif
+    #if HAS_USER_ITEM(12)
+      USER_ITEM(12);
+    #endif
+    #if HAS_USER_ITEM(13)
+      USER_ITEM(13);
+    #endif
+    #if HAS_USER_ITEM(14)
+      USER_ITEM(14);
+    #endif
+    #if HAS_USER_ITEM(15)
+      USER_ITEM(15);
+    #endif
+    #if HAS_USER_ITEM(16)
+      USER_ITEM(16);
+    #endif
+    #if HAS_USER_ITEM(17)
+      USER_ITEM(17);
+    #endif
+    #if HAS_USER_ITEM(18)
+      USER_ITEM(18);
+    #endif
+    #if HAS_USER_ITEM(19)
+      USER_ITEM(19);
+    #endif
+    #if HAS_USER_ITEM(20)
+      USER_ITEM(20);
+    #endif
+    #if HAS_USER_ITEM(21)
+      USER_ITEM(21);
+    #endif
+    #if HAS_USER_ITEM(22)
+      USER_ITEM(22);
+    #endif
+    #if HAS_USER_ITEM(23)
+      USER_ITEM(23);
+    #endif
+    #if HAS_USER_ITEM(24)
+      USER_ITEM(24);
+    #endif
+    #if HAS_USER_ITEM(25)
+      USER_ITEM(25);
+    #endif
+    #if HAS_USER_ITEM(26)
+      USER_ITEM(26);
+    #endif
+    #if HAS_USER_ITEM(27)
+      USER_ITEM(27);
+    #endif
+    #if HAS_USER_ITEM(28)
+      USER_ITEM(28);
+    #endif
+    #if HAS_USER_ITEM(29)
+      USER_ITEM(29);
+    #endif
+    #if HAS_USER_ITEM(30)
+      USER_ITEM(30);
+    #endif
+    END_MENU();
+  }
+
+#endif // CUSTOM_USER_MENUS
 
 #endif // HAS_LCD_MENU && CUSTOM_USER_MENUS

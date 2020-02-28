@@ -48,7 +48,7 @@ inline void gcode_M32() {
 
     mechanics.feedrate_mm_s       = 20.0; // 20 units/sec
     mechanics.feedrate_percentage = 100;  // 100% mechanics.feedrate_mm_s
-    card.startFileprint();
+    card.startFilePrint();
     print_job_counter.start();
   }
 }

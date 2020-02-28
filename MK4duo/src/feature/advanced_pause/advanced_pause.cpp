@@ -215,7 +215,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
           #endif
         }
 
-        printer.idle(true);
+        printer.idle_no_sleep();
       }
 
       host_action.prompt_do(PROMPT_INFO, PSTR("Reheating"));
@@ -251,7 +251,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
       #endif
     }
 
-    printer.idle(true);
+    printer.idle_no_sleep();
   }
 
   #if ENABLED(DUAL_X_CARRIAGE)
@@ -349,7 +349,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
 
   #if HAS_SD_SUPPORT
     if (did_pause_print) {
-      card.startFileprint();
+      card.startFilePrint();
       --did_pause_print;
     }
   #endif
@@ -423,7 +423,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
       #if HAS_BUZZER
         filament_change_beep(max_beep_count);
       #endif
-      printer.idle(true);
+      printer.idle_no_sleep();
     }
   }
 
@@ -482,7 +482,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
         PRINTER_KEEPALIVE(PausedforUser);
         printer.setWaitForUser(false);
         lcd_pause_show_message(PAUSE_MESSAGE_OPTION);
-        while (menu_response == PAUSE_RESPONSE_WAIT_FOR) printer.idle(true);
+        while (menu_response == PAUSE_RESPONSE_WAIT_FOR) printer.idle_no_sleep();
       }
     #endif
 

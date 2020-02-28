@@ -770,7 +770,8 @@
 // Change if Z babysteps should go the other way
 #define BABYSTEP_INVERT_Z false
 // Babysteps are very small. Increase for faster motion.
-#define BABYSTEP_MULTIPLICATOR 1
+#define BABYSTEP_MULTIPLICATOR_Z  1
+#define BABYSTEP_MULTIPLICATOR_XY 1
 // Display total babysteps since last G28
 //#define BABYSTEP_DISPLAY_TOTAL
 // Enable to combine M851 and Babystepping

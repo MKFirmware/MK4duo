@@ -52,6 +52,8 @@ class SDCard {
 
   public: /** Public Parameters */
 
+    static uint8_t    printing_done_state;
+
     static flagcard_t flag;
 
     static SdFat      fat;
@@ -177,9 +179,9 @@ class SDCard {
     static void ls();
     static void getfilename(uint16_t nr, PGM_P const match=nullptr);
     static void getAbsFilename(char * name);
-    static void startFileprint();
     static void openAndPrintFile(const char * const path);
-    static void stop_print();
+    static void startFilePrint();
+    static void endFilePrint();
     static void write_command(char * buf);
     static void print_status();
     static void startWrite(const char * const path, const bool silent=false);
@@ -187,7 +189,7 @@ class SDCard {
     static void finishWrite();
     static void makeDirectory(const char * const path);
     static void closeFile();
-    static void printingHasFinished();
+    static void fileHasFinished();
     static void chdir(const char * const relpath);
     static void reset_default();
     static void beginautostart();

@@ -374,7 +374,7 @@ void Printer::zero_fan_speed() {
  *  - Check if an idle but hot extruder needs filament extruded (EXTRUDER_RUNOUT_PREVENT)
  *  - Check oozing prevent
  */
-void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
+void Printer::idle(const bool no_stepper_sleep/*=false*/) {
 
   #if ENABLED(SPI_ENDSTOPS)
     if (endstops.tmc_spi_homing.any
@@ -446,7 +446,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
       reset_move_timer();  // reset stepper move watch to keep steppers powered
-    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && move_timer.expired(move_time * 1000UL, false)) {
+    else if (MOVE_AWAY_TEST && !no_stepper_sleep && move_timer.expired(move_time * 1000UL, false)) {
       if (!already_shutdown_steppers) {
         if (printer.debugFeature()) DEBUG_EM("Stepper shutdown");
         already_shutdown_steppers = true; 
@@ -609,8 +609,8 @@ void Printer::print_M353() {
       if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true);
     #endif
 
-    // Stop SD printing
-    card.stop_print();
+    // End File print
+    card.endFilePrint();
 
     // Clear all command in quee
     commands.clear_queue();
@@ -629,6 +629,52 @@ void Printer::print_M353() {
     tempManager.disable_all_heaters();
     zero_fan_speed();
     setWaitForHeatUp(false);
+  }
+
+  void Printer::finish_sd_printing() {
+
+    bool did_state = true;
+
+    switch (card.printing_done_state) {
+
+      #if HAS_RESUME_CONTINUE                   // Display "Click to Continue..."
+        case 1:
+          did_state = commands.enqueue_P(PSTR("M0Q1S"
+            #if HAS_LCD_MENU
+              "1800"                            // ...for 30 minutes with LCD
+            #else
+              "60"                              // ...for 1 minute with no LCD
+            #endif
+          ));
+          break;
+      #endif
+
+      case 2: print_job_counter.stop(); break;
+
+      case 3:
+        did_state = print_job_counter.duration() < 60 || commands.enqueue_P(PSTR("M31"));
+        break;
+
+      case 4:
+        #if HAS_SD_RESTART
+          restart.purge_job();
+        #endif
+
+        #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
+           planner.finish_and_disable();
+        #endif
+
+        #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
+          lcdui.reselect_last_file();
+        #endif
+
+      default:
+        did_state = false;
+        card.printing_done_state = 0;
+    }
+
+    if (did_state) ++card.printing_done_state;
+
   }
 
 #endif
@@ -956,6 +1002,7 @@ void loop() {
     #if HAS_SD_SUPPORT
       card.checkautostart();
       if (card.isAbortSDprinting()) printer.abort_sd_printing();
+      if (card.printing_done_state) printer.finish_sd_printing();
     #endif // HAS_SD_SUPPORT
 
     commands.advance_queue();

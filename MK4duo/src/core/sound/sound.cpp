@@ -40,7 +40,7 @@ void Sound::factory_parameters() {
  
 void Sound::playtone(const uint16_t duration, const uint16_t frequency/*=0*/) {
   if (data.mode == SOUND_MODE_MUTE) return;
-  while (buffer.isFull()) printer.idle(true);
+  while (buffer.isFull()) printer.idle_no_sleep();
   tone_t new_tone = { duration, frequency };
   buffer.enqueue(new_tone);
 }
@@ -59,9 +59,9 @@ void Sound::spin() {
       #if ENABLED(LCD_USE_I2C_BUZZER)
         lcd.buzz(play_tone.duration, play_tone.frequency);
       #elif ENABLED(SPEAKER)
-        CRITICAL_SECTION_START
+        CRITICAL_SECTION_START();
           ::tone(BEEPER_PIN, play_tone.frequency, play_tone.duration);
-        CRITICAL_SECTION_END
+        CRITICAL_SECTION_END();
       #elif PIN_EXISTS(BEEPER)
         on();
       #endif

@@ -810,8 +810,7 @@ void Endstops::report_state() {
 
     #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
       if (planner.flag.abort_on_endstop_hit) {
-        card.setPrinting(false);
-        card.closeFile();
+        card.endFilePrint();
         printer.quickstop_stepper();
         tempManager.disable_all_heaters();
       }

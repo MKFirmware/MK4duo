@@ -112,10 +112,11 @@ bool    Stepper::abort_current_block  = false;
   bool Stepper::locked_Z_motor = false, Stepper::locked_Z2_motor = false;
 #endif
 
-uint32_t      Stepper::acceleration_time  = 0,
-              Stepper::deceleration_time  = 0;
+uint32_t      Stepper::acceleration_time    = 0,
+              Stepper::deceleration_time    = 0;
 
-uint8_t       Stepper::steps_per_isr = 0;
+uint8_t       Stepper::steps_per_isr        = 0,
+              Stepper::oversampling_factor  = 0;
 
 xyze_long_t   Stepper::delta_error{0};
 
@@ -144,16 +145,7 @@ uint8_t       Stepper::active_extruder        = 0,
   bool Stepper::bezier_2nd_half = false;  // =false If Bézier curve has been initialized or not
 #endif
 
-uint32_t Stepper::nextMainISR = 0;
-
-#if ENABLED(ADAPTIVE_STEP_SMOOTHING)
-  static uint8_t oversampling_factor = 0;
-#else
-  constexpr uint8_t oversampling_factor = 0;
-#endif
-
 #if ENABLED(LIN_ADVANCE)
-  constexpr uint32_t LA_ADV_NEVER         = 0xFFFFFFFF;
   uint32_t  Stepper::nextAdvanceISR       = LA_ADV_NEVER,
             Stepper::LA_isr_rate          = LA_ADV_NEVER;
   uint16_t  Stepper::LA_current_adv_steps = 0,
@@ -294,8 +286,7 @@ void Stepper::init() {
 
   // Init Stepper ISR
   START_STEPPER_INTERRUPT();
-  ENABLE_STEPPER_INTERRUPT();
-
+  wake_up();
   sei();
 
   // Init direction bits for first moves
@@ -339,6 +330,8 @@ void Stepper::factory_parameters() {
  */
 void Stepper::Step() {
 
+  static uint32_t nextMainISR = 0;  // Interval until the next main Stepper Pulse phase (0 = Now)
+
   #if DISABLED(__AVR__)
     // Disable interrupts, to avoid ISR preemption while we reprogram the period
     // (AVR enters the ISR with global interrupts disabled, so no need to do it here)
@@ -365,26 +358,30 @@ void Stepper::Step() {
     ENABLE_ISRS();
 
     // Run main stepping pulse phase ISR if we have to
-    if (!nextMainISR) pulse_phase_step();
+    if (!nextMainISR) pulse_phase_step();                       // 0 = Do coordinated axes Stepper pulses
 
     #if ENABLED(LIN_ADVANCE)
       // Run linear advance stepper ISR
-      if (!nextAdvanceISR) nextAdvanceISR = lin_advance_step();
+      if (!nextAdvanceISR) nextAdvanceISR = lin_advance_step(); // 0 = Do Linear Advance E Stepper pulses
     #endif
 
-    // Run main stepping block processing ISR if we have to
-    if (!nextMainISR) nextMainISR = block_phase_step();
+    if (!nextMainISR) nextMainISR = block_phase_step();         // Manage acc/deceleration, get next block
 
     #if ENABLED(LIN_ADVANCE)
-      uint32_t interval = MIN(nextAdvanceISR, nextMainISR); // Nearest time interval
+      uint32_t interval = MIN(nextAdvanceISR, nextMainISR);     // Nearest time interval
     #else
-      uint32_t interval = nextMainISR;                      // Remaining stepper ISR time
+      uint32_t interval = nextMainISR;                          // Remaining stepper ISR time
     #endif
 
     // Limit the value to the maximum possible value of the timer
     NOMORE(interval, uint32_t(HAL_TIMER_TYPE_MAX));
 
-    // Compute the time remaining for the main isr
+    //
+    // Compute remaining time for each ISR phase
+    //     NEVER : The phase is idle
+    //      Zero : The phase will occur on the next ISR call
+    //  Non-zero : The phase will occur on a future ISR call
+    //
     nextMainISR -= interval;
 
     #if ENABLED(LIN_ADVANCE)
@@ -496,15 +493,14 @@ int32_t Stepper::position(const AxisEnum axis) {
   #if ENABLED(__AVR__)
     // Protect the access to the position. Only required for AVR, as
     //  any 32bit CPU offers atomic access to 32bit variables
-    const bool isr_enabled = STEPPER_ISR_ENABLED();
-    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+    const bool isr_enabled = suspend();
   #endif
 
   const int32_t v = count_position[axis];
 
   #if ENABLED(__AVR__)
     // Reenable Stepper ISR
-    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) wake_up();
   #endif
 
   return v;
@@ -514,8 +510,7 @@ void Stepper::report_positions() {
 
   #ifdef __AVR__
     // Protect the access to the position.
-    const bool isr_enabled = STEPPER_ISR_ENABLED();
-    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+    const bool isr_enabled = suspend();
   #endif
 
   const int32_t xpos = count_position.x,
@@ -523,7 +518,7 @@ void Stepper::report_positions() {
                 zpos = count_position.z;
 
   #ifdef __AVR__
-    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) wake_up();
   #endif
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
@@ -575,8 +570,7 @@ void Stepper::reset_drivers() {
 void Stepper::set_directions(const bool init/*=false*/) {
 
   // Pre changing directions, an small delay could be needed.
-  // Min delay is 50 Nanoseconds
-  if (data.direction_delay >= 50) HAL::delayNanoseconds(data.direction_delay);
+  direction_delay();
 
   #if HAS_X_DIR
     if (motor_direction(X_AXIS)) {
@@ -662,8 +656,7 @@ void Stepper::set_directions(const bool init/*=false*/) {
   #endif
 
   // After changing directions, an small delay could be needed.
-  // Min delay is 50 Nanoseconds
-  if (data.direction_delay >= 50) HAL::delayNanoseconds(data.direction_delay);
+  direction_delay();
 
 }
 
@@ -845,8 +838,7 @@ bool Stepper::driver_is_enable() {
 void Stepper::endstop_triggered(const AxisEnum axis) {
 
   // Disable stepper ISR
-  const bool isr_enabled = STEPPER_ISR_ENABLED();
-  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+  const bool isr_enabled = suspend();
 
   #if IS_CORE
 
@@ -865,7 +857,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
   quick_stop();
 
   // Reenable Stepper ISR
-  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  if (isr_enabled) wake_up();
 
 }
 
@@ -877,15 +869,14 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
   #if ENABLED(__AVR__)
     // Protect the access to the position. Only required for AVR, as
     //  any 32bit CPU offers atomic access to 32bit variables
-    const bool isr_enabled = STEPPER_ISR_ENABLED();
-    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+    const bool isr_enabled = suspend();
   #endif
 
   const int32_t v = endstops_trigsteps[axis];
 
   #if ENABLED(__AVR__)
     // Reenable Stepper ISR
-    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) wake_up();
   #endif
 
   return v;
@@ -1105,10 +1096,9 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
  */
 void Stepper::set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
   planner.synchronize();
-  const bool isr_enabled = STEPPER_ISR_ENABLED();
-  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+  const bool isr_enabled = suspend();
   _set_position(a, b, c, e);
-  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  if (isr_enabled) wake_up();
 }
 void Stepper::set_position(const AxisEnum a, const int32_t &v) {
   planner.synchronize();
@@ -1116,15 +1106,14 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
   #if ENABLED(__AVR__)
     // Protect the access to the variable. Only required for AVR.
     // Disable stepper ISR
-    const bool isr_enabled = STEPPER_ISR_ENABLED();
-    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+    const bool isr_enabled = suspend();
   #endif
 
   count_position[a] = v;
 
   #if ENABLED(__AVR__)
     // Reenable Stepper ISR
-    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) wake_up();
   #endif
 }
 
@@ -1174,9 +1163,11 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 
   // MUST ONLY BE CALLED BY AN ISR,
   // No other ISR should ever interrupt this!
-  void Stepper::babystep(const AxisEnum axis, const bool direction) {
+  void Stepper::do_babystep(const AxisEnum axis, const bool direction) {
 
     DISABLE_ISRS();
+
+    const xyz_byte_t old_dir = { driver.x->dir_read(), driver.y->dir_read(), driver.z->dir_read() };
 
     switch (axis) {
 
@@ -1184,93 +1175,93 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 
         case X_AXIS: {
           #if CORE_IS_XY
-            const bool  old_X_dir = driver.x->dir_read(),
-                        old_Y_dir = driver.y->dir_read(),
             enable_X();
             enable_Y();
+            direction_delay();
             set_X_dir(driver.x->isDir()^direction^false);
             set_Y_dir(driver.y->isDir()^direction^false);
-            if (data.direction_delay >= 50)
-              HAL::delayNanoseconds(data.direction_delay);
+            direction_delay();
             start_X_step();
             start_Y_step();
             HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_X_step();
             stop_Y_step();
-            set_X_dir(old_X_dir);
-            set_Y_dir(old_Y_dir);
+            direction_delay();
+            set_X_dir(old_dir.x);
+            set_Y_dir(old_dir.y);
+            direction_delay();
           #elif CORE_IS_XZ
-            const bool  old_X_dir = driver.x->dir_read(),
-                        old_Z_dir = driver.z->dir_read(),
             enable_X();
             enable_Z();
+            direction_delay();
             set_X_dir(driver.x->isDir()^direction^false);
             set_Z_dir(driver.z->isDir()^direction^false);
-            if (data.direction_delay >= 50)
-              HAL::delayNanoseconds(data.direction_delay);
+            direction_delay();
             start_X_step();
             start_Z_step();
             HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_X_step();
             stop_Z_step();
-            set_X_dir(old_X_dir);
-            set_Z_dir(old_Z_dir);
+            direction_delay();
+            set_X_dir(old_dir.x);
+            set_Z_dir(old_dir.z);
+            direction_delay();
           #else
-            const bool old_X_dir = driver.x->dir_read();
             enable_X();
+            direction_delay();
             set_X_dir(driver.x->isDir()^direction^false);
-            if (data.direction_delay >= 50)
-              HAL::delayNanoseconds(data.direction_delay);
+            direction_delay();
             start_X_step();
             HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_X_step();
-            set_X_dir(old_X_dir);
+            direction_delay();
+            set_X_dir(old_dir.x);
+            direction_delay();
           #endif
         } break;
 
         case Y_AXIS: {
           #if CORE_IS_XY
-            const bool  old_X_dir = driver.x->dir_read(),
-                        old_Y_dir = driver.y->dir_read(),
             enable_X();
             enable_Y();
+            direction_delay();
             set_X_dir(driver.x->isDir()^direction^false);
             set_Y_dir(driver.y->isDir()^direction^false^(CORESIGN(1)<0));
-            if (data.direction_delay >= 50)
-              HAL::delayNanoseconds(data.direction_delay);
+            direction_delay();
             start_X_step();
             start_Y_step();
             HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_X_step();
             stop_Y_step();
-            set_X_dir(old_X_dir);
-            set_Y_dir(old_Y_dir);
+            direction_delay();
+            set_X_dir(old_dir.x);
+            set_Y_dir(old_dir.y);
+            direction_delay();
           #elif CORE_IS_YZ
-            const bool  old_Y_dir = driver.y->dir_read(),
-                        old_Z_dir = driver.z->dir_read(),
             enable_Y();
             enable_Z();
+            direction_delay();
             set_Y_dir(driver.y->isDir()^direction^false);
             set_Z_dir(driver.z->isDir()^direction^false^(CORESIGN(1)<0));
-            if (data.direction_delay >= 50)
-              HAL::delayNanoseconds(data.direction_delay);
+            direction_delay();
             start_Y_step();
             start_Z_step();
             HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_Y_step();
             stop_Z_step();
-            set_Y_dir(old_Y_dir);
-            set_Z_dir(old_Z_dir);
+            direction_delay();
+            set_Y_dir(old_dir.y);
+            set_Z_dir(old_dir.z);
+            direction_delay();
           #else
-            const bool old_Y_dir = driver.y->dir_read();
             enable_Y();
+            direction_delay();
             set_Y_dir(driver.y->isDir()^direction^false);
-            if (data.direction_delay >= 50)
-              HAL::delayNanoseconds(data.direction_delay);
+            direction_delay();
             start_Y_step();
             HAL::delayNanoseconds(HAL_pulse_high_tick);
             stop_Y_step();
-            set_Y_dir(old_Y_dir);
+            set_Y_dir(old_dir.y);
           #endif
         } break;
 
@@ -1279,47 +1270,48 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
       case Z_AXIS: {
 
         #if CORE_IS_XZ
-          const bool  old_X_dir = driver.x->dir_read(),
-                      old_Z_dir = driver.z->dir_read(),
           enable_X();
           enable_Z();
+          direction_delay();
           set_X_dir(driver.x->isDir()^direction^BABYSTEP_INVERT_Z);
           set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z^(CORESIGN(1)<0));
-          if (data.direction_delay >= 50)
-            HAL::delayNanoseconds(data.direction_delay);
+          direction_delay();
           start_X_step();
           start_Z_step();
           HAL::delayNanoseconds(HAL_pulse_high_tick);
           stop_X_step();
           stop_Z_step();
-          set_X_dir(old_X_dir);
-          set_Z_dir(old_Z_dir);
+          direction_delay();
+          set_X_dir(old_dir.x);
+          set_Z_dir(old_dir.z);
+          direction_delay();
         #elif CORE_IS_YZ
-          const bool  old_Y_dir = driver.y->dir_read(),
-                      old_Z_dir = driver.z->dir_read(),
           enable_Y();
           enable_Z();
+          direction_delay();
           set_Y_dir(driver.y->isDir()^direction^false);
           set_Z_dir(driver.z->isDir()^direction^false^(CORESIGN(1)<0));
-          if (data.direction_delay >= 50)
-            HAL::delayNanoseconds(data.direction_delay);
+          direction_delay();
           start_Y_step();
           start_Z_step();
           HAL::delayNanoseconds(HAL_pulse_high_tick);
           stop_Y_step();
           stop_Z_step();
-          set_Y_dir(old_Y_dir);
-          set_Z_dir(old_Z_dir);
+          direction_delay();
+          set_Y_dir(old_dir.y);
+          set_Z_dir(old_dir.z);
+          direction_delay();
         #elif NOMECH(DELTA)
-          const bool old_Z_dir = driver.z->dir_read();
           enable_Z();
+          direction_delay();
           set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z);
-          if (data.direction_delay >= 50)
-            HAL::delayNanoseconds(data.direction_delay);
+          direction_delay();
           start_Z_step();
           HAL::delayNanoseconds(HAL_pulse_high_tick);
           stop_Z_step();
-          set_Z_dir(old_Z_dir);
+          direction_delay();
+          set_Z_dir(old_dir.z);
+          direction_delay();
         #else // DELTA
 
           const bool z_direction = direction ^ BABYSTEP_INVERT_Z;
@@ -1328,16 +1320,11 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           enable_Y();
           enable_Z();
 
-          const bool  old_x_dir = driver.x->dir_read(),
-                      old_y_dir = driver.y->dir_read(),
-                      old_z_dir = driver.z->dir_read();
-
+          direction_delay();
           set_X_dir(driver.x->isDir() ^ z_direction);
           set_Y_dir(driver.y->isDir() ^ z_direction);
           set_Z_dir(driver.z->isDir() ^ z_direction);
-
-          if (data.direction_delay >= 50)
-            HAL::delayNanoseconds(data.direction_delay);
+          direction_delay();
 
           start_X_step();
           start_Y_step();
@@ -1350,9 +1337,11 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           stop_Z_step();
 
           // Restore direction bits
-          set_X_dir(old_x_dir);
-          set_Y_dir(old_y_dir);
-          set_Z_dir(old_z_dir);
+          direction_delay();
+          set_X_dir(old_dir.x);
+          set_Y_dir(old_dir.y);
+          set_Z_dir(old_dir.z);
+          direction_delay();
 
         #endif
 
@@ -1491,8 +1480,8 @@ void Stepper::pulse_phase_step() {
 
 uint32_t Stepper::block_phase_step() {
 
-  // If no queued movements, just wait 1ms for the next move
-  uint32_t interval = (STEPPER_TIMER_RATE) / 1000;
+  // If no queued movements, just wait 1ms for the next block
+  uint32_t interval = (STEPPER_TIMER_RATE) / 1000UL;
 
   // If there is a current block
   if (current_block) {
@@ -1503,7 +1492,7 @@ uint32_t Stepper::block_phase_step() {
         filamentrunout.block_completed(current_block);
       #endif
       axis_did_move = 0;
-      current_block = NULL;
+      current_block = nullptr;
       planner.discard_current_block();
 
       #if ENABLED(LASER)
@@ -1529,17 +1518,15 @@ uint32_t Stepper::block_phase_step() {
 
         // acc_step_rate is in steps/second
 
-        // step_rate to timer interval
-        interval = calc_timer_interval(acc_step_rate, &steps_per_isr, oversampling_factor);
+        // step_rate to timer interval and steps per stepper isr
+        interval = calc_timer_interval(acc_step_rate, &steps_per_isr);
         acceleration_time += interval;
 
         #if ENABLED(LIN_ADVANCE)
-          if (LA_use_advance_lead) {
-            // Fire ISR if final adv_rate is reached
-            if (LA_steps && LA_isr_rate != current_block->advance_speed) nextAdvanceISR = 0;
-          }
-          else if (LA_steps) nextAdvanceISR = 0;
-        #endif // ENABLED(LIN_ADVANCE)
+          // Fire ISR if final adv_rate is reached
+          if (LA_steps && (!LA_use_advance_lead || LA_isr_rate != current_block->advance_speed))
+            initiateLA();
+        #endif
 
       }
       // Are we in deceleration phase
@@ -1577,20 +1564,18 @@ uint32_t Stepper::block_phase_step() {
         // step_rate is in steps/second
 
         // step_rate to timer interval
-        interval = calc_timer_interval(step_rate, &steps_per_isr, oversampling_factor);
+        interval = calc_timer_interval(step_rate, &steps_per_isr);
         deceleration_time += interval;
 
         #if ENABLED(LIN_ADVANCE)
           if (LA_use_advance_lead) {
             // Wake up eISR on first deceleration loop and fire ISR if final adv_rate is reached
-            if (step_events_completed <= decelerate_after + steps_per_isr ||
-               (LA_steps && LA_isr_rate != current_block->advance_speed)
-            ) {
-              nextAdvanceISR = 0;
+            if (step_events_completed <= decelerate_after + steps_per_isr || (LA_steps && LA_isr_rate != current_block->advance_speed)) {
+              initiateLA();
               LA_isr_rate = current_block->advance_speed;
             }
           }
-          else if (LA_steps) nextAdvanceISR = 0;
+          else if (LA_steps) initiateLA();
         #endif // LIN_ADVANCE
       }
       // We must be in cruise phase otherwise
@@ -1598,13 +1583,13 @@ uint32_t Stepper::block_phase_step() {
 
         #if ENABLED(LIN_ADVANCE)
           // If there are any esteps, fire the next advance_isr "now"
-          if (LA_steps && LA_isr_rate != current_block->advance_speed) nextAdvanceISR = 0;
+          if (LA_steps && LA_isr_rate != current_block->advance_speed) initiateLA();
         #endif
 
         // Calculate the ticks_nominal for this nominal speed, if not done yet
         if (ticks_nominal < 0) {
           // step_rate to timer interval and loops for the nominal speed
-          ticks_nominal = calc_timer_interval(current_block->nominal_rate, &steps_per_isr, oversampling_factor);
+          ticks_nominal = calc_timer_interval(current_block->nominal_rate, &steps_per_isr);
         }
 
         // The timer interval is just the nominal value for the nominal speed
@@ -1712,7 +1697,7 @@ uint32_t Stepper::block_phase_step() {
       uint8_t oversampling = 0;                           // Assume we won't use it
 
       #if ENABLED(ADAPTIVE_STEP_SMOOTHING)
-        // At this point, we must decide if we can use Stepper movement axis smoothing.
+        // Decide if axis smoothing is possible
         uint32_t max_rate = current_block->nominal_rate;  // Get the maximum rate (maximum event speed)
         while (max_rate < HAL_frequency_limit[0]) {
           max_rate <<= 1;
@@ -1765,8 +1750,7 @@ uint32_t Stepper::block_phase_step() {
         if ((LA_use_advance_lead = current_block->use_advance_lead)) {
           LA_final_adv_steps = current_block->final_adv_steps;
           LA_max_adv_steps = current_block->max_adv_steps;
-          // Start the ISR
-          nextAdvanceISR = 0;
+          initiateLA(); // Start the ISR
           LA_isr_rate = current_block->advance_speed;
         }
         else LA_isr_rate = LA_ADV_NEVER;
@@ -1827,7 +1811,7 @@ uint32_t Stepper::block_phase_step() {
       #endif
 
       // Calculate the initial timer interval
-      interval = calc_timer_interval(current_block->initial_rate, &steps_per_isr, oversampling_factor);
+      interval = calc_timer_interval(current_block->initial_rate, &steps_per_isr);
     }
   }
 
@@ -1876,13 +1860,14 @@ FORCE_INLINE void Stepper::pulse_tick_prepare() {
   // Pulse Extruders
   #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
     delta_error.e += advance_dividend.e;
-    step_needed.e = (delta_error.e >= 0);
-    if (step_needed.e) {
+    if (delta_error.e >= 0) {
       count_position.e += count_direction.e;
       #if ENABLED(LIN_ADVANCE)
         delta_error.e -= advance_divisor;
         // Don't step E here - But remember the number of steps to perform
         motor_direction(E_AXIS) ? --LA_steps : ++LA_steps;
+      #else
+        step_needed.e = true;
       #endif
     }
   #else
@@ -2283,8 +2268,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     #endif
 
     // After changing directions, an small delay could be needed.
-    // Min delay is 50 Nanoseconds
-    if (data.direction_delay >= 50) HAL::delayNanoseconds(data.direction_delay);
+    direction_delay();
 
     bool first_step = true;
     hal_timer_t pulse_tick_end;
