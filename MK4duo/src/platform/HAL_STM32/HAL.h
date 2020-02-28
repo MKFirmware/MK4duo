@@ -92,8 +92,8 @@ typedef uint32_t  ptr_int_t;
 #endif
 
 // CRITICAL SECTION
-#define CRITICAL_SECTION_START  uint32_t primask = __get_PRIMASK(); __disable_irq();
-#define CRITICAL_SECTION_END    if (!primask) __enable_irq();
+#define CRITICAL_SECTION_START()  uint32_t primask = __get_PRIMASK(); __disable_irq()
+#define CRITICAL_SECTION_END()    if (!primask) __enable_irq()
 
 // ISR function
 #define ISRS_ENABLED()          (!__get_PRIMASK())

@@ -283,8 +283,8 @@ void Commands::ok_to_send() {
       while (NUMERIC_SIGNED(*p))
         SERIAL_CHR(*p++);
     }
-    SERIAL_MV(" P", BLOCK_BUFFER_SIZE - planner.moves_planned() - 1);
-    SERIAL_MV(" B", BUFSIZE - buffer_ring.count());
+    SERIAL_MV(" P", int(planner.moves_free()));
+    SERIAL_MV(" B", int(BUFSIZE - buffer_ring.count()));
   #endif
 
   SERIAL_EOL();
@@ -293,8 +293,8 @@ void Commands::ok_to_send() {
 
 void Commands::get_serial() {
 
-  static char serial_line_buffer[NUM_SERIAL][MAX_CMD_SIZE];
-  static bool serial_comment_mode[NUM_SERIAL] = { false };
+  static char     serial_line_buffer[NUM_SERIAL][MAX_CMD_SIZE];
+  static uint8_t  serial_input_state[NUM_SERIAL] = { PS_NORMAL };
 
   #if HAS_DOOR_OPEN
     if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
@@ -320,31 +320,22 @@ void Commands::get_serial() {
 
     for (uint8_t i = 0; i < NUM_SERIAL; ++i) {
 
-      int c;
-
       printer.max_inactivity_timer.start();
 
-      if ((c = Com::serialRead(i)) < 0) continue;
+      const int c = Com::serialRead(i);
+      if (c < 0) continue;
 
-      char serial_char = c;
+      const char serial_char = c;
 
-      /**
-       * If the character ends the line
-       */
       if (serial_char == '\n' || serial_char == '\r') {
 
-        serial_comment_mode[i] = false;                      // end of line == end of comment
-
         // Skip empty lines and comments
-        if (!serial_count[i]) continue;
-
-        serial_line_buffer[i][serial_count[i]] = 0;       // Terminate string
-        serial_count[i] = 0;                              // Reset buffer
+        if (process_line_done(serial_input_state[i], serial_line_buffer[i], serial_count[i])) continue;
 
         char *command = serial_line_buffer[i];
 
-        while (*command == ' ') command++;                // Skip leading spaces
-        char *npos = (*command == 'N') ? command : nullptr;  // Require the N parameter to start the line
+        while (*command == ' ') command++;                  // Skip leading spaces
+        char *npos = (*command == 'N') ? command : nullptr; // Require the N parameter to start the line
 
         if (npos) {
 
@@ -386,7 +377,9 @@ void Commands::get_serial() {
           }
         #endif
 
-        // Movement commands alert when stopped
+        //
+        // Movement commands give an alert when the machine is stopped
+        //
         if (printer.isStopped()) {
           char *gpos = strrchr(command, 'G');
           if (gpos) {
@@ -426,30 +419,25 @@ void Commands::get_serial() {
         // Add the command to the buffer_ring
         enqueue(serial_line_buffer[i], true, i);
       }
-      else if (serial_count[i] >= MAX_CMD_SIZE - 1) {
-        // Keep fetching, but ignore normal characters beyond the max length
-        // The command will be injected when EOL is reached
-      }
-      else if (serial_char == '\\') { // Handle escapes
-        // if we have one more character, copy it over
-        if ((c = Com::serialRead(i)) >= 0 && !serial_comment_mode[i])
-          serial_line_buffer[i][serial_count[i]++] = (char)c;
-      }
-      else { // its not a newline, carriage return or escape char
-        if (serial_char == ';') serial_comment_mode[i] = true;
-        else if (!serial_comment_mode[i]) serial_line_buffer[i][serial_count[i]++] = serial_char;
-      }
+      else
+        process_stream_char(serial_char, serial_input_state[i], serial_line_buffer[i], serial_count[i]);
+
     } // for NUM_SERIAL
   }
 }
 
 #if HAS_SD_SUPPORT
 
+  /**
+   * Get lines from the SD Card until the command buffer is full
+   * or until the end of the file is reached. Because this method
+   * always receives complete command-lines, they can go directly
+   * into the main command queue.
+   */
   void Commands::get_sdcard() {
 
-    static char sd_line_buffer[MAX_CMD_SIZE];
-    static bool stop_buffering = false,
-                sd_comment_mode = false;
+    static char     sd_line_buffer[MAX_CMD_SIZE];
+    static uint8_t  sd_input_state = PS_NORMAL;
 
     if (!IS_SD_PRINTING()) return;
 
@@ -460,85 +448,42 @@ void Commands::get_serial() {
       }
     #endif
 
-    /**
-     * '#' stops reading from SD to the buffer prematurely, so procedural
-     * macro calls are possible. If it occurs, stop_buffering is triggered
-     * and the buffer is run dry; this character _can_ occur in serial com
-     * due to checksums, however, no checksums are used in SD printing.
-     */
-
-    if (buffer_ring.isEmpty()) stop_buffering = false;
-
-    uint16_t sd_count = 0;
+    int sd_count = 0;
     bool card_eof = card.eof();
-    while (!buffer_ring.isFull() && !card_eof && !stop_buffering) {
+
+    while (!buffer_ring.isFull() && !card_eof) {
+
       const int16_t n = card.get();
-      char sd_char = (char)n;
       card_eof = card.eof();
+
+      if (n < 0 && !card_eof) { SERIAL_LM(ER, MSG_HOST_SD_ERR_READ); continue; }
+
+      const char sd_char  = (char)n;
+      const bool is_eol   = sd_char == '\n' || sd_char == '\r';
+
       printer.max_inactivity_timer.start();
-      if (card_eof || n == -1
-          || sd_char == '\n'  || sd_char == '\r'
-          || ((sd_char == '#' || sd_char == ':') && !sd_comment_mode)
-      ) {
-        if (card_eof) {
 
-          card.printingHasFinished();
+      if (is_eol || card_eof) {
 
-          if (IS_SD_PRINTING())
-            sd_count = 0; // If a sub-file was printing, continue from call point
-          else {
-            SERIAL_EM(MSG_HOST_FILE_PRINTED);
-            #if ENABLED(PRINTER_EVENT_LEDS)
-              LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
-              leds.set_green();
-              #if HAS_RESUME_CONTINUE
-                inject_P(PSTR("M0 S"
-                  #if HAS_LCD
-                    "1800"
-                  #else
-                    "60"
-                  #endif
-                ));
-              #else
-                HAL::delayMilliseconds(2000);
-                leds.set_off();
-              #endif
-            #endif // ENABLED(PRINTER_EVENT_LEDS)
-          }
+        // Reset stream state, terminate the buffer, and commit a non-empty command
+        if (!is_eol && sd_count) ++sd_count;    // End of file with no newline
+        if (!process_line_done(sd_input_state, sd_line_buffer, sd_count)) {
+          enqueue(sd_line_buffer, false, -2);   // Port -2 for SD non answer and no send ok.
+          #if HAS_SD_RESTART
+            restart.cmd_sdpos = card.getIndex();
+          #endif
         }
-        else if (n == -1) {
-          SERIAL_LM(ER, MSG_HOST_SD_ERR_READ);
-        }
-        if (sd_char == '#') stop_buffering = true;
 
-        sd_comment_mode = false; // for new command
-
-        // Skip empty lines and comments
-        if (!sd_count) continue;
-
-        sd_line_buffer[sd_count] = '\0'; // terminate string
-        sd_count = 0; // clear sd line buffer
-
-        enqueue(sd_line_buffer, false, -2); // Port -2 for SD non answer and no send ok.
-
-        #if HAS_SD_RESTART
-          restart.cmd_sdpos = card.getIndex();
-        #endif
+        if (card_eof) card.fileHasFinished();
 
       }
-      else if (sd_count >= MAX_CMD_SIZE - 1) {
-        /**
-         * Keep fetching, but ignore normal characters beyond the max length
-         * The command will be injected when EOL is reached
-         */
-      }
-      else {
-        if (sd_char == ';') sd_comment_mode = true;
-        if (!sd_comment_mode) sd_line_buffer[sd_count++] = sd_char;
-      }
+      else
+        process_stream_char(sd_char, sd_input_state, sd_line_buffer, sd_count);
+
     }
 
     printer.progress = card.percentDone();
+
   }
 
 #endif // HAS_SD_SUPPORT
@@ -560,12 +505,12 @@ void Commands::process_next() {
 
 }
 
-void Commands::unknown_error() {
+void Commands::unknown_warning() {
   #if NUM_SERIAL > 1
     gcode_t tmp = buffer_ring.peek();
     SERIAL_PORT(tmp.s_port);
   #endif
-  SERIAL_SMV(ECHO, MSG_HOST_UNKNOWN_COMMAND, parser.command_ptr);
+  SERIAL_SMT(ECHO, MSG_HOST_UNKNOWN_COMMAND, parser.command_ptr);
   SERIAL_CHR('"');
   SERIAL_EOL();
   SERIAL_PORT(-1);
@@ -707,7 +652,7 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
 
       case 'T': gcode_T(parser.codenum); break;
 
-      default: unknown_error();
+      default: unknown_warning();
     }
 
   #else
@@ -1013,7 +958,7 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
           case 99: gcode_G99(); break;
         #endif
 
-        default: unknown_error(); break;
+        default: unknown_warning(); break;
       }
       break;
 
@@ -4026,13 +3971,13 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
           case 9999: gcode_M9999(); break;
         #endif
 
-        default: unknown_error(); break;
+        default: unknown_warning(); break;
       }
       break;
 
       case 'T': gcode_T(parser.codenum); break;
 
-      default: unknown_error();
+      default: unknown_warning();
     }
 
   #endif

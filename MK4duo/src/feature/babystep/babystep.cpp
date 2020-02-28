@@ -34,24 +34,15 @@
 Babystep babystep;
 
 /** Public Parameters */
-volatile int16_t Babystep::steps[BS_TODO_AXIS(Z_AXIS) + 1];
+volatile int16_t Babystep::steps[BS_AXIS_IND(Z_AXIS) + 1];
 
-#if HAS_LCD_MENU
-  int16_t Babystep::accum;
-  #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
-    int16_t Babystep::axis_total[BS_TOTAL_AXIS(Z_AXIS) + 1];
-  #endif
+int16_t Babystep::accum;
+
+#if HAS_LCD_MENU && ENABLED(BABYSTEP_DISPLAY_TOTAL)
+  int16_t Babystep::axis_total[BS_TOTAL_IND(Z_AXIS) + 1];
 #endif
 
 /** Public Function */
-void Babystep::spin() {
-  #if ENABLED(BABYSTEP_XY)
-    LOOP_XYZ(axis) step_axis((AxisEnum)axis);
-  #else
-    step_axis(Z_AXIS);
-  #endif
-}
-
 void Babystep::add_mm(const AxisEnum axis, const float &mm) {
   add_steps(axis, mm * mechanics.data.axis_steps_per_mm[axis]);
 }
@@ -60,49 +51,63 @@ void Babystep::add_steps(const AxisEnum axis, const int16_t distance) {
 
   if (!mechanics.isAxisHomed(axis)) return;
 
-  #if HAS_LCD_MENU
-    accum += distance; // Count up babysteps for the LCDUI
-    #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
-      axis_total[BS_TOTAL_AXIS(axis)] += distance;
-    #endif
+  accum += distance; // Count up babysteps for the LCDUI
+
+  #if HAS_LCD_MENU && ENABLED(BABYSTEP_DISPLAY_TOTAL)
+    axis_total[BS_TOTAL_IND(axis)] += distance;
   #endif
+
+  #define BSA_ENABLE(AXIS) do{ switch (AXIS) { case X_AXIS: stepper.enable_X(); break; case Y_AXIS: stepper.enable_Y(); break; case Z_AXIS: stepper.enable_Z(); break; default: break; } }while(0)
 
   #if IS_CORE
     #if ENABLED(BABYSTEP_XY)
       switch (axis) {
         case CORE_AXIS_1: // X on CoreXY and CoreXZ, Y on CoreYZ
+          BSA_ENABLE(CORE_AXIS_1);
+          BSA_ENABLE(CORE_AXIS_2);
           steps[CORE_AXIS_1] += distance * 2;
           steps[CORE_AXIS_2] += distance * 2;
           break;
         case CORE_AXIS_2: // Y on CoreXY, Z on CoreXZ and CoreYZ
+          BSA_ENABLE(CORE_AXIS_1);
+          BSA_ENABLE(CORE_AXIS_2);
           steps[CORE_AXIS_1] += CORESIGN(distance * 2);
           steps[CORE_AXIS_2] -= CORESIGN(distance * 2);
           break;
         case NORMAL_AXIS: // Z on CoreXY, Y on CoreXZ, X on CoreYZ
         default:
+          BSA_ENABLE(NORMAL_AXIS);
           steps[NORMAL_AXIS] += distance;
           break;
       }
     #elif CORE_IS_XZ || CORE_IS_YZ
       // Only Z stepping needs to be handled here
+      BSA_ENABLE(CORE_AXIS_1);
+      BSA_ENABLE(CORE_AXIS_2);
       steps[CORE_AXIS_1] += CORESIGN(distance * 2);
       steps[CORE_AXIS_2] -= CORESIGN(distance * 2);
     #else
+      BSA_ENABLE(Z_AXIS);
       steps[Z_AXIS] += distance;
     #endif
   #else
-    steps[BS_TODO_AXIS(axis)] += distance;
+    #if ENABLED(BABYSTEP_XY)
+      BSA_ENABLE(axis);
+    #else
+      BSA_ENABLE(Z_AXIS);
+    #endif
+    steps[BS_AXIS_IND(axis)] += distance;
   #endif
 
 }
 
 /** Private Function */
 void Babystep::step_axis(const AxisEnum axis) {
-  const int16_t curTodo = steps[BS_TODO_AXIS(axis)]; // get rid of volatile for performance
+  const int16_t curTodo = steps[BS_AXIS_IND(axis)]; // get rid of volatile for performance
   if (curTodo) {
-    stepper.babystep((AxisEnum)axis, curTodo > 0);
-    if (curTodo > 0)  steps[BS_TODO_AXIS(axis)]--;
-    else              steps[BS_TODO_AXIS(axis)]++;
+    stepper.do_babystep((AxisEnum)axis, curTodo > 0);
+    if (curTodo > 0)  steps[BS_AXIS_IND(axis)]--;
+    else              steps[BS_AXIS_IND(axis)]++;
   }
 }
 

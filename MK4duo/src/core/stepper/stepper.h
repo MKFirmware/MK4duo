@@ -97,7 +97,8 @@ class Stepper {
     #endif
 
     static uint32_t acceleration_time, deceleration_time; // time measured in Stepper Timer ticks
-    static uint8_t  steps_per_isr;                        // Count of steps to perform per Stepper ISR call
+    static uint8_t  steps_per_isr,                        // Count of steps to perform per Stepper ISR ca
+                    oversampling_factor;                  // Oversampling factor (log2(multiplier)) to increase temporal resolution of axis
 
     // Delta error variables for the Bresenham line tracer
     static xyze_long_t  delta_error;
@@ -124,13 +125,13 @@ class Stepper {
       static bool bezier_2nd_half;  // If Bézier curve has been initialized or not
     #endif
 
-    static uint32_t nextMainISR;    // time remaining for the next Step ISR
     #if ENABLED(LIN_ADVANCE)
+      static constexpr uint32_t LA_ADV_NEVER = 0xFFFFFFFF;
       static uint32_t nextAdvanceISR, LA_isr_rate;
       static uint16_t LA_current_adv_steps, LA_final_adv_steps, LA_max_adv_steps;
       static int8_t   LA_steps;
       static bool     LA_use_advance_lead;
-    #endif // !LIN_ADVANCE
+    #endif
 
     static int32_t ticks_nominal;
     #if DISABLED(BEZIER_JERK_CONTROL)
@@ -229,7 +230,15 @@ class Stepper {
      * The stepper subsystem goes to sleep when it runs out of things to execute. Call this
      * to notify the subsystem that it is time to go to work.
      */
-    FORCE_INLINE static void wake_up() { ENABLE_STEPPER_INTERRUPT(); }
+    static inline void wake_up()  { ENABLE_STEPPER_INTERRUPT(); }
+
+    static inline bool is_awake() { return STEPPER_ISR_ENABLED(); }
+
+    static inline bool suspend() {
+      const bool awake = is_awake();
+      if (awake) DISABLE_STEPPER_INTERRUPT();
+      return awake;
+    }
 
     /**
      * Enabled or Disable one or all stepper driver
@@ -335,7 +344,7 @@ class Stepper {
     #endif
 
     #if ENABLED(BABYSTEPPING)
-      static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
+      static void do_babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
     #endif
 
     #if ENABLED(LASER)
@@ -361,6 +370,11 @@ class Stepper {
     static uint32_t block_phase_step();
 
     /**
+     * Direction delay
+     */
+    FORCE_INLINE static void direction_delay() { if (data.direction_delay >= 50) HAL::delayNanoseconds(data.direction_delay); }
+
+    /**
      * Pulse tick prepare
      */
     FORCE_INLINE static void pulse_tick_prepare();
@@ -373,7 +387,7 @@ class Stepper {
     /**
      * Pulse tick Stop
      */
-     FORCE_INLINE static void pulse_tick_stop();
+    FORCE_INLINE static void pulse_tick_stop();
 
     /**
      * Start step X Y Z
@@ -426,6 +440,7 @@ class Stepper {
     #if ENABLED(LIN_ADVANCE)
       // The Linear advance stepper Step
       static uint32_t lin_advance_step();
+      FORCE_INLINE static void initiateLA() { nextAdvanceISR = 0; }
     #endif
 
     #if ENABLED(BEZIER_JERK_CONTROL)
@@ -453,12 +468,12 @@ class Stepper {
       }
     #endif
 
-    FORCE_INLINE static hal_timer_t calc_timer_interval(uint32_t step_rate, uint8_t* loops, uint8_t scale) {
+    FORCE_INLINE static hal_timer_t calc_timer_interval(uint32_t step_rate, uint8_t* loops) {
 
       uint8_t multistep = 1;
 
       // Scale the frequency, as requested by the caller
-      step_rate <<= scale;
+      step_rate <<= oversampling_factor;
 
       if (data.quad_stepping) {
         // Select the proper multistepping

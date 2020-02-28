@@ -81,7 +81,7 @@ void Restart::load_job() {
   debug_info(PSTR("Load"));
 }
 
-void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=true*/) {
+void Restart::save_job(const bool force_save/*=false*/) {
 
   static short_timer_t save_restart_timer(millis());
 
@@ -90,6 +90,7 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
       || mechanics.position.z > job_info.axis_position_mm.z
   ) {
 
+    // Set Head and Foot to matching non-zero values
     if (!++job_info.valid_head) ++job_info.valid_head; // non-zero in sequence
     job_info.valid_foot = job_info.valid_head;
 

@@ -28,6 +28,8 @@
 SDCard card;
 
 /** Public Parameters */
+uint8_t     SDCard::printing_done_state;
+
 flagcard_t  SDCard::flag;
 
 SdFat       SDCard::fat;
@@ -183,14 +185,14 @@ void SDCard::mount() {
     import_eeprom();
   #endif
 
-  if (selectFile("init.g", true)) startFileprint();
+  if (selectFile("init.g", true)) startFilePrint();
 
   lcdui.refresh();
 }
 
 void SDCard::unmount() {
   setMounted(false);
-  setPrinting(false);
+  endFilePrint();
 }
 
 void SDCard::ls() {
@@ -235,15 +237,6 @@ void SDCard::getAbsFilename(char * name) {
 
 }
 
-void SDCard::startFileprint() {
-  if (isMounted()) {
-    setPrinting(true);
-    #if ENABLED(SDCARD_SORT_ALPHA)
-      flush_presort();
-    #endif
-  }
-}
-
 void SDCard::openAndPrintFile(const char * const path) {
   char cmd[4 + strlen(path) + 1]; // Room for "M23 ", fileName, and null
   sprintf_P(cmd, M23_CMD, path);
@@ -252,7 +245,16 @@ void SDCard::openAndPrintFile(const char * const path) {
   commands.enqueue_now_P(M24_CMD);
 }
 
-void SDCard::stop_print() {
+void SDCard::startFilePrint() {
+  if (isMounted()) {
+    setPrinting(true);
+    #if ENABLED(SDCARD_SORT_ALPHA)
+      flush_presort();
+    #endif
+  }
+}
+
+void SDCard::endFilePrint() {
   setPrinting(false);
   if (isFileOpen()) gcode_file.close();
 }
@@ -304,7 +306,7 @@ void SDCard::startWrite(const char * const path, const bool silent/*=false*/) {
 
 void SDCard::deleteFile(const char * const path) {
   if (!isMounted()) return;
-  setPrinting(false);
+  endFilePrint();
   gcode_file.close();
   if (fat.remove(path)) {
     SERIAL_EMT(MSG_HOST_SD_FILE_DELETED, path);
@@ -331,7 +333,7 @@ void SDCard::finishWrite() {
 
 void SDCard::makeDirectory(const char * const path) {
   if (!isMounted()) return;
-  setPrinting(false);
+  endFilePrint();
   gcode_file.close();
   if (fat.mkdir(path)) {
     SERIAL_EM(MSG_HOST_SD_DIRECTORY_CREATED);
@@ -350,34 +352,13 @@ void SDCard::closeFile() {
   #endif
 }
 
-void SDCard::printingHasFinished() {
+void SDCard::fileHasFinished() {
   planner.synchronize();
-  gcode_file.close();
-  setPrinting(false);
-
-  #if HAS_SD_RESTART
-    restart.purge_job();
-  #endif
-
-  #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
-     planner.finish_and_disable();
-  #endif
-
-  print_job_counter.stop();
-
-  if (print_job_counter.duration() > 60)
-    commands.inject_P(PSTR("M31"));
-
+  endFilePrint();
   #if ENABLED(SDCARD_SORT_ALPHA)
     presort();
   #endif
-
-  lcdui.reset_status();
-
-  #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
-    lcdui.reselect_last_file();
-  #endif
-
+  printing_done_state = 1;
 }
 
 void SDCard::chdir(const char * const relpath) {

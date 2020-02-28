@@ -92,24 +92,24 @@ void TMC_Manager::create_tmc() {
 
   #if HAVE_DRV(TMC2208)
 
-    #define TMC_HW_DEFINE(ST,A)   do{ if (!driver[ST##_DRV]->tmc) {                                                \
-                                    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, &ST##_HARDWARE_SERIAL, R_SENSE);  \
-                                    ST##_HARDWARE_SERIAL.begin(115200);                                           \
+    #define TMC_HW_DEFINE(ST,A)   do{ if (!driver[ST##_DRV]->tmc) {                                                     \
+                                    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, &ST##_HARDWARE_SERIAL, float(R_SENSE));  \
+                                    ST##_HARDWARE_SERIAL.begin(115200);                                                 \
                                   } }while(0)
 
-    #define TMC_HW_DEFINE_E(ST,A) do{ if (!driver.e[ST##_DRV]->tmc) {                                              \
-                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, &ST##_HARDWARE_SERIAL, R_SENSE);\
-                                    ST##_HARDWARE_SERIAL.begin(115200);                                           \
+    #define TMC_HW_DEFINE_E(ST,A) do{ if (!driver.e[ST##_DRV]->tmc) {                                                     \
+                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, &ST##_HARDWARE_SERIAL, float(R_SENSE));  \
+                                    ST##_HARDWARE_SERIAL.begin(115200);                                                   \
                                   } }while(0)
 
-    #define TMC_SW_DEFINE(ST,A)   do{ if (!driver[ST##_DRV]->tmc) {                                                                                            \
-                                    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
-                                    driver[ST##_DRV]->tmc->beginSerial(115200);                                                                               \
+    #define TMC_SW_DEFINE(ST,A)   do{ if (!driver[ST##_DRV]->tmc) {                                                                                                   \
+                                    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, float(R_SENSE), ST##_SERIAL_RX_PIN > NoPin);   \
+                                    driver[ST##_DRV]->tmc->beginSerial(115200);                                                                                       \
                                   } }while(0)
 
-    #define TMC_SW_DEFINE_E(ST,A) do{ if (!driver.e[ST##_DRV]->tmc) {                                                                                            \
-                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
-                                    driver.e[ST##_DRV]->tmc->beginSerial(115200);                                                                               \
+    #define TMC_SW_DEFINE_E(ST,A) do{ if (!driver.e[ST##_DRV]->tmc) {                                                                                                 \
+                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, float(R_SENSE), ST##_SERIAL_RX_PIN > NoPin); \
+                                    driver.e[ST##_DRV]->tmc->beginSerial(115200);                                                                                     \
                                   } }while(0)
 
     // Stepper objects of TMC2208 steppers used
@@ -221,11 +221,11 @@ void TMC_Manager::create_tmc() {
   #elif HAVE_DRV(TMC2660)
 
     #if ENABLED(TMC_USE_SW_SPI)
-      #define TMC2660_DEFINE(ST,A)    do{ if (!driver[ST##_DRV]->tmc)   driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
-      #define TMC2660_DEFINE_E(ST,A)  do{ if (!driver.e[ST##_DRV]->tmc) driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);  }while(0)
+      #define TMC2660_DEFINE(ST,A)    do{ if (!driver[ST##_DRV]->tmc)   driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, float(R_SENSE), TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
+      #define TMC2660_DEFINE_E(ST,A)  do{ if (!driver.e[ST##_DRV]->tmc) driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, float(R_SENSE), TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);  }while(0)
     #else
-      #define TMC2660_DEFINE(ST,A)    do{ if (!driver[ST##_DRV]->tmc)   driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE);    }while(0)
-      #define TMC2660_DEFINE_E(ST,A)  do{ if (!driver.e[ST##_DRV]->tmc) driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE);  }while(0)
+      #define TMC2660_DEFINE(ST,A)    do{ if (!driver[ST##_DRV]->tmc)   driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, float(R_SENSE));    }while(0)
+      #define TMC2660_DEFINE_E(ST,A)  do{ if (!driver.e[ST##_DRV]->tmc) driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, float(R_SENSE));  }while(0)
     #endif
 
     // Stepper objects of TMC2660 steppers used
@@ -285,11 +285,11 @@ void TMC_Manager::create_tmc() {
   #elif HAS_TMCX1XX
 
     #if ENABLED(TMC_USE_SW_SPI)
-      #define TMC_MODEL_DEFINE(ST,A)    do{ if (!driver[ST##_DRV]->tmc)   driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
-      #define TMC_MODEL_DEFINE_E(ST,A)  do{ if (!driver.e[ST##_DRV]->tmc) driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);  }while(0)
+      #define TMC_MODEL_DEFINE(ST,A)    do{ if (!driver[ST##_DRV]->tmc)   driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, float(R_SENSE), TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
+      #define TMC_MODEL_DEFINE_E(ST,A)  do{ if (!driver.e[ST##_DRV]->tmc) driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, float(R_SENSE), TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);  }while(0)
     #else
-      #define TMC_MODEL_DEFINE(ST,A)    do{ if (!driver[ST##_DRV]->tmc)   driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE);    }while(0)
-      #define TMC_MODEL_DEFINE_E(ST,A)  do{ if (!driver.e[ST##_DRV]->tmc) driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE);  }while(0)
+      #define TMC_MODEL_DEFINE(ST,A)    do{ if (!driver[ST##_DRV]->tmc)   driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, float(R_SENSE));    }while(0)
+      #define TMC_MODEL_DEFINE_E(ST,A)  do{ if (!driver.e[ST##_DRV]->tmc) driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, float(R_SENSE));  }while(0)
     #endif
 
     // Stepper objects of TMC2130 steppers used
@@ -530,12 +530,10 @@ void TMC_Manager::test_connection(const bool test_x, const bool test_y, const bo
 #if HAS_SENSORLESS
 
   bool TMC_Manager::enable_stallguard(Driver* drv) {
-    bool old_stealthChop = drv->tmc->en_pwm_mode();
-
+    const bool old_stealthChop = drv->tmc->en_pwm_mode();
     drv->tmc->TCOOLTHRS(0xFFFFF);
     drv->tmc->en_pwm_mode(false);
     drv->tmc->diag1_stall(true);
-
     return old_stealthChop;
   }
 

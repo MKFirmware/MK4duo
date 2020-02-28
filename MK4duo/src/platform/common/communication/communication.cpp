@@ -147,9 +147,8 @@ void Com::print_yesno(PGM_P const label, const bool yes) {
 }
 
 void Com::serial_delay(const millis_l ms) {
-  #if ENABLED(SERIAL_OVERRUN_PROTECTION)
-    HAL::delayMilliseconds(ms);
-  #else
-    UNUSED(ms);
-  #endif
+  const bool was = printer.isSuspendAutoreport();
+  printer.setSuspendAutoreport(true);
+  HAL::delayMilliseconds(ms);
+  printer.setSuspendAutoreport(was);
 }

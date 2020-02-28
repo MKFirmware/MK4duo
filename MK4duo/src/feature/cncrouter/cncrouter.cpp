@@ -112,9 +112,9 @@ void Cncrouter::tool_change(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=
             next_buzz = millis();
           }
         #endif
-        printer.idle(true);
-      } // while (printer.isWaitForUser())
-    } // if (wait)
+        printer.idle_no_sleep();
+      }
+    }
 
     if (tool_id != CNC_M6_TOOL_ID) active_tool = tool_id;
     #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)

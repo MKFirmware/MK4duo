@@ -128,7 +128,7 @@ bool Probe::set_deployed(const bool deploy) {
 #if HAS_BED_PROBE || HAS_PROBE_MANUALLY
 
   /**
-   * Check Pt (ex probe_pt)
+   * check_at_point (ex probe_pt)
    * - Move to the given XY
    * - Deploy the probe, if not already deployed
    * - Probe the bed, get the Z position
@@ -153,6 +153,10 @@ bool Probe::set_deployed(const bool deploy) {
         DEBUG_POS("", mechanics.position);
       }
 
+      #if HAS_BLTOUCH && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
+        if (bltouch.triggered()) bltouch.cmd_reset();
+      #endif
+
       xyz_pos_t npos = { rx, ry };
       if (probe_relative) {
         if (!mechanics.position_is_reachable_by_probe(npos)) {
@@ -166,14 +170,12 @@ bool Probe::set_deployed(const bool deploy) {
         return NAN;
       }
 
-      npos.z =
-        #if MECH(DELTA)
-          // Move below clip height or xy move will be aborted by do_blocking_move_to
-          MIN(mechanics.position.z, mechanics.delta_clip_start_height)
-        #else
-          mechanics.position.z
-        #endif
-      ;
+      #if MECH(DELTA)
+        // Move below clip height or xy move will be aborted by do_blocking_move_to
+        npos.z = MIN(mechanics.position.z, mechanics.delta_clip_start_height);
+      #else
+        npos.z = mechanics.position.z;
+      #endif
 
       const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
       mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
@@ -182,20 +184,19 @@ bool Probe::set_deployed(const bool deploy) {
       mechanics.do_blocking_move_to(npos);
 
       float measured_z = NAN;
-      if (!DEPLOY_PROBE()) {
-        measured_z = run_probing() + data.offset.z;
-
+      if (!DEPLOY_PROBE()) measured_z = run_probing() + data.offset.z;
+      if (!isnan(measured_z)) {
         if (raise_after == PROBE_PT_RAISE)
           mechanics.do_blocking_move_to_z(mechanics.position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
-        else if (raise_after == PROBE_PT_STOW)
-          if (STOW_PROBE()) measured_z = NAN;
-      }
+        else if (raise_after == PROBE_PT_STOW && STOW_PROBE())
+          measured_z = NAN;
 
-      if (verbose_level > 2) {
-        SERIAL_MV(MSG_HOST_BED_LEVELING_Z, measured_z, 3);
-        SERIAL_MV(MSG_HOST_BED_LEVELING_X, LOGICAL_X_POSITION(rx), 3);
-        SERIAL_MV(MSG_HOST_BED_LEVELING_Y, LOGICAL_Y_POSITION(ry), 3);
-        SERIAL_EOL();
+        if (verbose_level > 2) {
+          SERIAL_MV(MSG_HOST_BED_LEVELING_Z, measured_z, 3);
+          SERIAL_MV(MSG_HOST_BED_LEVELING_X, LOGICAL_X_POSITION(rx), 3);
+          SERIAL_MV(MSG_HOST_BED_LEVELING_Y, LOGICAL_Y_POSITION(ry), 3);
+          SERIAL_EOL();
+        }
       }
 
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
@@ -243,7 +244,7 @@ bool Probe::set_deployed(const bool deploy) {
 
 #if QUIET_PROBING
 
-  void Probe::probing_pause(const bool onoff) {
+  void Probe::set_paused(const bool onoff) {
     #if ENABLED(PROBING_HEATERS_OFF)
       tempManager.pause(onoff);
     #endif
@@ -415,11 +416,11 @@ void Probe::specific_action(const bool deploy) {
  * z        Z destination
  * fr_mm_s  Feedrate in mm/s
  *
- * return true to indicate an error
+ * return true if the probe failed to trigger
  */
-bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
+bool Probe::down_to_z(const float z, const feedrate_t fr_mm_s) {
 
-  if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.position);
+  if (printer.debugFeature()) DEBUG_POS(">>> probe.down_to_z", mechanics.position);
 
   // Deploy BLTouch at the start of any probe
   #if HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
@@ -438,7 +439,7 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   #endif
 
   #if QUIET_PROBING
-    probing_pause(true);
+    set_paused(true);
   #endif
 
   // Move down until probe triggered
@@ -460,7 +461,7 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   ;
 
   #if QUIET_PROBING
-    probing_pause(false);
+    set_paused(false);
   #endif
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -488,7 +489,7 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
 
   if (printer.debugFeature()) {
     DEBUG_ELOGIC(" Probe triggered", probe_triggered);
-    DEBUG_POS("<<< probe.move_to_z", mechanics.position);
+    DEBUG_POS("<<< probe.down_to_z", mechanics.position);
   }
 
   return !probe_triggered;
@@ -534,14 +535,14 @@ float Probe::run_probing() {
   // move down quickly before doing the slow probe
   float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset.z < 0 ? -data.offset.z : 0);
   if (mechanics.position.z > z) {
-    if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
+    if (!down_to_z(z, MMM_TO_MMS(data.speed_fast)))
       mechanics.do_blocking_move_to_z(mechanics.position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
   }
 
   for (uint8_t r = data.repetitions + 1; --r;) {
 
     // move down slowly to find bed
-    if (move_to_z(z_probe_low_point, MMM_TO_MMS(data.speed_slow))) {
+    if (down_to_z(z_probe_low_point, MMM_TO_MMS(data.speed_slow))) {
       if (printer.debugFeature()) {
         DEBUG_EM("SLOW Probe fail!");
         DEBUG_POS("<<< probe.run_probing", mechanics.position);

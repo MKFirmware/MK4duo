@@ -121,9 +121,9 @@ typedef uint16_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Defines
 // --------------------------------------------------------------------------
-#ifndef CRITICAL_SECTION_START
-  #define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
-  #define CRITICAL_SECTION_END    SREG = _sreg;
+#ifndef CRITICAL_SECTION_START()
+  #define CRITICAL_SECTION_START()  unsigned char _sreg = SREG; cli()
+  #define CRITICAL_SECTION_END()    SREG = _sreg
 #endif
 
 #define ISRS_ENABLED()  TEST(SREG, SREG_I)

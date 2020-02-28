@@ -220,9 +220,9 @@ void LcdUI::_synchronize() {
   if (should_draw()) MenuItem_static::draw(LCD_HEIGHT >= 4, sync_message);
   if (no_reentry) return;
   // Make this the current handler till all moves are done
-  no_reentry = true;
   const screenFunc_t old_screen = currentScreen;
   goto_screen(_synchronize);
+  no_reentry = true;
   planner.synchronize(); // idle() is called until moves complete
   no_reentry = false;
   goto_screen(old_screen);
@@ -282,7 +282,12 @@ void lcd_line_to_z(const float &z) {
       constexpr bool do_probe = true;
     #endif
     if (lcdui.encoderPosition) {
-      const int16_t babystep_increment = (int16_t)lcdui.encoderPosition * (BABYSTEP_MULTIPLICATOR);
+      const int16_t babystep_increment = (int16_t)lcdui.encoderPosition * (
+        #if ENABLED(BABYSTEP_XY)
+          axis != Z_AXIS ? BABYSTEP_MULTIPLICATOR_XY :
+        #endif
+        BABYSTEP_MULTIPLICATOR_Z
+      );
       lcdui.encoderPosition = 0;
 
       const float diff = mechanics.steps_to_mm.z * babystep_increment,

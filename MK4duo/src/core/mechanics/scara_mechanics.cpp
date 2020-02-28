@@ -506,7 +506,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     #endif
 
     #if QUIET_PROBING
-      if (axis == Z_AXIS) probe.probing_pause(true);
+      if (axis == Z_AXIS) probe.set_paused(true);
     #endif
   }
 
@@ -520,7 +520,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
 
   if (is_home_dir) {
     #if QUIET_PROBING
-      if (axis == Z_AXIS) probe.probing_pause(false);
+      if (axis == Z_AXIS) probe.set_paused(false);
     #endif
 
     #if HOMING_Z_WITH_PROBE && HAS_BLTOUCH

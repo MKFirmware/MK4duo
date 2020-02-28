@@ -75,6 +75,7 @@ class BLTouch {
 
     static bool deploy();
     static bool stow();
+    static bool triggered();
 
     FORCE_INLINE static void cmd_reset()          { (void)command(BLTOUCH_CMD_RESET, BLTOUCH_RESET_DELAY);            }
     FORCE_INLINE static void cmd_selftest()       { (void)command(BLTOUCH_CMD_SELFTEST);                              }
@@ -97,7 +98,6 @@ class BLTouch {
     static void clear();
     static void mode_conv(const bool M5V=false);
     static bool command(const BLTCommand cmd, const millis_s ms=BLTOUCH_DELAY);
-    static bool triggered();
 
     FORCE_INLINE static bool cmd_deploy_alarm() { return command(BLTOUCH_CMD_DEPLOY,  BLTOUCH_DEPLOY_DELAY);  }
     FORCE_INLINE static bool cmd_stow_alarm()   { return command(BLTOUCH_CMD_STOW,    BLTOUCH_STOW_DELAY);    }

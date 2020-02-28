@@ -57,7 +57,7 @@ class Circular_Queue {
       uint8_t index = this->buffer.head;
 
       --this->buffer.count;
-      if (++this->buffer.head == this->buffer.size)
+      if (++this->buffer.head >= this->buffer.size)
         this->buffer.head = 0;
 
       return this->buffer.queue[index];
@@ -69,7 +69,7 @@ class Circular_Queue {
       this->buffer.queue[this->buffer.tail] = item;
 
       ++this->buffer.count;
-      if (++this->buffer.tail == this->buffer.size)
+      if (++this->buffer.tail >= this->buffer.size)
         this->buffer.tail = 0;
 
       return true;

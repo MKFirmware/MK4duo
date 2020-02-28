@@ -47,7 +47,7 @@ inline void gcode_M24() {
   #endif
 
   if (card.isFileOpen()) {
-    card.startFileprint();
+    card.startFilePrint();
     print_job_counter.start();
     #if HAS_SD_RESTART
       restart.start_job();
@@ -74,6 +74,9 @@ void gcode_M25() {
   #if ENABLED(PARK_HEAD_ON_PAUSE)
     gcode_M125();
   #else
+    #if HAS_SD_RESTART
+      if (restart.enabled) restart.save_job(true);
+    #endif
     print_job_counter.pause();
     lcdui.reset_status();
     host_action.prompt_open(PROMPT_PAUSE_RESUME, PSTR("Pause SD"), PSTR("Resume"));

@@ -896,10 +896,8 @@ inline void gcode_G29() {
   // Restore state after probing
   if (!faux) mechanics.clean_up_after_endstop_or_probe_move();
 
-  if (printer.debugFeature()) DEBUG_EM("<<< G29");
-
-  if (bedlevel.flag.leveling_active)
-    mechanics.sync_plan_position();
+  // Sync the planner from the position
+  if (bedlevel.flag.leveling_active) mechanics.sync_plan_position();
 
   #if HAS_BED_PROBE && Z_PROBE_AFTER_PROBING > 0
     probe.move_z_after_probing();
@@ -915,6 +913,9 @@ inline void gcode_G29() {
   #endif
 
   mechanics.report_position();
+
+  if (printer.debugFeature()) DEBUG_EM("<<< G29");
+
 }
 
 #endif // OLD_ABL

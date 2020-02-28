@@ -30,16 +30,18 @@
 #if ENABLED(BABYSTEPPING)
 
 #if IS_CORE || ENABLED(BABYSTEP_XY)
-  #define BS_TODO_AXIS(A) A
+  #define BS_AXIS_IND(A)  A
+  #define BS_AXIS(I)      AxisEnum(I)
 #else
-  #define BS_TODO_AXIS(A) 0
+  #define BS_AXIS_IND(A)  0
+  #define BS_AXIS(I)      Z_AXIS
 #endif
 
 #if HAS_LCD_MENU && ENABLED(BABYSTEP_DISPLAY_TOTAL)
   #if ENABLED(BABYSTEP_XY)
-    #define BS_TOTAL_AXIS(A) A
+    #define BS_TOTAL_IND(A) A
   #else
-    #define BS_TOTAL_AXIS(A) 0
+    #define BS_TOTAL_IND(A) 0
   #endif
 #endif
 
@@ -51,14 +53,13 @@ class Babystep {
 
   public: /** Public Parameters */
 
-    static volatile int16_t steps[BS_TODO_AXIS(Z_AXIS) + 1];
+    static volatile int16_t steps[BS_AXIS_IND(Z_AXIS) + 1];
 
-      #if HAS_LCD_MENU
-        static int16_t accum;                                   // Total babysteps in current edit
-        #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
-          static int16_t axis_total[BS_TOTAL_AXIS(Z_AXIS) + 1]; // Total babysteps since G28
-        #endif
-      #endif
+    static int16_t accum;                                       // Total babysteps in current edit
+
+    #if HAS_LCD_MENU && ENABLED(BABYSTEP_DISPLAY_TOTAL)
+      static int16_t axis_total[BS_TOTAL_IND(Z_AXIS) + 1]; // Total babysteps since G28
+    #endif
 
   public: /** Public Function */
 
@@ -67,13 +68,24 @@ class Babystep {
         #if ENABLED(BABYSTEP_XY)
           if (axis == Z_AXIS)
         #endif
-            axis_total[BS_TOTAL_AXIS(axis)] = 0;
+            axis_total[BS_TOTAL_IND(axis)] = 0;
       }
     #endif
 
-    static void add_steps(const AxisEnum axis, const int16_t distance);
     static void add_mm(const AxisEnum axis, const float &mm);
-    static void spin();
+    static void add_steps(const AxisEnum axis, const int16_t distance);
+
+    static inline bool has_steps() {
+      return steps[BS_AXIS_IND(X_AXIS)] || steps[BS_AXIS_IND(Y_AXIS)] || steps[BS_AXIS_IND(Z_AXIS)];
+    }
+
+    static inline void spin() {
+      #if ENABLED(BABYSTEP_XY)
+        LOOP_XYZ(axis) step_axis((AxisEnum)axis);
+      #else
+        step_axis(Z_AXIS);
+      #endif
+    }
 
   private: /** Private Function */
 

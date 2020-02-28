@@ -29,6 +29,12 @@
 
 #include "parser.h"
 
+#define PS_NORMAL 0
+#define PS_EOL    1
+#define PS_QUOTED 2
+#define PS_PAREN  3
+#define PS_ESC    4
+    
 struct gcode_t {
   char    gcode[MAX_CMD_SIZE];  // Char for gcode
   bool    send_ok = true;       // Send "ok" after commands by default
@@ -156,6 +162,12 @@ class Commands {
      */
     static Heater* get_target_heater();
 
+    /**
+     * Attempt to enqueue a single G-code command
+     * and return 'true' if successful.
+     */
+    FORCE_INLINE static bool enqueue_P(const char* cmd) { return enqueue(cmd); }
+
   private: /** Private Function */
 
     /**
@@ -191,7 +203,7 @@ class Commands {
      */
     static void process_next();
 
-    static void unknown_error();
+    static void unknown_warning();
 
     static void gcode_line_error(PGM_P const err, const int8_t tmp_port);
 
@@ -223,6 +235,47 @@ class Commands {
      */
     FORCE_INLINE static bool is_M29(const char * const cmd) {
       return strstr_P(cmd, PSTR("M29"));
+    }
+
+    FORCE_INLINE static void process_stream_char(const char c, uint8_t &sis, char (&buff)[MAX_CMD_SIZE], int &ind) {
+
+      if (ind >= MAX_CMD_SIZE - 1)
+        sis = PS_EOL;                   // Skip the rest on overflow
+
+      if (sis == PS_EOL) return;        // EOL comment or overflow
+      else if (sis == PS_PAREN) {       // Inline comment
+        if (c == ')') sis = PS_NORMAL;
+        return;
+      }
+      else if (sis >= PS_ESC)           // End escaped char
+        sis -= PS_ESC;
+      else if (c == '\\') {             // Start escaped char
+        sis += PS_ESC;
+        if (sis == PS_ESC) return;      // Keep if quoting
+      }
+      else if (sis == PS_QUOTED) {
+        if (c == '"') sis = PS_NORMAL;  // End quoted string
+      }
+      else if (c == '"')                // Start quoted string
+        sis = PS_QUOTED;
+      else if (c == ';') {              // Start end-of-line comment
+        sis = PS_EOL;
+        return;
+      }
+      else if (c == '(') {              // Start inline comment
+        sis = PS_PAREN;
+        return;
+      }
+
+      buff[ind++] = c;
+
+    }
+
+    FORCE_INLINE static bool process_line_done(uint8_t &sis, char (&buff)[MAX_CMD_SIZE], int &ind) {
+      sis = PS_NORMAL;
+      buff[ind] = 0;
+      if (ind) { ind = 0; return false; }
+      return true;
     }
 
 };

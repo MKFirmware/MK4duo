@@ -222,6 +222,14 @@ bool BLTouch::stow() {
   return false; // report success to caller
 }
 
+bool BLTouch::triggered() {
+  #if HAS_Z_PROBE_PIN
+    return HAL::digitalRead(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE);
+  #else
+    return HAL::digitalRead(Z_MIN_PIN) != endstops.isLogic(Z_MIN);
+  #endif
+}
+
 /** Private Functions */
 void BLTouch::clear() {
   cmd_reset();  // RESET or RESET_SW will clear an alarm condition but...
@@ -250,14 +258,6 @@ bool BLTouch::command(const BLTCommand cmd, const millis_s ms/*=BLTOUCH_DELAY*/)
   MOVE_SERVO(PROBE_SERVO_NR, cmd);
   HAL::delayMilliseconds(MAX(ms, (uint32_t)BLTOUCH_DELAY));
   return triggered();
-}
-
-bool BLTouch::triggered() {
-  #if HAS_Z_PROBE_PIN
-    return HAL::digitalRead(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE);
-  #else
-    return HAL::digitalRead(Z_MIN_PIN) != endstops.isLogic(Z_MIN);
-  #endif
 }
 
 #endif // HAS_BLTOUCH
