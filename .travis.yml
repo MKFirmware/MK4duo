@@ -197,7 +197,7 @@ script:
   - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
   - opt_enable_feature NOZZLE_PARK_FEATURE ADVANCED_PAUSE_FEATURE
   - opt_enable_feature FILAMENT_RUNOUT_SENSOR
-  - opt_enable_cartesian BLTOUCH
+  - opt_enable_cartesian BLTOUCH Z_SAFE_HOMING
   - opt_enable_cartesian AUTO_BED_LEVELING_LINEAR
   - opt_enable_lcd REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
   - pin_set FIL_RUNOUT_0_PIN ORIG_X_MAX_PIN
@@ -218,7 +218,7 @@ script:
   - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
   - opt_enable_feature NOZZLE_PARK_FEATURE ADVANCED_PAUSE_FEATURE
   - opt_enable_feature FILAMENT_RUNOUT_SENSOR
-  - opt_enable_cartesian BLTOUCH
+  - opt_enable_cartesian BLTOUCH Z_SAFE_HOMING
   - opt_enable_cartesian AUTO_BED_LEVELING_UBL
   - opt_enable_lcd REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
   - pin_set FIL_RUNOUT_0_PIN ORIG_X_MAX_PIN
