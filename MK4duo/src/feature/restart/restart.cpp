@@ -47,7 +47,7 @@ void Restart::changed() {
   if (!enabled)
     purge_job();
   else if (IS_SD_PRINTING())
-    save_job(true);
+    save_job();
 }
 
 void Restart::check() {
@@ -81,7 +81,7 @@ void Restart::load_job() {
   debug_info(PSTR("Load"));
 }
 
-void Restart::save_job(const bool force_save/*=false*/) {
+void Restart::save_job(const bool force_save/*=true*/) {
 
   static short_timer_t save_restart_timer(millis());
 

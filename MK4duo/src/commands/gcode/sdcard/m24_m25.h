@@ -75,7 +75,7 @@ void gcode_M25() {
     gcode_M125();
   #else
     #if HAS_SD_RESTART
-      if (restart.enabled) restart.save_job(true);
+      if (restart.enabled) restart.save_job();
     #endif
     print_job_counter.pause();
     lcdui.reset_status();

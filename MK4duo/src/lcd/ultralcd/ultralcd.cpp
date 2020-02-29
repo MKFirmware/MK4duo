@@ -1305,10 +1305,6 @@ void LcdUI::pause_print() {
     synchronize(GET_TEXT(MSG_PAUSE_PRINT));
   #endif
 
-  #if HAS_SD_RESTART
-    if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);
-  #endif
-
   host_action.prompt_open(PROMPT_PAUSE_RESUME, PSTR("LCD Pause"), PSTR("Resume"));
 
   set_status_P(print_paused);

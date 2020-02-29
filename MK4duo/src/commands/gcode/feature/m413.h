@@ -45,7 +45,7 @@ inline void gcode_M413() {
   SERIAL_EOL();
 
   if (parser.seen('R') || parser.seen('L')) restart.load_job();
-  if (parser.seen('W')) restart.save_job(true);
+  if (parser.seen('W')) restart.save_job();
   if (parser.seen('P')) restart.purge_job();
   if (parser.seen('E')) (void)restart.exists();
   if (parser.seen('V')) DEBUG_LS(DEB, restart.valid() ? PSTR(" Valid") : PSTR(" Invalid"));
