@@ -120,7 +120,7 @@ class Restart {
     static void start_job();
     static void purge_job();
     static void load_job();
-    static void save_job(const bool force_save=false);
+    static void save_job(const bool force_save=true);
     static void resume_job();
 
     static inline bool exists()               { return card.exist_restart_file(); }

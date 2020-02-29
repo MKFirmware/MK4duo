@@ -181,7 +181,7 @@ void Commands::get_destination() {
   }
 
   #if HAS_SD_RESTART
-    if (restart.enabled && IS_SD_PRINTING() && (seen.e || seen.z)) restart.save_job();
+    if (restart.enabled && IS_SD_PRINTING() && (seen.e || seen.z)) restart.save_job(false);
   #endif
 
   if (parser.linearval('F') > 0)

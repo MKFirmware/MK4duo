@@ -606,7 +606,7 @@ void Printer::print_M353() {
 
     #if HAS_SD_RESTART
       // Save Job for restart
-      if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true);
+      if (restart.enabled && IS_SD_PRINTING()) restart.save_job();
     #endif
 
     // End File print

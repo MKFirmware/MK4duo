@@ -76,7 +76,7 @@ inline void gcode_M125() {
 
   if (advancedpause.pause_print(retract, park_point, 0, show_lcd)) {
     #if HAS_SD_RESTART
-      if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true);
+      if (restart.enabled && IS_SD_PRINTING()) restart.save_job();
     #endif
     if (!IS_SD_PRINTING() || show_lcd ) {
       advancedpause.wait_for_confirmation(false, 0);
