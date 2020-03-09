@@ -63,7 +63,7 @@
       #define STATUS_HOTEND_BITMAPS MAX_HOTEND
     #endif
 
-    #if ENABLED(STATUS_HOTEND_NUMBERLESS)
+    #if HOTENDS == 1 || ENABLED(STATUS_HOTEND_NUMBERLESS)
 
       const unsigned char status_hotend_a_bmp[] PROGMEM = {
         B00011111,B11100000,
@@ -99,7 +99,7 @@
 
       #endif
 
-    #elif HAS_HOTENDS
+    #else
 
       #if ENABLED(STATUS_HOTEND_ANIM)
 
