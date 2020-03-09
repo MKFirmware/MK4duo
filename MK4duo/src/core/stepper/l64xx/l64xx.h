@@ -46,6 +46,8 @@
 #define dSPIN_STEP_CLOCK_FWD  dSPIN_STEP_CLOCK
 #define dSPIN_STEP_CLOCK_REV  dSPIN_STEP_CLOCK+1
 
+#define KVAL_HOLD_STEP_DOWN   1
+
 union l64xx_flag_t {
   uint8_t all;
   struct {

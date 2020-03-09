@@ -181,7 +181,7 @@ void L64XX_Manager::monitor_update(Driver* drv) {
     if (drv->l64->com_counter) {
       drv->l64->com_counter = 0;
       print_driver_err(drv, PSTR(" - communications re-established\n.. setting all drivers to default values\n"));
-      init_to_defaults();
+      factory_parameters();
     }
     else {
       // no com problems - do the usual checks
@@ -233,11 +233,6 @@ void L64XX_Manager::monitor_update(Driver* drv) {
               p += sprintf_P(p, PSTR("%c- thermal warning"), ' ');
           }
         }
-
-        #if ENABLED(L6470_STOP_ON_ERROR)
-          if (_status & (sh.STATUS_AXIS_UVLO | sh.STATUS_AXIS_TH_WRN | sh.STATUS_AXIS_TH_SD))
-            kill(temp_buf);
-        #endif
 
         #if ENABLED(L6470_CHITCHAT)
           if (_status & sh.STATUS_AXIS_OCD)
@@ -339,7 +334,7 @@ inline uint8_t L6470_SpiTransfer_Mode_3(uint8_t b) {
 }
 
 void L64XX_Manager::transfer(uint8_t L64XX_buf[], const uint8_t length) {
-  if (spi_active) {
+  if (flag.spi_active) {
     WRITE(L6470_CHAIN_SS_PIN, HIGH);
     DELAY_US(1);
   }

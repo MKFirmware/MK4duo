@@ -108,7 +108,7 @@ class Com {
 #define SERIAL_SP(C)                  Com::print_spaces(C)
 #define SERIAL_LOGIC(msg,val)         Com::print_logic(PSTR(msg), val)
 #define SERIAL_ONOFF(msg,val)         Com::print_onoff(PSTR(msg), val)
-#define SERIAL_YESNO(msg,val)         Com::print_YESNO(PSTR(msg), val)
+#define SERIAL_YESNO(msg,val)         Com::print_yesno(PSTR(msg), val)
 
 #define SERIAL_ELOGIC(msg,val)        do{ SERIAL_LOGIC(msg, val);                     SERIAL_EOL(); }while(0)
 #define SERIAL_EONOFF(msg,val)        do{ SERIAL_ONOFF(msg, val);                     SERIAL_EOL(); }while(0)
