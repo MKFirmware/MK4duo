@@ -67,9 +67,9 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
           max = mechanics.position[axis] + 1000;
 
     // Limit to software endstops, if enabled
-    #if HAS_SOFTWARE_ENDSTOPS && !MECH(DELTA)
+    #if HAS_SOFTWARE_ENDSTOPS && NOMECH(DELTA)
 
-      if (endstops.flag.SoftEndstop) switch (axis) {
+      if (endstops.isSoftEndstop()) switch (axis) {
         case X_AXIS:
           #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
             min = endstops.soft_endstop.min.x;
@@ -111,16 +111,12 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
     const float diff = float(int32_t(lcdui.encoderPosition)) * move_menu_scale;
     #if IS_KINEMATIC
       manual_move_offset += diff;
-      if (int32_t(lcdui.encoderPosition < 0))
-        NOLESS(manual_move_offset, min - mechanics.position[axis]);
-      else
-        NOMORE(manual_move_offset, max - mechanics.position[axis]);
+      NOLESS(manual_move_offset, min - mechanics.position[axis]);
+      NOMORE(manual_move_offset, max - mechanics.position[axis]);
     #else
       mechanics.position[axis] += diff;
-      if (int32_t(lcdui.encoderPosition < 0))
-        NOLESS(mechanics.position[axis], min);
-      else
-        NOMORE(mechanics.position[axis], max);
+      NOLESS(mechanics.position[axis], min);
+      NOMORE(mechanics.position[axis], max);
     #endif
 
     manual_move_to_current(axis);
@@ -232,8 +228,8 @@ void menu_move() {
   BACK_ITEM(MSG_MOTION);
 
   #if HAS_SOFTWARE_ENDSTOPS
-    bool new_soft_endstop_state = endstops.flag.SoftEndstop;
-    EDIT_ITEM(bool, MSG_LCD_SOFT_ENDSTOPS, &new_soft_endstop_state, lcd_toggle_soft_endstops);
+    bool new_soft_endstop_state = endstops.isSoftEndstop();
+    EDIT_ITEM(bool, MSG_LCD_SOFT_ENDSTOPS, &new_soft_endstop_state, []{ endstops.setSoftEndstop(!endstops.isSoftEndstop()); });
   #endif
 
   #if IS_KINEMATIC

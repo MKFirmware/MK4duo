@@ -203,7 +203,7 @@
 #define MSG_HOST_ENDSTOP_OPEN                   "NOT TRIGGERED"
 #define MSG_HOST_HOTEND_OFFSET                  "Hotend offsets:"
 #define MSG_HOST_DUPLICATION_MODE               "Duplication mode: "
-#define MSG_HOST_SOFT_ENDSTOPS                  "Soft endstops: "
+#define MSG_HOST_SOFT_ENDSTOPS                  "Soft endstops"
 #define MSG_HOST_SOFT_MIN                       "  Min:"
 #define MSG_HOST_SOFT_MAX                       "  Max:"
 #define MSG_HOST_ZPROBE_OUT                     "Z Probe Past Bed"
