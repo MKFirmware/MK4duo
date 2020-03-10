@@ -397,8 +397,4 @@ void MenuItem_confirm::select_screen(PGM_P const yes, PGM_P const no, selectFunc
   }
 }
 
-#if HAS_SOFTWARE_ENDSTOPS
-  void lcd_toggle_soft_endstops() { endstops.setSoftEndstop(!endstops.flag.SoftEndstop); }
-#endif
-
 #endif // HAS_LCD_MENU

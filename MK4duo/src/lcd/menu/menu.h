@@ -591,10 +591,6 @@ void lcd_draw_homing();
   void lcd_level_bed_corners();
 #endif
 
-#if HAS_SOFTWARE_ENDSTOPS
-  void lcd_toggle_soft_endstops(); 
-#endif
-
 #if ENABLED(BABYSTEPPING)
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
     void lcd_babystep_zoffset();
