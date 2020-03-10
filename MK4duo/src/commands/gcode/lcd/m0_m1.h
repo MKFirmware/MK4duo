@@ -37,33 +37,21 @@
  */
 inline void gcode_M0_M1() {
 
-  const char * const args = parser.string_arg;
   millis_l ms = 0;
-  bool hasP = false, hasS = false;
-
-  // milliseconds to wait
-  if (parser.seenval('P')) {
-    ms = parser.value_millis();
-    hasP = ms > 0;
-  }
-
-  // seconds to wait
-  if (parser.seenval('S')) {
-    ms = parser.value_millis_from_seconds();
-    hasS = ms > 0;
-  }
-
-  #if HAS_LEDS_OFF_FLAG
-    if (parser.seen('Q'))
-      ledevents.onPrintCompleted();   // Change LED color for Print Completed
-  #endif
 
   planner.synchronize();
 
+  if (parser.seenval('P')) ms = parser.value_millis();              // Milliseconds to wait
+  if (parser.seenval('S')) ms = parser.value_millis_from_seconds(); // Seconds to wait
+
+  #if HAS_LEDS_OFF_FLAG
+    if (parser.seen('Q')) ledevents.onPrintCompleted();             // Change LED color for Print Completed
+  #endif
+
   #if HAS_LCD_MENU
 
-    if (!hasP && !hasS && args && *args)
-      lcdui.set_status(args, true);
+    if (parser.string_arg)
+      lcdui.set_status(parser.string_arg, true);
     else {
       LCD_MESSAGEPGM(MSG_USERWAIT);
       #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
@@ -73,8 +61,7 @@ inline void gcode_M0_M1() {
 
   #else
 
-    if (!hasP && !hasS && args && *args)
-      SERIAL_LT(ECHO, args);
+    if (parser.string_arg) SERIAL_LT(ECHO, parser.string_arg);
 
   #endif
 
