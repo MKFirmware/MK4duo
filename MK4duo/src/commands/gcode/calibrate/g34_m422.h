@@ -122,7 +122,7 @@ inline void gcode_G34() {
     #endif
 
     #if ENABLED(CNC_WORKSPACE_PLANES)
-      workspace_plane = PLANE_XY;
+      mechanics.workspace_plane = PLANE_XY;
     #endif
 
     // Always home with tool 0 active

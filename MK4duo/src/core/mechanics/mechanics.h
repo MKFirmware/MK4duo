@@ -196,7 +196,7 @@ class Mechanics {
        * Workspace planes only apply to G2/G3 moves
        * (and "canned cycles" - not a current feature)
        */
-      static WorkspacePlaneEnum workspace_plane = PLANE_XY;
+      static WorkspacePlaneEnum workspace_plane;
     #endif
 
   private: /** Private Parameters */
