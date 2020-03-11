@@ -70,6 +70,10 @@ uint8_t Mechanics::axis_relative_modes = (
   xyz_pos_t Mechanics::workspace_offset{ 0.0f, 0.0f, 0.0f };
 #endif
 
+#if ENABLED(CNC_WORKSPACE_PLANES)
+  WorkspacePlaneEnum Mechanics::workspace_plane = PLANE_XY;
+#endif
+
 /** Private Parameters */
 feedrate_t  Mechanics::saved_feedrate_mm_s        = 0.0f;
 int16_t     Mechanics::saved_feedrate_percentage  = 0;
