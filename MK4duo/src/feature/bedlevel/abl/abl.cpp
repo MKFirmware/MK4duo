@@ -27,9 +27,7 @@
 AutoBedLevel abl;
 
 /** Public Parameters */
-xy_pos_t    AutoBedLevel::bilinear_grid_spacing,
-            AutoBedLevel::bilinear_start;
-bed_mesh_t  AutoBedLevel::z_values;
+abl_data_t AutoBedLevel::data;
 
 /** Private Parameters */
 xy_float_t  AutoBedLevel::bilinear_grid_factor;
@@ -40,7 +38,7 @@ xy_float_t  AutoBedLevel::bilinear_grid_factor;
  */
 void AutoBedLevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
 
-  if (!isnan(z_values[x][y])) return;
+  if (!isnan(data.z_values[x][y])) return;
 
   if (printer.debugFeature()) {
     DEBUG_MSG("Extrapolate [");
@@ -57,9 +55,9 @@ void AutoBedLevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const
 
   // Get X neighbors, Y neighbors, and XY neighbors
   const uint8_t x1 = x + xdir, y1 = y + ydir, x2 = x1 + xdir, y2 = y1 + ydir;
-  float a1 = z_values[x1][y ], a2 = z_values[x2][y ],
-        b1 = z_values[x ][y1], b2 = z_values[x ][y2],
-        c1 = z_values[x1][y1], c2 = z_values[x2][y2];
+  float a1 = data.z_values[x1][y ], a2 = data.z_values[x2][y ],
+        b1 = data.z_values[x ][y1], b2 = data.z_values[x ][y2],
+        c1 = data.z_values[x1][y1], c2 = data.z_values[x2][y2];
 
   // Treat far unprobed points as zero, near as equal to far
   if (isnan(a2)) a2 = 0.0; if (isnan(a1)) a1 = a2;
@@ -69,10 +67,10 @@ void AutoBedLevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const
   const float a = 2 * a1 - a2, b = 2 * b1 - b2, c = 2 * c1 - c2;
 
   // Take the average instead of the median
-  z_values[x][y] = (a + b + c) / 3.0;
+  data.z_values[x][y] = (a + b + c) / 3.0;
 
   // Median is robust (ignores outliers).
-  // z_values[x][y] = (a < b) ? ((b < c) ? b : (c < a) ? a : c)
+  // data.z_values[x][y] = (a < b) ? ((b < c) ? b : (c < a) ? a : c)
   //                                : ((c < b) ? b : (a < c) ? a : c);
 }
 
@@ -129,7 +127,7 @@ void AutoBedLevel::extrapolate_unprobed_bed_level() {
 void AutoBedLevel::print_bilinear_leveling_grid() {
   SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
   bedlevel.print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 3,
-    [](const uint8_t ix, const uint8_t iy){ return z_values[ix][iy]; }
+    [](const uint8_t ix, const uint8_t iy){ return data.z_values[ix][iy]; }
   );
 }
 
@@ -158,8 +156,8 @@ void AutoBedLevel::print_bilinear_leveling_grid() {
       }
       if (WITHIN(y, 1, ABL_TEMP_POINTS_Y - 2))
         return LINEAR_EXTRAPOLATION(
-          z_values[ep][y - 1],
-          z_values[ip][y - 1]
+          data.z_values[ep][y - 1],
+          data.z_values[ip][y - 1]
         );
       else
         return LINEAR_EXTRAPOLATION(
@@ -174,8 +172,8 @@ void AutoBedLevel::print_bilinear_leveling_grid() {
       }
       if (WITHIN(x, 1, ABL_TEMP_POINTS_X - 2))
         return LINEAR_EXTRAPOLATION(
-          z_values[x - 1][ep],
-          z_values[x - 1][ip]
+          data.z_values[x - 1][ep],
+          data.z_values[x - 1][ip]
         );
       else
         return LINEAR_EXTRAPOLATION(
@@ -183,7 +181,7 @@ void AutoBedLevel::print_bilinear_leveling_grid() {
           bed_level_virt_coord(x, ip + 1)
         );
     }
-    return z_values[x - 1][y - 1];
+    return data.z_values[x - 1][y - 1];
   }
 
   float AutoBedLevel::bed_level_virt_cmr(const float p[4], const uint8_t i, const float t) {
@@ -207,15 +205,15 @@ void AutoBedLevel::print_bilinear_leveling_grid() {
   }
 
   void AutoBedLevel::virt_interpolate() {
-    bilinear_grid_spacing_virt.x = bilinear_grid_spacing.x / (BILINEAR_SUBDIVISIONS);
-    bilinear_grid_spacing_virt.y = bilinear_grid_spacing.y / (BILINEAR_SUBDIVISIONS);
+    bilinear_grid_spacing_virt.x = data.bilinear_grid_spacing.x / (BILINEAR_SUBDIVISIONS);
+    bilinear_grid_spacing_virt.y = data.bilinear_grid_spacing.y / (BILINEAR_SUBDIVISIONS);
     bilinear_grid_factor_virt.x = RECIPROCAL(bilinear_grid_spacing_virt.x);
     bilinear_grid_factor_virt.y = RECIPROCAL(bilinear_grid_spacing_virt.y);
     for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
       for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
         for (uint8_t ty = 0; ty < BILINEAR_SUBDIVISIONS; ty++) {
           for (uint8_t tx = 0; tx < BILINEAR_SUBDIVISIONS; tx++) {
-            if ((ty && y == GRID_MAX_POINTS_Y - 1) || (tx && x == GRID_MAX_POINTS_X - 1))
+            if ((ty && y == (GRID_MAX_POINTS_Y) - 1) || (tx && x == (GRID_MAX_POINTS_X) - 1))
               continue;
             z_values_virt[x * (BILINEAR_SUBDIVISIONS) + tx][y * (BILINEAR_SUBDIVISIONS) + ty] =
               bed_level_virt_2cmr(
@@ -234,8 +232,8 @@ void AutoBedLevel::print_bilinear_leveling_grid() {
 
 // Refresh after other values have been updated
 void AutoBedLevel::refresh_bed_level() {
-  bilinear_grid_factor.x = RECIPROCAL(bilinear_grid_spacing.x);
-  bilinear_grid_factor.y = RECIPROCAL(bilinear_grid_spacing.y);
+  bilinear_grid_factor.x = RECIPROCAL(data.bilinear_grid_spacing.x);
+  bilinear_grid_factor.y = RECIPROCAL(data.bilinear_grid_spacing.y);
   #if ENABLED(ABL_BILINEAR_SUBDIVISION)
     virt_interpolate();
   #endif
@@ -248,11 +246,11 @@ void AutoBedLevel::refresh_bed_level() {
   #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_VIRT_Y
   #define ABL_BG_GRID(X,Y)  z_values_virt[X][Y]
 #else
-  #define ABL_BG_SPACING(A) bilinear_grid_spacing.A
+  #define ABL_BG_SPACING(A) data.bilinear_grid_spacing.A
   #define ABL_BG_FACTOR(A)  bilinear_grid_factor.A
   #define ABL_BG_POINTS_X   GRID_MAX_POINTS_X
   #define ABL_BG_POINTS_Y   GRID_MAX_POINTS_Y
-  #define ABL_BG_GRID(X,Y)  z_values[X][Y]
+  #define ABL_BG_GRID(X,Y)  data.z_values[X][Y]
 #endif
 
 // Get the Z adjustment for non-linear bed leveling
@@ -266,7 +264,7 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
   static xy_int8_t thisg, nextg, lastg { -99, -99 };
 
   // XY relative to the probed area
-  xy_pos_t rel = raw - bilinear_start.asFloat();
+  xy_pos_t rel = raw - data.bilinear_start.asFloat();
 
   if (prev.x != rel.x) {
     prev.x = rel.x;
@@ -336,7 +334,7 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
 
 #if !IS_KINEMATIC
 
-  #define CELL_INDEX(A,V) ((V - bilinear_start.A) * ABL_BG_FACTOR(A))
+  #define CELL_INDEX(A,V) ((V - data.bilinear_start.A) * ABL_BG_FACTOR(A))
 
   /**
    * Prepare a bilinear-leveled linear move on Cartesian,
@@ -372,7 +370,7 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
       // Split on the X grid line
       CBI(x_splits, gc.x);
       end = mechanics.destination;
-      mechanics.destination.x = bilinear_start.x + ABL_BG_SPACING(x) * gc.x;
+      mechanics.destination.x = data.bilinear_start.x + ABL_BG_SPACING(x) * gc.x;
       normalized_dist = (mechanics.destination.x - mechanics.position.x) / (end.x - mechanics.position.x);
       mechanics.destination.y = LINE_SEGMENT_END(y);
     }
@@ -380,7 +378,7 @@ float AutoBedLevel::bilinear_z_offset(const xy_pos_t &raw) {
     else if (c2.y != c1.y && TEST(y_splits, gc.y)) {
       CBI(y_splits, gc.y);
       COPY_ARRAY(end, mechanics.destination);
-      mechanics.destination.y = bilinear_start.y + ABL_BG_SPACING(y) * gc.y;
+      mechanics.destination.y = data.bilinear_start.y + ABL_BG_SPACING(y) * gc.y;
       normalized_dist = (mechanics.destination.y - mechanics.position.y) / (end.y - mechanics.position.y);
       mechanics.destination.x = LINE_SEGMENT_END(x);
     }

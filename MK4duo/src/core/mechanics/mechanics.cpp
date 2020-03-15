@@ -105,21 +105,21 @@ int8_t Mechanics::get_homedir(const AxisEnum axis) {
 void Mechanics::set_position_from_steppers_for_axis(const AxisEnum axis) {
 
   mechanics.get_cartesian_from_steppers();
+  xyze_pos_t pos = cartesian_position;
+  pos.e = planner.get_axis_position_mm(E_AXIS);
 
   #if HAS_POSITION_MODIFIERS
-    xyze_pos_t pos = { cartesian_position.x, cartesian_position.y, cartesian_position.z, position.e };
     planner.unapply_modifiers(pos
       #if HAS_LEVELING
         , true
       #endif
     );
-    xyze_pos_t &cartesian_position = pos;
   #endif
 
   if (axis == ALL_AXES)
-    position = cartesian_position;
+    position = pos;
   else
-    position[axis] = cartesian_position[axis];
+    position[axis] = pos[axis];
 }
 
 /**
@@ -212,34 +212,17 @@ void Mechanics::sync_plan_position_e() {
 /**
  * Report position to host
  */
-void Mechanics::report_position() {
-  const xyz_pos_t lpos = position.asLogical();
-  SERIAL_MV( "X:", lpos.x);
-  SERIAL_MV(" Y:", lpos.y);
-  SERIAL_MV(" Z:", lpos.z);
-  SERIAL_EMV(" E:", position.e);
-
-  //stepper.report_positions();
+void Mechanics::report_some_position(const xyze_pos_t &pos) {
+  report_xyze(pos);
+  stepper.report_positions();
 }
 
-void Mechanics::report_xyz(const xyz_pos_t &pos, const uint8_t precision/*=3*/) {
-  char str[12];
-  for (uint8_t i = X_AXIS; i <= Z_AXIS; i++) {
-    SERIAL_CHR(' ');
-    SERIAL_CHR(axis_codes[i]);
-    SERIAL_CHR(':');
-    SERIAL_TXT(dtostrf(pos[i], 1, precision, str));
-  }
-  SERIAL_EOL();
-}
-
-void Mechanics::report_xyze(const xyze_pos_t &pos, const uint8_t n/*=4*/, const uint8_t precision/*=3*/) {
-  char str[12];
+void Mechanics::report_xyze(const xyze_pos_t &pos, const uint8_t n/*=4*/) {
   for (uint8_t i = 0; i < n; i++) {
     SERIAL_CHR(' ');
     SERIAL_CHR(axis_codes[i]);
     SERIAL_CHR(':');
-    SERIAL_TXT(dtostrf(pos[i], 1, precision, str));
+    SERIAL_VAL(pos[i], 3);
   }
   SERIAL_EOL();
 }

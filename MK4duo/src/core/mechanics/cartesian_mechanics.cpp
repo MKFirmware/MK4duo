@@ -642,12 +642,36 @@ bool Cartesian_Mechanics::position_is_reachable_by_probe(const float &rx, const 
       && WITHIN(ry, probe.min_y() - fslop, probe.max_y() + fslop);
 }
 
-// Report detail current position to host
-void Cartesian_Mechanics::report_position_detail() {
+// Report the real current position according to the steppers
+void Cartesian_Mechanics::report_real_position() {
 
+  get_cartesian_from_steppers();
+
+  #if HAS_POSITION_MODIFIERS
+    xyze_pos_t npos = cartesian_position;
+    planner.unapply_modifiers(npos
+      #if HAS_LEVELING
+        , true
+      #endif
+    );
+  #else
+    const xyze_pos_t &npos = cartesian_position;
+  #endif
+
+  xyze_pos_t lpos = npos.asLogical();
+  lpos.e = planner.get_axis_position_mm(E_AXIS);
+  report_some_position(lpos);
+
+}
+
+// Report detail current position to host
+void Cartesian_Mechanics::report_detail_position() {
+
+  // Position as sent by G-code
   SERIAL_MSG("\nLogical:");
   report_xyz(position.asLogical());
 
+  // Cartesian position in native machine space
   SERIAL_MSG("Raw:    ");
   report_xyz(position);
 
@@ -683,6 +707,24 @@ void Cartesian_Mechanics::report_position_detail() {
   const xyze_float_t diff = from_steppers - leveled;
   SERIAL_MSG("Differ: ");
   report_xyze(diff);
+
+}
+
+// Report the logical current position according to the most recent G-code command.
+void Cartesian_Mechanics::report_logical_position() {
+
+  xyze_pos_t rpos = position;
+
+  #if HAS_POSITION_MODIFIERS
+    planner.apply_modifiers(rpos);
+  #endif
+
+  abc_float_t aspmm;
+  aspmm.set(mechanics.steps_to_mm);
+  const abc_long_t spos = (rpos * aspmm).asLong().ROUNDL();
+
+  report_some_position(position.asLogical());
+  stepper.report_positions(spos);
 
 }
 

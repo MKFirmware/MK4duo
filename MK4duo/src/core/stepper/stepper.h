@@ -214,6 +214,7 @@ class Stepper {
     /**
      * Report the positions of the steppers, in steps
      */
+    static void report_positions(const xyz_long_t &pos);
     static void report_positions();
 
     /**

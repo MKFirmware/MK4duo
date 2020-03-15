@@ -275,14 +275,14 @@ inline void gcode_G29() {
 
         if (!isnan(rx) && !isnan(ry)) {
           // Get nearest i / j from x / y
-          i = (rx - abl.bilinear_start.x + 0.5 * gridSpacing.x) / gridSpacing.x;
-          j = (ry - abl.bilinear_start.y + 0.5 * gridSpacing.y) / gridSpacing.y;
+          i = (rx - abl.data.bilinear_start.x + 0.5 * gridSpacing.x) / gridSpacing.x;
+          j = (ry - abl.data.bilinear_start.y + 0.5 * gridSpacing.y) / gridSpacing.y;
           LIMIT(i, 0, GRID_MAX_POINTS_X - 1);
           LIMIT(j, 0, GRID_MAX_POINTS_Y - 1);
         }
         if (WITHIN(i, 0, GRID_MAX_POINTS_X - 1) && WITHIN(j, 0, GRID_MAX_POINTS_Y)) {
           bedlevel.set_bed_leveling_enabled(false);
-          abl.z_values[i][j] = rz;
+          abl.data.z_values[i][j] = rz;
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
             abl.virt_interpolate();
           #endif
@@ -411,13 +411,13 @@ inline void gcode_G29() {
         if (!no_action)
       #endif
       {
-        if (gridSpacing != abl.bilinear_grid_spacing || probe_position_lf != abl.bilinear_start) {
+        if (gridSpacing != abl.data.bilinear_grid_spacing || probe_position_lf != abl.data.bilinear_start) {
           // Reset grid to 0.0 or "not probed". (Also disables ABL)
           bedlevel.reset();
 
           // Initialize a grid with the given dimensions
-          abl.bilinear_grid_spacing = gridSpacing;
-          abl.bilinear_start        = probe_position_lf;
+          abl.data.bilinear_grid_spacing  = gridSpacing;
+          abl.data.bilinear_start         = probe_position_lf;
 
           // Can't re-enable (on error) until the new grid is written
           bedlevel.flag.leveling_previous = false;
@@ -506,7 +506,7 @@ inline void gcode_G29() {
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        abl.z_values[meshCount.x][meshCount.y] = measured_z + zoffset;
+        abl.data.z_values[meshCount.x][meshCount.y] = measured_z + zoffset;
 
         if (printer.debugFeature()) {
           DEBUG_MV("Save X", meshCount.x);
@@ -681,7 +681,7 @@ inline void gcode_G29() {
 
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-            abl.z_values[meshCount.x][meshCount.y] = measured_z + zoffset;
+            abl.data.z_values[meshCount.x][meshCount.y] = measured_z + zoffset;
 
           #endif
 

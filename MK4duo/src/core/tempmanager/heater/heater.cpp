@@ -84,15 +84,22 @@ void Heater::set_target_temp(const int16_t celsius) {
   if (celsius == 0)
     SwitchOff();
   else if (!isPidTuned() && isUsePid()) {
+    SwitchOff();
     SERIAL_LM(ER, " Need Tuning PID");
     LCD_MESSAGEPGM(MSG_NEED_TUNE_PID);
   }
-  else if (isFault())
+  else if (isFault()) {
+    SwitchOff();
     SERIAL_LM(ER, " Heater not switched on to temperature fault.");
-  else if (celsius < data.temp.min)
+  }
+  else if (celsius < data.temp.min) {
+    SwitchOff();
     print_low_high_temp(celsius, true);
-  else if (celsius > data.temp.max - 10)
+  }
+  else if (celsius > data.temp.max - 10) {
+    SwitchOff();
     print_low_high_temp(celsius, false);
+  }
   else {
     setActive(true);
     target_temperature = celsius;
@@ -223,7 +230,11 @@ void Heater::get_output() {
       else
     #endif
       {
-        if (isUsePid()) {
+        if (current_temperature >= targetTemperature + temp_hysteresis)
+          pwm_value = 0;
+        else if (current_temperature <= targetTemperature - temp_hysteresis)
+          pwm_value = data.pid.Max;
+        else if (isUsePid()) {
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             const uint8_t id = (type == IS_HOTEND) ? data.ID : 0xFF;
           #endif
@@ -234,12 +245,7 @@ void Heater::get_output() {
           );
         }
         else if (next_check_timer.expired(temp_check_interval)) {
-          if (current_temperature >= targetTemperature + temp_hysteresis)
-            pwm_value = 0;
-          else if (current_temperature <= targetTemperature - temp_hysteresis)
-            pwm_value = data.pid.Max;
-          else
-            pwm_value = current_temperature < targetTemperature ? data.pid.drive.max : data.pid.drive.min;
+          pwm_value = current_temperature < targetTemperature ? data.pid.drive.max : data.pid.drive.min;
         }
       }
 

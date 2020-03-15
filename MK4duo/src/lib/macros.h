@@ -230,8 +230,8 @@
 #define FIXFLOAT(f)               (f + (f < 0 ? -0.00005f : 0.00005f))
 
 // LOOP MACROS
-#define LOOP_S_LE_N(VAR, S, N)    for (uint8_t VAR=S; VAR<=N; VAR++)
-#define LOOP_S_L_N(VAR, S, N)     for (uint8_t VAR=S; VAR<N; VAR++)
+#define LOOP_S_LE_N(VAR, S, N)    for (uint8_t VAR=(S); VAR<=(N); VAR++)
+#define LOOP_S_L_N(VAR, S, N)     for (uint8_t VAR=(S); VAR<(N);  VAR++)
 #define LOOP_LE_N(VAR, N)         LOOP_S_LE_N(VAR, 0, N)
 #define LOOP_L_N(VAR, N)          LOOP_S_L_N(VAR, 0, N)
 

@@ -55,7 +55,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV79"
+#define EEPROM_VERSION "MKV80"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -173,11 +173,7 @@ typedef struct EepromDataStruct {
   // Bilinear Auto Bed Leveling
   //
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    uint8_t         grid_max_x,
-                    grid_max_y;
-    xy_pos_t        bilinear_grid_spacing,
-                    bilinear_start;
-    float           z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+    abl_data_t      abl_data;
   #endif
 
   //
@@ -546,7 +542,7 @@ void EEPROM::post_process() {
     //
     #if ENABLED(MESH_BED_LEVELING)
       static_assert(
-        sizeof(mbl.data.z_values) == GRID_MAX_POINTS * sizeof(mbl.data.z_values[0][0]),
+        sizeof(mbl.data.z_values) == (GRID_MAX_POINTS) * sizeof(mbl.data.z_values[0][0]),
         "MBL Z array is the wrong size."
       );
       EEPROM_WRITE(mbl.data);
@@ -564,15 +560,10 @@ void EEPROM::post_process() {
     //
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       static_assert(
-        sizeof(abl.z_values) == GRID_MAX_POINTS * sizeof(abl.z_values[0][0]),
+        sizeof(abl.data.z_values) == (GRID_MAX_POINTS) * sizeof(abl.data.z_values[0][0]),
         "Bilinear Z array is the wrong size."
       );
-      const uint8_t grid_max_x = GRID_MAX_POINTS_X, grid_max_y = GRID_MAX_POINTS_Y;
-      EEPROM_WRITE(grid_max_x);
-      EEPROM_WRITE(grid_max_y);
-      EEPROM_WRITE(abl.bilinear_grid_spacing);
-      EEPROM_WRITE(abl.bilinear_start);
-      EEPROM_WRITE(abl.z_values);
+      EEPROM_WRITE(abl.data);
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     //
@@ -978,23 +969,7 @@ void EEPROM::post_process() {
       // Bilinear Auto Bed Leveling
       //
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        uint8_t grid_max_x, grid_max_y;
-        EEPROM_READ_ALWAYS(grid_max_x);
-        EEPROM_READ_ALWAYS(grid_max_y);
-        if (grid_max_x == GRID_MAX_POINTS_X && grid_max_y == GRID_MAX_POINTS_Y) {
-          if (!flag.validating) bedlevel.set_bed_leveling_enabled(false);
-          EEPROM_READ(abl.bilinear_grid_spacing);
-          EEPROM_READ(abl.bilinear_start);
-          EEPROM_READ(abl.z_values);
-        }
-        else { // EEPROM data is stale
-          // Skip past disabled (or stale) Bilinear Grid data
-          int bgs[2], bs[2];
-          EEPROM_READ(bgs);
-          EEPROM_READ(bs);
-          float dummy = 0;
-          for (uint16_t q = grid_max_x * grid_max_y; q--;) EEPROM_READ(dummy);
-        }
+        EEPROM_READ(abl.data);
       #endif // AUTO_BED_LEVELING_BILINEAR
 
       //
@@ -1670,7 +1645,7 @@ void EEPROM::reset() {
             for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
               SERIAL_SMV(CFG, "  G29 W I", (int)px);
               SERIAL_MV(" J", (int)py);
-              SERIAL_MV(" Z", LINEAR_UNIT(abl.z_values[px][py]), 5);
+              SERIAL_MV(" Z", LINEAR_UNIT(abl.data.z_values[px][py]), 5);
               SERIAL_EOL();
             }
           }

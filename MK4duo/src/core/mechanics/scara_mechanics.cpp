@@ -656,7 +656,7 @@ void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_
 }
 
 // Report detail current position to host
-void Scara_Mechanics::report_position_detail() {
+void Scara_Mechanics::report_detail_position() {
 
   SERIAL_MSG("\nLogical:");
   const float logical[XYZ] = {

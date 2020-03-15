@@ -121,6 +121,12 @@ class Commands {
     static void enqueue_one_now(const char * cmd);
 
     /**
+     * Attempt to enqueue a single G-code command
+     * and return 'true' if successful.
+     */
+    static bool enqueue_one_P(PGM_P const pgcode);
+
+    /**
      * Enqueue from program memory and return only when commands are actually enqueued
      */
     static void enqueue_now_P(PGM_P const pgcode);
@@ -161,12 +167,6 @@ class Commands {
      * Returns NULL if the target is invalid
      */
     static Heater* get_target_heater();
-
-    /**
-     * Attempt to enqueue a single G-code command
-     * and return 'true' if successful.
-     */
-    FORCE_INLINE static bool enqueue_P(const char* cmd) { return enqueue(cmd); }
 
   private: /** Private Function */
 

@@ -54,11 +54,11 @@
     if (hasI && hasJ && !(hasZ || hasQ)) {
       SERIAL_MV("Level value in ix", ix);
       SERIAL_MV(" iy", iy);
-      SERIAL_EMV(" Z", abl.z_values[ix][iy]);
+      SERIAL_EMV(" Z", abl.data.z_values[ix][iy]);
       return;
     }
     else {
-      abl.z_values[ix][iy] = parser.value_linear_units() + (hasQ ? abl.z_values[ix][iy] : 0);
+      abl.data.z_values[ix][iy] = parser.value_linear_units() + (hasQ ? abl.data.z_values[ix][iy] : 0);
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
         abl.virt_interpolate();
       #endif

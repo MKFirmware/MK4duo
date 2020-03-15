@@ -146,7 +146,7 @@ class Scara_Mechanics : public Mechanics {
     /**
      * Report current position to host
      */
-    static void report_position_detail();
+    static void report_detail_position();
 
     /**
      * Print mechanics parameters in memory

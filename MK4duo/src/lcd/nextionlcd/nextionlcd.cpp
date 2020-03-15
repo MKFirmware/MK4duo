@@ -879,15 +879,16 @@ void NextionLCD::set_status_page() {
 void NextionLCD::coordtoLCD() {
   char* valuetemp;
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
+  const xyz_pos_t lpos = mechanics.position.asLogical();
 
   if (PageID == 2) {
-    setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.position.x)));
-    setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.position.y)));
-    setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.position.z))));
+    setText(LcdX, ftostr41sign(lpos.x));
+    setText(LcdY, ftostr41sign(lpos.y));
+    setText(LcdZ, ftostr41sign(FIXFLOAT(lpos.z)));
   }
   else if (PageID == 4) {
     if (mechanics.home_flag.XHomed) {
-      valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.position.x));
+      valuetemp = ftostr4sign(lpos.x);
       strcat(cmd, "X");
       strcat(cmd, valuetemp);
     }
@@ -895,7 +896,7 @@ void NextionLCD::coordtoLCD() {
       strcat(cmd, "?");
 
     if (mechanics.home_flag.YHomed) {
-      valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.position.y));
+      valuetemp = ftostr4sign(lpos.y);
       strcat(cmd, " Y");
       strcat(cmd, valuetemp);
     }
@@ -903,7 +904,7 @@ void NextionLCD::coordtoLCD() {
       strcat(cmd, " ?");
 
     if (mechanics.home_flag.ZHomed) {
-      valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.position.z)));
+      valuetemp = ftostr52sp(FIXFLOAT(lpos.z));
       strcat(cmd, " Z");
       strcat(cmd, valuetemp);
     }
