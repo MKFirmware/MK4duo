@@ -637,22 +637,25 @@ void Printer::print_M353() {
 
     switch (card.printing_done_state) {
 
-      #if HAS_RESUME_CONTINUE                   // Display "Click to Continue..."
-        case 1:
-          did_state = commands.enqueue_P(PSTR("M0Q1S"
-            #if HAS_LCD_MENU
-              "1800"                            // ...for 30 minutes with LCD
-            #else
-              "60"                              // ...for 1 minute with no LCD
+      case 1:
+        did_state = print_job_counter.duration() < 60 || commands.enqueue_one_P(PSTR("M31"));
+        break;
+
+      case 2:
+        did_state = commands.enqueue_one_P(PSTR("M77"));
+        break;
+
+      case 3:                                   // Display "Click to Continue..."
+        #if HAS_RESUME_CONTINUE
+          did_state = commands.enqueue_one_P(
+            print_job_counter.duration() < 60 ? PSTR("M0Q1P1") : PSTR("M0Q1S"
+              #if HAS_LCD_MENU
+                "1800"                          // ...for 30 minutes with LCD
+              #else
+                "60"                            // ...for 1 minute with no LCD
             #endif
           ));
-          break;
-      #endif
-
-      case 2: print_job_counter.stop(); break;
-
-      case 3:
-        did_state = print_job_counter.duration() < 60 || commands.enqueue_P(PSTR("M31"));
+        #endif
         break;
 
       case 4:
@@ -795,19 +798,6 @@ void Printer::handle_safety_watch() {
  *  - Start the serial port
  *  - Print startup messages and diagnostics
  *  - Get EEPROM or default settings
- *  - Initialize managers for:
- *    • temperature
- *    • CNCROUTER
- *    • planner
- *    • watchdog
- *    • stepper
- *    • photo pin
- *    • laserbeam, laser and laser_raster
- *    • servos
- *    • LCD controller
- *    • Digipot I2C
- *    • Z probe sled
- *    • status LEDs
  */
 void setup() {
 
@@ -858,20 +848,35 @@ void setup() {
   SERIAL_SMV(ECHO, MSG_HOST_FREE_MEMORY, freeMemory());
   SERIAL_EMV(MSG_HOST_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
 
+  #if ENABLED(MK4DUO_DEV_MODE)
+    auto log_current_msg = [&](PGM_P const msg) {
+      SERIAL_STR(ECHO);
+      SERIAL_CHR('[');
+      SERIAL_VAL(millis());
+      SERIAL_MSG("] ");
+      SERIAL_STR(msg);
+      SERIAL_EOL();
+    };
+    #define SERIAL_LOG(M)   log_current_msg(PSTR(M))
+  #else
+    #define SERIAL_LOG(...) NOOP
+  #endif
+  #define   SERIAL_RUN(C)   do{ SERIAL_LOG(STRINGIFY(C)); C; }while(0)
+
   #if HAS_SD_SUPPORT
-    card.mount();
+    SERIAL_RUN(card.mount());
   #endif
 
   // Init endstops
-  endstops.init();
+  SERIAL_RUN(endstops.init());
 
   // Init Filament runout
   #if HAS_FILAMENT_SENSOR
-    filamentrunout.init();
+    SERIAL_RUN(filamentrunout.init());
   #endif
 
   // Initial setup of print job counter
-  print_job_counter.init();
+  SERIAL_RUN(print_job_counter.init());
 
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere
@@ -879,110 +884,113 @@ void setup() {
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on data.home_offset
-    mechanics.position = mechanics.data.home_offset;
+    mechanics.position += mechanics.data.home_offset;
   #else
     mechanics.position.reset();
   #endif
 
   // Vital to init stepper/planner equivalent for position
-  mechanics.sync_plan_position();
+  SERIAL_RUN(mechanics.sync_plan_position());
 
   // Initialize stepper. This enables interrupts!
-  stepper.init();
+  SERIAL_RUN(stepper.init());
 
   #if ENABLED(CNCROUTER)
-    cnc.init();
+    SERIAL_RUN(cnc.init());
   #endif
 
   // Initialize all Servo
   #if HAS_SERVOS
-    servo_init();
+    SERIAL_RUN(servo_init());
   #endif
 
   #if HAS_CASE_LIGHT
-    caselight.update();
+    SERIAL_RUN(caselight.update());
   #endif
 
   #if HAS_SOFTWARE_ENDSTOPS
-    endstops.setSoftEndstop(true);
+    SERIAL_RUN(endstops.setSoftEndstop(true));
   #endif
 
   #if HAS_STEPPER_RESET
-    stepper.enableStepperDrivers();
+    SERIAL_RUN(stepper.enableStepperDrivers());
   #endif
 
   #if ENABLED(DIGIPOT_I2C)
-    digipot_i2c_init();
+    SERIAL_RUN(digipot_i2c_init());
   #endif
 
   #if HAS_COLOR_LEDS
-    leds.setup();
+    SERIAL_RUN(leds.setup());
   #endif
 
   #if ENABLED(LASER)
-    laser.init();
+    SERIAL_RUN(laser.init());
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
     #if ENABLED(MINFLOW_PROTECTION)
       flowmeter.flow_firstread = false;
     #endif
-    flowmeter.init();
+    SERIAL_RUN(flowmeter.init());
   #endif
 
   #if ENABLED(PCF8574_EXPANSION_IO)
-    pcf8574.begin();
+    SERIAL_RUN(pcf8574.begin());
   #endif
 
   #if ENABLED(RFID_MODULE)
-    setRfid(rfid522.init());
+    SERIAL_RUN(setRfid(rfid522.init()));
     if (IsRfid()) SERIAL_EM("RFID CONNECT");
   #endif
 
-  lcdui.init();
-  lcdui.reset_status();
+  SERIAL_RUN(lcdui.init());
+  SERIAL_RUN(lcdui.reset_status());
 
   // Show MK4duo boot screen
   #if HAS_SPI_LCD && ENABLED(SHOW_BOOTSCREEN)
-    lcdui.show_bootscreen();
+    SERIAL_RUN(lcdui.show_bootscreen());
   #endif
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-    mixer.init();
+    SERIAL_RUN(mixer.init());
   #endif
 
   #if HAS_BLTOUCH
-    bltouch.init(true);
+    SERIAL_RUN(bltouch.init(true));
   #endif
 
   // All Initialized set Running to true.
-  printer.setRunning(true);
+  SERIAL_RUN(printer.setRunning(true));
 
   #if ENABLED(DELTA_HOME_ON_POWER)
-    mechanics.home();
+    SERIAL_RUN(mechanics.home());
   #endif
 
-  printer.zero_fan_speed();
+  SERIAL_RUN(printer.zero_fan_speed());
 
   #if HAS_LCD_MENU && HAS_EEPROM
-    if (!eeprom_loaded) lcdui.goto_screen(lcd_eeprom_allert);
+    if (!eeprom_loaded) {
+      SERIAL_RUN(lcdui.goto_screen(lcd_eeprom_allert));
+    }
   #endif
 
   #if HAS_SD_RESTART
-    restart.check();
+    SERIAL_RUN(restart.check());
   #endif
 
   // Reset Watchdog
-  watchdog.reset();
+  SERIAL_RUN(watchdog.reset());
 
   #if HAS_TRINAMIC && !PS_DEFAULT_OFF
-    tmcManager.test_connection(true, true, true, true);
+    SERIAL_RUN(tmcManager.test_connection(true, true, true, true));
   #endif
 
   #if HAS_MMU2
-    mmu2.init();
+    SERIAL_RUN(mmu2.init());
   #endif
 
+  SERIAL_LOG("setup() completed.");
 }
 
 /**

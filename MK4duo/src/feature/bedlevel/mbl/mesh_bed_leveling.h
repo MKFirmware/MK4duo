@@ -27,12 +27,12 @@
 #define _GET_MESH_Y(J)  mbl.data.index_to_ypos[J]
 #define Z_VALUES_ARR    mbl.data.z_values
 
-// Struct Mbl data
+// Struct MBL data
 typedef struct {
-  float z_offset,
-        index_to_xpos[GRID_MAX_POINTS_X],
-        index_to_ypos[GRID_MAX_POINTS_Y],
-        z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+  float       z_offset,
+              index_to_xpos[GRID_MAX_POINTS_X],
+              index_to_ypos[GRID_MAX_POINTS_Y];
+  bed_mesh_t  z_values;
 } mbl_data_t;
 
 class mesh_bed_leveling {
@@ -56,9 +56,7 @@ class mesh_bed_leveling {
     static void report_mesh();
 
     FORCE_INLINE static bool has_mesh() {
-      for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-          if (data.z_values[x][y]) return true;
+      GRID_LOOP(x, y) if (data.z_values[x][y]) return true;
       return false;
     }
 

@@ -94,7 +94,7 @@
 | M111 | - | Set debug flags with S[mask].
 | M112 | - | Emergency stop
 | M113 | - | Set Host Keepalive interval with parameter S[seconds]. To disable set zero
-| M114 | - | Output current position to serial port
+| M114 | - | Report the current position to host. D Report more detail, R Report the realtime position instead
 | M115 | EXTENDED CAPABILITIES REPORT* | Report capabilities. (* for extended capabilities)
 | M116 | - | Wait for all heaters to reach target temperature
 | M117 | - | Display a message on the controller screen

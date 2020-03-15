@@ -138,7 +138,7 @@ bool Bedlevel::leveling_is_valid() {
   #if ENABLED(MESH_BED_LEVELING)
     return mbl.has_mesh();
   #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    return !!abl.bilinear_grid_spacing.x;
+    return !!abl.data.bilinear_grid_spacing.x;
   #elif ENABLED(AUTO_BED_LEVELING_UBL)
     return ubl.mesh_is_valid();
   #else // 3POINT, LINEAR
@@ -229,11 +229,9 @@ void Bedlevel::reset() {
     #if ENABLED(MESH_BED_LEVELING)
       mbl.factory_parameters();
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      abl.bilinear_start.reset();
-      abl.bilinear_grid_spacing.reset();
-      for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-          abl.z_values[x][y] = NAN;
+      abl.data.bilinear_start.reset();
+      abl.data.bilinear_grid_spacing.reset();
+      GRID_LOOP(x, y) abl.data.z_values[x][y] = NAN;
     #elif ABL_PLANAR
       matrix.set_to_identity();
     #endif

@@ -855,40 +855,33 @@ float Planner::triggered_position_mm(const AxisEnum axis) {
  * Get an axis position according to stepper position(s)
  * For CORE machines apply translation from ABC to XYZ.
  */
-float Planner::get_axis_position_mm(const AxisEnum axis) {
-
-  float axis_steps;
+float Planner::get_axis_position(const AxisEnum axis) {
 
   #if IS_CORE
 
     // Requesting one of the "core" axes?
     if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
 
-      // Disable stepper ISR
-      const bool isr_enabled = STEPPER_ISR_ENABLED();
-      if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+      // Protect the access to the position.
+      const bool isr_enabled = stepper.suspend();
 
-      // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
-      // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
-      axis_steps = 0.5f * (
-        axis == CORE_AXIS_2 ? CORESIGN(stepper.position(CORE_AXIS_1) - stepper.position(CORE_AXIS_2))
-                            : stepper.position(CORE_AXIS_1) + stepper.position(CORE_AXIS_2)
-      );
+      const int32_t p1 = stepper.position(CORE_AXIS_1),
+                    p2 = stepper.position(CORE_AXIS_2);
 
-      // Reenable Stepper ISR
-      if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+      if (isr_enabled) stepper.wake_up();
+
+      return (axis == CORE_AXIS_2 ? CORESIGN(p1 - p2) : p1 + p2) * 0.5f;
 
     }
     else
-      axis_steps = stepper.position(axis);
+      return stepper.position(axis);
 
   #else
 
-    axis_steps = stepper.position(axis);
+    return stepper.position(axis);
 
   #endif
 
-  return axis_steps * mechanics.steps_to_mm[axis];
 }
 
 void Planner::synchronize() {

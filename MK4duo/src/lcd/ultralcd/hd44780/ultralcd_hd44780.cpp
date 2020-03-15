@@ -791,9 +791,11 @@ void LcdUI::draw_status_screen() {
 
           #else
 
-            _draw_axis_value(X_AXIS, ftostr4sign(LOGICAL_X_POSITION(mechanics.position.x)), blink);
+            const xy_pos_t lpos = mechanics.position.asLogical();
+
+            _draw_axis_value(X_AXIS, ftostr4sign(lpos.x), blink);
             lcd_put_wchar(' ');
-            _draw_axis_value(Y_AXIS, ftostr4sign(LOGICAL_Y_POSITION(mechanics.position.y)), blink);
+            _draw_axis_value(Y_AXIS, ftostr4sign(lpos.y), blink);
 
           #endif
 

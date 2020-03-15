@@ -21,6 +21,13 @@
  */
 #pragma once
 
+// Struct ABL data
+typedef struct {
+  xy_pos_t    bilinear_grid_spacing,
+              bilinear_start;
+  bed_mesh_t  z_values;
+} abl_data_t;
+
 class AutoBedLevel {
 
   public: /** Constructor */
@@ -29,9 +36,7 @@ class AutoBedLevel {
 
   public: /** Public Parameters */
 
-    static xy_pos_t   bilinear_grid_spacing,
-                      bilinear_start;
-    static bed_mesh_t z_values;
+    static abl_data_t data;
 
   private: /** Private Parameters */
 
@@ -86,6 +91,6 @@ class AutoBedLevel {
 
 extern AutoBedLevel abl;
 
-#define _GET_MESH_X(I) (abl.bilinear_start.x + (I) * abl.bilinear_grid_spacing.x)
-#define _GET_MESH_Y(J) (abl.bilinear_start.y + (J) * abl.bilinear_grid_spacing.y)
-#define Z_VALUES_ARR    abl.z_values
+#define _GET_MESH_X(I) (abl.data.bilinear_start.x + (I) * abl.data.bilinear_grid_spacing.x)
+#define _GET_MESH_Y(J) (abl.data.bilinear_start.y + (J) * abl.data.bilinear_grid_spacing.y)
+#define Z_VALUES_ARR    abl.data.z_values

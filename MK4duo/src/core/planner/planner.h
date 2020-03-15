@@ -454,7 +454,10 @@ class Planner {
      * Get an axis position according to stepper position(s)
      * For CORE machines apply translation from ABC to XYZ.
      */
-    static float get_axis_position_mm(const AxisEnum axis);
+    static float get_axis_position(const AxisEnum axis);
+    static inline float get_axis_position_mm(const AxisEnum axis) {
+      return get_axis_position(axis) * mechanics.steps_to_mm[axis];
+    }
 
     /**
      * SCARA AB axes are in degrees, not mm

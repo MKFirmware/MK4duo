@@ -1350,7 +1350,7 @@ bool TMC_Manager::test_connection(Driver* drv) {
     void TMC_Manager::status(Driver* drv, const TMCdebugEnum i) {
       switch (i) {
         case TMC_PWM_SCALE: SERIAL_VAL(drv->tmc->pwm_scale_sum()); break;
-        case TMC_STEALTHCHOP: SERIAL_LOGIC(nullptr, drv->tmc->stealth()); break;
+        case TMC_STEALTHCHOP: SERIAL_LOGIC("", drv->tmc->stealth()); break;
         case TMC_S2VSA: if (drv->tmc->s2vsa()) SERIAL_CHR('X'); break;
         case TMC_S2VSB: if (drv->tmc->s2vsb()) SERIAL_CHR('X'); break;
         default: break;
@@ -1419,7 +1419,7 @@ bool TMC_Manager::test_connection(Driver* drv) {
       switch (i) {
         case TMC_PWM_SCALE: SERIAL_VAL(drv->tmc->PWM_SCALE()); break;
         case TMC_SGT: SERIAL_VAL(drv->tmc->sgt()); break;
-        case TMC_STEALTHCHOP: SERIAL_LOGIC(nullptr, drv->tmc->en_pwm_mode()); break;
+        case TMC_STEALTHCHOP: SERIAL_LOGIC("", drv->tmc->en_pwm_mode()); break;
         default: break;
       }
     }
@@ -1471,7 +1471,7 @@ bool TMC_Manager::test_connection(Driver* drv) {
       SERIAL_CHR('\t');
       switch (i) {
         case TMC_CODES: drv->printLabel(); break;
-        case TMC_ENABLED: SERIAL_LOGIC(nullptr, drv->tmc->isEnabled()); break;
+        case TMC_ENABLED: SERIAL_LOGIC("", drv->tmc->isEnabled()); break;
         case TMC_CURRENT: SERIAL_VAL(drv->tmc->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(drv->tmc->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)drv->tmc->rms_current() * 1.41, 0); break;
@@ -1481,8 +1481,8 @@ bool TMC_Manager::test_connection(Driver* drv) {
           break;
         case TMC_VSENSE: SERIAL_STR(drv->tmc->vsense() ? PSTR("1=.165") : PSTR("0=.310")); break;
         case TMC_MICROSTEPS: SERIAL_VAL(drv->tmc->getMicrosteps()); break;
-        //case TMC_OTPW: SERIAL_LOGIC(nullptr, drv->tmc->otpw()); break;
-        //case TMC_OTPW_TRIGGERED: SERIAL_LOGIC(nullptr, drv->tmc->getOTPW()); break;
+        //case TMC_OTPW: SERIAL_LOGIC("", drv->tmc->otpw()); break;
+        //case TMC_OTPW_TRIGGERED: SERIAL_LOGIC("", drv->tmc->getOTPW()); break;
         case TMC_SGT: SERIAL_VAL(drv->tmc->sgt(), DEC); break;
         case TMC_TOFF: SERIAL_VAL(drv->tmc->toff(), DEC); break;
         case TMC_TBL: SERIAL_VAL(drv->tmc->blank_time(), DEC); break;
@@ -1498,7 +1498,7 @@ bool TMC_Manager::test_connection(Driver* drv) {
       SERIAL_CHR('\t');
       switch (i) {
         case TMC_CODES: drv->printLabel(); break;
-        case TMC_ENABLED: SERIAL_LOGIC(nullptr, drv->tmc->isEnabled()); break;
+        case TMC_ENABLED: SERIAL_LOGIC("", drv->tmc->isEnabled()); break;
         case TMC_CURRENT: SERIAL_VAL(drv->tmc->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(drv->tmc->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)drv->tmc->rms_current() * 1.41, 0); break;
@@ -1528,9 +1528,9 @@ bool TMC_Manager::test_connection(Driver* drv) {
             if (tpwmthrs_val) SERIAL_VAL(tpwmthrs_val); else SERIAL_CHR('-');
           } break;
         #endif
-        case TMC_OTPW: SERIAL_LOGIC(nullptr, drv->tmc->otpw()); break;
+        case TMC_OTPW: SERIAL_LOGIC("", drv->tmc->otpw()); break;
         #if ENABLED(MONITOR_DRIVER_STATUS)
-          case TMC_OTPW_TRIGGERED: SERIAL_LOGIC(nullptr, drv->tmc->getOTPW()); break;
+          case TMC_OTPW_TRIGGERED: SERIAL_LOGIC("", drv->tmc->getOTPW()); break;
         #endif
         case TMC_TOFF: SERIAL_VAL(drv->tmc->toff()); break;
         case TMC_TBL: SERIAL_VAL(drv->tmc->blank_time()); break;

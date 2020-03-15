@@ -184,7 +184,7 @@ class Heater {
       data.flag.Fault = true;
     }
     FORCE_INLINE void ResetFault() {
-      data.flag.Fault = false; 
+      data.flag.Fault = false;
       SwitchOff();
     }
     FORCE_INLINE bool isFault() { return data.flag.Fault; }
@@ -194,6 +194,7 @@ class Heater {
     FORCE_INLINE void SwitchOff() {
       target_temperature = 0;
       pwm_value = 0;
+      data.pid.reset();
       setActive(false);
     }
 

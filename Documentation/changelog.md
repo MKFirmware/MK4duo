@@ -1,8 +1,8 @@
 ### Version 4.4.0
 *
-* Revision 10-03-2020
+* Revision 15-03-2020
 *
-* Version EEPROM MKV79
+* Version EEPROM MKV80
 *
 * Version Nextion 1_3_1
 *

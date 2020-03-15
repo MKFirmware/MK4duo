@@ -153,7 +153,7 @@
  * M99  - Set Hysteresis parameter X[in mm] Y[in mm] Z[in mm] E[in mm] F[float] Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
  * M100 - Watch Free Memory (For Debugging Only)
  * M104 - S[C°] Set hotend target temperature, R[C°] Set hotend idle temperature
- *          T[int] 0-5 For Select Hotends (default 0)
+ *        T[int] 0-5 For Select Hotends (default 0)
  * M105 - Read current temp
  * M106 - P[fan] S[speed] F[frequency] U[pin] L[min speed] X[max speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled T[trig temperaure]
  * M107 - P[fan] Fan off
@@ -165,7 +165,7 @@
  * M111 - Set debug flags with S[mask].
  * M112 - Full Shutdown
  * M113 - Set Host Keepalive interval with parameter S[seconds]. To disable set zero
- * M114 - Output current position to serial port
+ * M114 - Report the current position to host. D Report more detail, R Report the realtime position instead
  * M115 - Report capabilities. (Extended capabilities requires EXTENDED_CAPABILITIES_REPORT)
  * M116 - Wait for all heaters to reach target temperature
  * M117 - Display a message on the controller screen

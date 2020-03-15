@@ -41,8 +41,8 @@ struct pid_data_t {
 
   private: /** Private Parameters */
 
-    float outputSum   = 0.0,
-          pid_output  = 0.0,   
+    float iState_sum  = 0.0,
+          pid_output  = 0.0,
           last_temp   = 0.0;
 
     short_timer_t next_sample_ms;
@@ -50,6 +50,8 @@ struct pid_data_t {
   public: /** Public Function */
 
     void init() { next_sample_ms.start(); }
+
+    void reset() { iState_sum = pid_output = 0.0; }
 
     float compute(const float target_temp, const float current_temp
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -60,12 +62,14 @@ struct pid_data_t {
       if (next_sample_ms.expired(1000UL)) {
 
         const float pid_error = target_temp - current_temp,
-                    dInput    = current_temp - last_temp;
+                    dInput    = current_temp - last_temp,
+                    dTerm     = Kd * dInput;
 
         // Compute PID output
-        outputSum += (Ki * pid_error);
-        LIMIT(outputSum, drive.min, drive.max);
-        pid_output = Kp * pid_error + outputSum - Kd * dInput;
+        iState_sum += Ki * pid_error;
+        iState_sum -= Kp * dInput;
+        LIMIT(iState_sum, drive.min, drive.max);
+        pid_output = iState_sum - dTerm;
 
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
           if (tid == toolManager.active_hotend()) {
@@ -82,7 +86,7 @@ struct pid_data_t {
           }
         #endif // PID_ADD_EXTRUSION_RATE
 
-        LIMIT(pid_output, drive.min, drive.max);
+        LIMIT(pid_output, 0, Max);
 
         last_temp = current_temp;
 

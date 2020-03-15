@@ -34,15 +34,13 @@
   void unified_bed_leveling::report_current_mesh() {
     if (!bedlevel.leveling_is_valid()) return;
     SERIAL_LM(ECHO, "  G29 I99");
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-      for (uint8_t y = 0;  y < GRID_MAX_POINTS_Y; y++) {
-        if (!isnan(z_values[x][y])) {
-          SERIAL_SMV(ECHO, "  M421 I", int(x));
-          SERIAL_MV(" J", int(y));
-          SERIAL_MV(" Z", z_values[x][y], 4);
-          SERIAL_EOL();
-          HAL::delayMilliseconds(75);
-        }
+    GRID_LOOP(x, y) {
+      if (!isnan(z_values[x][y])) {
+        SERIAL_SMV(ECHO, "  M421 I", int(x));
+        SERIAL_MV(" J", int(y));
+        SERIAL_MV(" Z", z_values[x][y], 4);
+        SERIAL_EOL();
+        HAL::delayMilliseconds(75);
       }
     }
   }
@@ -127,11 +125,7 @@
   }
 
   void unified_bed_leveling::set_all_mesh_points_to_value(const float value) {
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
-        z_values[x][y] = value;
-      }
-    }
+    GRID_LOOP(x, y) z_values[x][y] = value;
   }
 
   static void serial_echo_xy(const uint8_t sp, const int16_t x, const int16_t y) {

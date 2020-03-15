@@ -293,8 +293,8 @@ class Mechanics {
     /**
      * Report position to host
      */
-    static void report_position();
-
+    static void report_some_position(const xyze_pos_t &pos);
+    FORCE_INLINE static void report_xyz(const xyz_pos_t &pos) { xyze_pos_t abce = pos; report_xyze(abce, 3); }
     FORCE_INLINE static void report_xyz(const xyze_pos_t &pos) { report_xyze(pos, 3); }
 
     static uint8_t axis_need_homing(uint8_t axis_bits=0x07);
@@ -343,8 +343,7 @@ class Mechanics {
       static void stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_flag_t enable_stealth);
     #endif
 
-    static void report_xyz(const xyz_pos_t &pos, const uint8_t precision=3);
-    static void report_xyze(const xyze_pos_t &pos, const uint8_t n=4, const uint8_t precision=3);
+    static void report_xyze(const xyze_pos_t &pos, const uint8_t n=4);
 
     /**
      * Homing bump feedrate (mm/s)

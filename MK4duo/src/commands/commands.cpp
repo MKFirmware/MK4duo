@@ -116,6 +116,21 @@ void Commands::enqueue_one_now(const char * cmd) {
   while (!enqueue_one(cmd)) printer.idle();
 }
 
+/**
+ * Attempt to enqueue a single G-code command
+ * and return 'true' if successful.
+ */
+bool Commands::enqueue_one_P(PGM_P const pgcode) {
+  size_t i = 0;
+  PGM_P p = pgcode;
+  char c;
+  while ((c = pgm_read_byte(&p[i])) && c != '\n') i++;
+  char cmd[i + 1];
+  memcpy_P(cmd, p, i);
+  cmd[i] = '\0';
+  return enqueue(cmd);
+}
+
 void Commands::enqueue_now_P(PGM_P const pgcode) {
   size_t i = 0;
   PGM_P p = pgcode;
@@ -154,6 +169,7 @@ void Commands::process_now(char * gcode) {
     char * const delim = strchr(gcode, '\n');         // Get address of next newline
     if (delim) *delim = '\0';                         // Replace with nul
     parser.parse(gcode);                              // Parse the current command
+    if (delim) *delim = '\n';                         // Put back the newline
     process_parsed(false);                            // Process it
     if (!delim) break;                                // Last command?
     gcode = delim + 1;                                // Get the next command

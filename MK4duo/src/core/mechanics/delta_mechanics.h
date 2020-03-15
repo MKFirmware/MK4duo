@@ -191,9 +191,12 @@ class Delta_Mechanics : public Mechanics {
     static inline bool position_is_reachable_by_probe(const xy_pos_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
 
     /**
-     * Report current position to host
+     * Report position to host
      */
-    static void report_position_detail();
+    static void report_real_position();
+    static void report_detail_position();
+    static void report_logical_position();
+    static inline void report_position() { report_some_position(position.asLogical()); }
 
     /**
      * Print mechanics parameters in memory

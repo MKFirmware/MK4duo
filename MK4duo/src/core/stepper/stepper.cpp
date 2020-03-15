@@ -506,20 +506,7 @@ int32_t Stepper::position(const AxisEnum axis) {
   return v;
 }
 
-void Stepper::report_positions() {
-
-  #ifdef __AVR__
-    // Protect the access to the position.
-    const bool isr_enabled = suspend();
-  #endif
-
-  const int32_t xpos = count_position.x,
-                ypos = count_position.y,
-                zpos = count_position.z;
-
-  #ifdef __AVR__
-    if (isr_enabled) wake_up();
-  #endif
+void Stepper::report_positions(const xyz_long_t &pos) {
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
     SERIAL_MSG(MSG_HOST_COUNT_A);
@@ -528,7 +515,7 @@ void Stepper::report_positions() {
   #else
     SERIAL_MSG(MSG_HOST_COUNT_X);
   #endif
-  SERIAL_VAL(xpos);
+  SERIAL_VAL(pos.x);
 
   #if CORE_IS_XY || CORE_IS_YZ || IS_SCARA
     SERIAL_MSG(" B:");
@@ -537,7 +524,7 @@ void Stepper::report_positions() {
   #else
     SERIAL_MSG(" Y:");
   #endif
-  SERIAL_VAL(ypos);
+  SERIAL_VAL(pos.y);
 
   #if CORE_IS_XZ || CORE_IS_YZ
     SERIAL_MSG(" C:");
@@ -546,9 +533,27 @@ void Stepper::report_positions() {
   #else
     SERIAL_MSG(" Z:");
   #endif
-  SERIAL_VAL(zpos);
+  SERIAL_VAL(pos.z);
 
   SERIAL_EOL();
+
+}
+
+void Stepper::report_positions() {
+
+  #ifdef __AVR__
+    // Protect the access to the position.
+    const bool isr_enabled = suspend();
+  #endif
+
+  const xyz_long_t pos = count_position;
+
+  #ifdef __AVR__
+    if (isr_enabled) wake_up();
+  #endif
+
+  report_positions(pos);
+
 }
 
 void Stepper::reset_drivers() {

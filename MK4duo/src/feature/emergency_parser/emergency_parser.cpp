@@ -45,9 +45,9 @@ void EmergencyParser::update(EmergencyStateEnum &state, const uint8_t c) {
   switch (state) {
     case EP_RESET:
       switch (c) {
-        case ' ': break;
-        case 'N': state = EP_N;      break;
-        case 'M': state = EP_M;      break;
+        case ' ': case '\n': case '\r': break;
+        case 'N': state = EP_N;         break;
+        case 'M': state = EP_M;         break;
         default: state  = EP_IGNORE;
       }
       break;
