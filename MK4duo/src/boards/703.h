@@ -114,8 +114,8 @@
 
 //###HEATER
 #define ORIG_HEATER_HE0_PIN         2
-#define ORIG_HEATER_HE1_PIN         8
-#define ORIG_HEATER_HE2_PIN         9
+#define ORIG_HEATER_HE1_PIN         9
+#define ORIG_HEATER_HE2_PIN         8
 #define ORIG_HEATER_HE3_PIN        NoPin
 #define ORIG_HEATER_HE4_PIN        NoPin
 #define ORIG_HEATER_HE5_PIN        NoPin
@@ -178,7 +178,7 @@
 
 //###MISC
 #define ORIG_PS_ON_PIN             12
-#define ORIG_BEEPER_PIN            NoPin
+#define ORIG_BEEPER_PIN            61
 #define LED_PIN                    13
 
 
