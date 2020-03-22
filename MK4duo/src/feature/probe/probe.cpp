@@ -64,7 +64,7 @@ bool Probe::set_deployed(const bool deploy) {
     do_raise(MAX(Z_PROBE_BETWEEN_HEIGHT, Z_PROBE_DEPLOY_HEIGHT));
 
   #if HAS_SLED
-    if (mechanics.axis_unhomed_error(true, false, false)) {
+    if (mechanics.axis_unhomed_error(HOME_X)) {
       SERIAL_LM(ER, MSG_HOST_STOP_UNHOMED);
       printer.stop();
       return true;
