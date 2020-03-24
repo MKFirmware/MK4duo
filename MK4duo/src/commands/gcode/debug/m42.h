@@ -33,10 +33,10 @@
  *
  *  P<pin>  Pin number (LED if omitted)
  *  S<byte> Pin status from 0 - 255
+ *
+ *  M<mode> Pin mode: 0=INPUT  1=OUTPUT  2=INPUT_PULLUP
  */
 inline void gcode_M42() {
-  if (!parser.seenval('S')) return;
-  const byte pin_status = parser.value_byte();
 
   const pin_t pin_number = parser.pinval('P', LED_PIN);
   if (pin_number == NoPin) return;
@@ -45,6 +45,19 @@ inline void gcode_M42() {
     SERIAL_LM(ER, MSG_HOST_ERR_PROTECTED_PIN);
     return;
   }
+
+  if (parser.seenval('M')) {
+    switch (parser.value_byte()) {
+      case 0: pinMode(pin, INPUT); break;
+      case 1: pinMode(pin, OUTPUT); break;
+      case 2: pinMode(pin, INPUT_PULLUP); break;
+      default: SERIAL_EM("Invalid Pin Mode");
+    }
+    return;
+  }
+
+  if (!parser.seenval('S')) return;
+  const byte pin_status = parser.value_byte();
 
   pinMode(pin_number, OUTPUT);
   digitalWrite(pin_number, pin_status);
