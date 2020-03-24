@@ -78,7 +78,6 @@
 
 // Control Commands
 #include "control/m17_m18_m84.h"
-#include "control/m42.h"
 #include "control/m85.h"
 #include "control/m86.h"
 #include "control/m106_m107.h"
@@ -98,9 +97,10 @@
 #include "control/m9999.h"                // Banzai code for erase bootloader on DUE
 
 // Debug Commands
+#include "debug/m42.h"
 #include "debug/m43.h"
 #include "debug/m44_pre_table.h"          // Debug Code Info
-#include "debug/m1000.h"                   // Debug GCODE Parser
+#include "debug/m1000.h"                  // Debug GCODE Parser
 
 // Delta Commands
 #include "delta/g33_type1.h"              // Autocalibration 7 point

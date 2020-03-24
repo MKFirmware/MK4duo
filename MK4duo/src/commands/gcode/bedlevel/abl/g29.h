@@ -882,7 +882,12 @@ inline void gcode_G29() {
 
         // Unapply the offset because it is going to be immediately applied
         // and cause compensation movement in Z
-        mechanics.position.z -= abl.bilinear_z_offset(mechanics.position);
+        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+          const float fade_scaling_factor = bedlevel.fade_scaling_factor_for_z(mechanics.position.z);
+        #else
+          constexpr float fade_scaling_factor = 1.0f;
+        #endif
+        mechanics.position.z -= fade_scaling_factor * abl.bilinear_z_offset(mechanics.position);
 
         if (printer.debugFeature()) DEBUG_EMV(" corrected Z:", mechanics.position.z);
       }

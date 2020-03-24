@@ -43,8 +43,6 @@ inline void gcode_M9999() { initiateReset(1000); }
  * M9999: DFU mode software in STM32
  */
 inline void gcode_M9999() {
-  enableBackupDomain();
-  //setBackupRegister(SYSBL_MAGIC_NUMBER_BKP_INDEX, SYSBL_MAGIC_NUMBER_BKP_VALUE);
   NVIC_SystemReset();
 }
 

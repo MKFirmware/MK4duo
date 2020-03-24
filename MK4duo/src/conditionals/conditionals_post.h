@@ -865,7 +865,7 @@
 /**
  * Position Float
  */
-#define HAS_POSITION_FLOAT      (ENABLED(LIN_ADVANCE) || ENABLED(SCARA_FEEDRATE_SCALING))
+#define HAS_POSITION_FLOAT      (ENABLED(LIN_ADVANCE) || ENABLED(SCARA_FEEDRATE_SCALING) || HAS_GRADIENT_MIX)
 
 /**
  * Bed Probing rectangular bounds
