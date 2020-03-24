@@ -48,9 +48,9 @@ inline void gcode_M42() {
 
   if (parser.seenval('M')) {
     switch (parser.value_byte()) {
-      case 0: pinMode(pin, INPUT); break;
-      case 1: pinMode(pin, OUTPUT); break;
-      case 2: pinMode(pin, INPUT_PULLUP); break;
+      case 0: pinMode(pin_number, INPUT);         break;
+      case 1: pinMode(pin_number, OUTPUT);        break;
+      case 2: pinMode(pin_number, INPUT_PULLUP);  break;
       default: SERIAL_EM("Invalid Pin Mode");
     }
     return;
