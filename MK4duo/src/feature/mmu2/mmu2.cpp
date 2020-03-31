@@ -504,7 +504,7 @@ void MMU2::tool_change(uint8_t index) {
 
     stepper.enable_E(0);
 
-    SERIAL_LMV(ECHO, MSG_HOST_ACTIVE_EXTRUDER, int(extruder));
+    SERIAL_LMV(ECHO, STR_ACTIVE_EXTRUDER, int(extruder));
 
     lcdui.reset_status();
   }
@@ -757,12 +757,10 @@ void MMU2::set_runout_valid(const bool valid) {
     if (recover)  {
       LCD_MESSAGEPGM(MSG_MMU2_EJECT_RECOVER);
       sound.playtone(200, 404);
-      printer.setWaitForUser(true);
-      host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("MMU2 Eject Recover"), PSTR("Continue"));
-      while (printer.isWaitForUser()) printer.idle();
+      host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("MMU2 Eject Recover"), CONTINUE_BTN);
+      printer.wait_for_user_response();
       sound.playtone(200, 404);
       sound.playtone(200, 404);
-
       command(MMU_CMD_R0);
       manage_response(false, false);
     }

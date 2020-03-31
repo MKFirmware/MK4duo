@@ -45,10 +45,10 @@
                 hasQ = !hasZ && parser.seen('Q');
 
     if (!hasI || !hasJ || !(hasZ || hasQ)) {
-      SERIAL_LM(ER, MSG_HOST_ERR_M421_PARAMETERS);
+      SERIAL_LM(ER, STR_ERR_M421_PARAMETERS);
     }
       else if (!WITHIN(ix, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1)) {
-      SERIAL_LM(ER, MSG_HOST_ERR_MESH_XY);
+      SERIAL_LM(ER, STR_ERR_MESH_XY);
     }
 
     if (hasI && hasJ && !(hasZ || hasQ)) {

@@ -20,22 +20,22 @@
  *
  */
 
-#include "../../../../MK4duo.h"
+/**
+ * hostaction.cpp
+ *
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
+ */
+
+#include "../../../MK4duo.h"
 
 //#define DEBUG_HOST_ACTIONS
 
 Host_Action host_action;
 
-/** Public Parameters */
+/** Private Parameters */
 HostPromptEnum Host_Action::prompt_reason = PROMPT_NOT_DEFINED;
 
 /** Public Function */
-void Host_Action::say_m876_response(PGM_P const msg) {
-  SERIAL_MSG("M876 Responding PROMPT_");
-  SERIAL_STR(msg);
-  SERIAL_EOL();
-}
-
 void Host_Action::response_handler(const uint8_t response) {
 
   #ifdef DEBUG_HOST_ACTIONS
@@ -43,43 +43,37 @@ void Host_Action::response_handler(const uint8_t response) {
     SERIAL_MV("M876 Handle Response: ", response);
   #endif
 
-  PGM_P msg = PSTR("UNKNOWN STATE");
+  const char * msg = PSTR("UNKNOWN STATE");
   const HostPromptEnum temp_pr = prompt_reason;
   prompt_reason = PROMPT_NOT_DEFINED;
 
   switch (temp_pr) {
+
     case PROMPT_FILAMENT_RUNOUT:
       msg = PSTR("FILAMENT_RUNOUT");
-      if (response == 0) {
-        #if ENABLED(ADVANCED_PAUSE_FEATURE)
-          advancedpause.menu_response = PAUSE_RESPONSE_EXTRUDE_MORE;
-        #endif
-        prompt_begin(PSTR("Paused"));
-        prompt_button(PSTR("Purge More"));
-        if (false
-          #if HAS_FILAMENT_SENSOR
-            || filamentrunout.sensor.isFilamentOut()
+      switch (response) {
+
+        case 0: // "Purge More" button
+          #if ENABLED(ADVANCED_PAUSE_FEATURE)
+            advancedpause.menu_response = PAUSE_RESPONSE_EXTRUDE_MORE;
           #endif
-        )
-          prompt_button(PSTR("DisableRunout"));
-        else {
-          prompt_reason = PROMPT_FILAMENT_RUNOUT;
-          prompt_button(PSTR("Continue"));
-        }
-        prompt_show();
-      }
-      else if (response == 1) {
-        #if HAS_FILAMENT_SENSOR
-          if (filamentrunout.sensor.isFilamentOut()) {
-            filamentrunout.sensor.setEnabled(false);
-            filamentrunout.reset();
-          }
-        #endif
-        #if ENABLED(ADVANCED_PAUSE_FEATURE)
-          advancedpause.menu_response = PAUSE_RESPONSE_RESUME_PRINT;
-        #endif
+          filament_load_prompt();
+          break;
+
+        case 1: // "Continue" / "Disable Runout" button
+          #if ENABLED(ADVANCED_PAUSE_FEATURE)
+            advancedpause.menu_response = PAUSE_RESPONSE_RESUME_PRINT;
+          #endif
+          #if HAS_FILAMENT_SENSOR
+            if (filamentrunout.sensor.isFilamentOut()) {
+              filamentrunout.sensor.setEnabled(false);
+              filamentrunout.reset();
+            }
+          #endif
+          break;
       }
       break;
+
     case PROMPT_FILAMENT_RUNOUT_REHEAT:
       msg = PSTR("FILAMENT_RUNOUT_REHEAT");
       printer.setWaitForUser(false);
@@ -97,18 +91,16 @@ void Host_Action::response_handler(const uint8_t response) {
       break;
     default: break;
   }
-  say_m876_response(msg);
-}
 
-void Host_Action::action_notify(const char * const msg) {
-  print_action(PSTR("notification "), false);
-  SERIAL_TXT(msg);
-  SERIAL_EOL();
-}
-
-void Host_Action::action_notify_P(PGM_P const msg) {
-  print_action(PSTR("notification "), false);
+  SERIAL_MSG("M876 Responding PROMPT_");
   SERIAL_STR(msg);
+  SERIAL_EOL();
+
+}
+
+void Host_Action::action_notify(const char * const pstr) {
+  print_action(PSTR("notification "), false);
+  SERIAL_TXT(pstr);
   SERIAL_EOL();
 }
 
@@ -117,42 +109,51 @@ void Host_Action::filrunout(const uint8_t t) {
   SERIAL_EV(int(t));
 }
 
-void Host_Action::prompt_begin(PGM_P const msg, const bool eol/*=true*/) {
-  prompt_end(); // ensure any current prompt is closed before we begin a new one
-  print_prompt_plus(PSTR("begin"), msg, eol);
-}
-
-void Host_Action::prompt_choice(PGM_P const msg) {
-  print_prompt_plus(PSTR("choice"), msg);
-}
-
-void Host_Action::prompt_button(PGM_P const msg) {
-  print_prompt_plus(PSTR("button"), msg);
-}
-
-void Host_Action::prompt_do(const HostPromptEnum reason, PGM_P const pstr, PGM_P const pbtn/*=NULL*/) {
+void Host_Action::prompt_begin(const HostPromptEnum reason, const char * const pstr, const char extra_char/*='\0'*/) {
+  prompt_end();
   prompt_reason = reason;
-  prompt_begin(pstr);
-  if (pbtn) prompt_button(pbtn);
+  print_prompt_plus(PSTR("begin"), pstr, extra_char);
+}
+
+void Host_Action::prompt_button(const char * const pstr) {
+  print_prompt_plus(PSTR("button"), pstr);
+}
+
+void Host_Action::prompt_do(const HostPromptEnum reason, const char * const pstr, const char * const btn1/*=nullptr*/, const char * const btn2/*=nullptr*/) {
+  prompt_begin(reason, pstr);
+  if (btn1) prompt_button(btn1);
+  if (btn2) prompt_button(btn1);
   prompt_show();
 }
 
 /** Private Function */
-void Host_Action::print_action(PGM_P const msg, const bool eol/*=true*/) {
+void Host_Action::print_action(const char * const pstr, const bool eol/*=true*/) {
   SERIAL_MSG("//action:");
-  SERIAL_STR(msg);
+  SERIAL_STR(pstr);
   if (eol) SERIAL_EOL();
 }
 
-void Host_Action::print_prompt(PGM_P const msg, const bool eol/*=true*/) {
+void Host_Action::print_prompt(const char * const ptype, const bool eol/*=true*/) {
   print_action(PSTR("prompt_"), false);
-  SERIAL_STR(msg);
+  SERIAL_STR(ptype);
   if (eol) SERIAL_EOL();
 }
 
-void Host_Action::print_prompt_plus(PGM_P const ptype, PGM_P const msg, const bool eol/*=true*/) {
+void Host_Action::print_prompt_plus(const char * const ptype, const char * const pstr, const char extra_char/*='\0'*/) {
   print_prompt(ptype, false);
   SERIAL_CHR(' ');
-  SERIAL_STR(msg);
-  if (eol) SERIAL_EOL();
+  SERIAL_STR(pstr);
+  if (extra_char != '\0') SERIAL_CHR(extra_char);
+  SERIAL_EOL();
+}
+
+void Host_Action::filament_load_prompt() {
+  const bool disable_to_continue = (false
+    #if HAS_FILAMENT_SENSOR
+      || filamentrunout.sensor.isFilamentOut()
+    #endif
+  );
+  prompt_do(PROMPT_FILAMENT_RUNOUT, PSTR("Paused"), PSTR("PurgeMore"),
+    disable_to_continue ? PSTR("DisableRunout") : CONTINUE_BTN
+  );
 }

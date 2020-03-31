@@ -331,8 +331,8 @@ class Planner {
       #if HAS_POSITION_FLOAT
         , const xyze_float_t &target_float
       #endif
-      #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-        , const xyze_float_t &delta_mm_cart
+      #if HAS_DIST_MM_ARG
+        , const xyze_float_t &cart_dist_mm
       #endif
       , feedrate_t fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
@@ -354,8 +354,8 @@ class Planner {
       #if HAS_POSITION_FLOAT
         , const xyze_float_t &target_float
       #endif
-      #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-        , const xyze_float_t &delta_mm_cart
+      #if HAS_DIST_MM_ARG
+        , const xyze_float_t &cart_dist_mm
       #endif
       , feedrate_t fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
@@ -379,21 +379,21 @@ class Planner {
      *  millimeters - the length of the movement, if known
      */
     static bool buffer_segment(const float &a, const float &b, const float &c, const float &e
-      #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-        , const xyze_float_t &delta_mm_cart
+      #if HAS_DIST_MM_ARG
+        , const xyze_float_t &cart_dist_mm
       #endif
       , const feedrate_t &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
 
     FORCE_INLINE static bool buffer_segment(const abce_float_t &abce
-      #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-        , const xyze_float_t &delta_mm_cart
+      #if HAS_DIST_MM_ARG
+        , const xyze_float_t &cart_dist_mm
       #endif
       , const feedrate_t &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     ) {
       return buffer_segment(abce.a, abce.b, abce.c, abce.e
-        #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-          , delta_mm_cart
+        #if HAS_DIST_MM_ARG
+          , cart_dist_mm
         #endif
         , fr_mm_s, extruder, millimeters);
     }
@@ -454,9 +454,16 @@ class Planner {
      * Get an axis position according to stepper position(s)
      * For CORE machines apply translation from ABC to XYZ.
      */
-    static float get_axis_position(const AxisEnum axis);
-    static inline float get_axis_position_mm(const AxisEnum axis) {
-      return get_axis_position(axis) * mechanics.steps_to_mm[axis];
+    static float get_axis_position_mm(const AxisEnum axis);
+
+    static inline abce_pos_t get_axis_positions_mm() {
+      const abce_pos_t out = {
+        get_axis_position_mm(A_AXIS),
+        get_axis_position_mm(B_AXIS),
+        get_axis_position_mm(C_AXIS),
+        get_axis_position_mm(E_AXIS)
+      };
+      return out;
     }
 
     /**

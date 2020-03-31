@@ -331,6 +331,8 @@ void Core_Mechanics::home(uint8_t axis_bits/*=0*/) {
  */
 void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0f*/) {
 
+  const feedrate_t real_fr_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis];
+
   if (printer.debugFeature()) {
     DEBUG_MC(">>> do_homing_move(", axis_codes[axis]);
     DEBUG_MV(", ", distance);
@@ -338,7 +340,7 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
     if (fr_mm_s)
       DEBUG_VAL(fr_mm_s);
     else {
-      DEBUG_MV(" [", homing_feedrate_mm_s[axis]);
+      DEBUG_MV(" [", real_fr_mm_s);
       DEBUG_CHR(']');
     }
     DEBUG_CHR(')');
@@ -364,13 +366,13 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
     #endif
   }
 
-  abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+  abce_pos_t target = planner.get_axis_positions_mm();
   target[axis] = 0;
   planner.set_machine_position_mm(target);
   target[axis] = distance;
 
   // Set cartesian axes directly
-  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], toolManager.extruder.active);
+  planner.buffer_segment(target, real_fr_mm_s, toolManager.extruder.active);
 
   planner.synchronize();
 
@@ -424,7 +426,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
          * For MBL and ABL-BILINEAR only segment moves when X or Y are involved.
          * Otherwise fall through to do a direct single move.
          */
-        if (position.x != destination.x || position.y != destination.y) {
+        if (xy_pos_t(position) != xy_pos_t(destination)) {
           #if ENABLED(MESH_BED_LEVELING)
             mbl.line_to_destination(scaled_fr_mm_s);
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -568,9 +570,11 @@ void Core_Mechanics::report_real_position() {
 // Report detail current position to host
 void Core_Mechanics::report_detail_position() {
 
+  // Position as sent by G-code
   SERIAL_MSG("\nLogical:");
   report_xyz(position.asLogical());
 
+  // Cartesian position in native machine space
   SERIAL_MSG("Raw:    ");
   report_xyz(position);
 
@@ -618,11 +622,9 @@ void Core_Mechanics::report_logical_position() {
     planner.apply_modifiers(rpos);
   #endif
 
-  const abc_long_t spos = {
-    int32_t(LROUND(rpos.a * mechanics.steps_to_mm.a)),
-    int32_t(LROUND(rpos.b * mechanics.steps_to_mm.b)),
-    int32_t(LROUND(rpos.c * mechanics.steps_to_mm.c))
-  };
+  abc_float_t aspmm;
+  aspmm.set(mechanics.steps_to_mm);
+  const abc_long_t spos = (rpos * aspmm).asLong().ROUNDL();
 
   report_some_position(position.asLogical());
   stepper.report_positions(spos);
@@ -971,7 +973,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     // Disallow Z homing if X or Y are unknown
     if (!home_flag.XHomed || !home_flag.YHomed) {
       LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
-      SERIAL_LM(ECHO, MSG_HOST_ERR_Z_HOMING);
+      SERIAL_LM(ECHO, STR_ERR_Z_HOMING);
       return;
     }
 
@@ -1002,7 +1004,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     }
     else {
       LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
-      SERIAL_LM(ECHO, MSG_HOST_ZPROBE_OUT);
+      SERIAL_LM(ECHO, STR_ZPROBE_OUT);
     }
 
     if (printer.debugFeature()) DEBUG_EM("<<< home_z_safely");
@@ -1017,7 +1019,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     // Disallow Z homing if X or Y are unknown
     if (!home_flag.XHomed || !home_flag.YHomed) {
       LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
-      SERIAL_LM(ECHO, MSG_HOST_ERR_Z_HOMING);
+      SERIAL_LM(ECHO, STR_ERR_Z_HOMING);
       return;
     }
 
@@ -1049,7 +1051,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     }
     else {
       LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
-      SERIAL_LM(ECHO, MSG_HOST_ZPROBE_OUT);
+      SERIAL_LM(ECHO, STR_ZPROBE_OUT);
     }
 
     if (printer.debugFeature()) DEBUG_EM("<<< DOUBLE_Z_HOMING");

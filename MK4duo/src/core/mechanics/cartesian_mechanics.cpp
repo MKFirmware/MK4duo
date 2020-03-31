@@ -399,6 +399,8 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
  */
 void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0f*/) {
 
+  const feedrate_t real_fr_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis];
+
   if (printer.debugFeature()) {
     DEBUG_MC(">>> do_homing_move(", axis_codes[axis]);
     DEBUG_MV(", ", distance);
@@ -406,7 +408,7 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
     if (fr_mm_s)
       DEBUG_VAL(fr_mm_s);
     else {
-      DEBUG_MV(" [", homing_feedrate_mm_s[axis]);
+      DEBUG_MV(" [", real_fr_mm_s);
       DEBUG_CHR(']');
     }
     DEBUG_CHR(')');
@@ -437,13 +439,13 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
     #endif
   }
 
-  abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+  abce_pos_t target = planner.get_axis_positions_mm();
   target[axis] = 0;
   planner.set_machine_position_mm(target);
   target[axis] = distance;
 
   // Set cartesian axes directly
-  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], toolManager.extruder.active);
+  planner.buffer_segment(target, real_fr_mm_s, toolManager.extruder.active);
 
   planner.synchronize();
 
@@ -578,6 +580,7 @@ float Cartesian_Mechanics::axis_home_pos(const AxisEnum axis) {
     case X_AXIS: return x_home_pos(); break;
     case Y_AXIS: return y_home_pos(); break;
     case Z_AXIS: return z_home_pos(); break;
+    default: break;
   }
 }
 
@@ -590,7 +593,7 @@ float Cartesian_Mechanics::x_home_pos(const uint8_t extruder/*=0*/) {
   #if ENABLED(MANUAL_X_HOME_POS)
     return MANUAL_X_HOME_POS;
   #elif ENABLED(BED_CENTER_AT_0_0)
-     return ((mechanics.data.base_pos.max.x - mechanics.data.base_pos.min.x) * (mechanics.get_homedir(X_AXIS)) * 0.5);
+    return ((mechanics.data.base_pos.max.x - mechanics.data.base_pos.min.x) * (mechanics.get_homedir(X_AXIS)) * 0.5);
   #else
     return (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos.min.x : mechanics.data.base_pos.max.x);
   #endif
@@ -1167,7 +1170,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     // Disallow Z homing if X or Y are unknown
     if (!home_flag.XHomed || !home_flag.YHomed) {
       LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
-      SERIAL_LM(ECHO, MSG_HOST_ERR_Z_HOMING);
+      SERIAL_LM(ECHO, STR_ERR_Z_HOMING);
       return;
     }
 
@@ -1203,7 +1206,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     }
     else {
       LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
-      SERIAL_LM(ECHO, MSG_HOST_ZPROBE_OUT);
+      SERIAL_LM(ECHO, STR_ZPROBE_OUT);
     }
 
     if (printer.debugFeature()) DEBUG_EM("<<< home_z_safely");
@@ -1218,7 +1221,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     // Disallow Z homing if X or Y are unknown
     if (!home_flag.XHomed || !home_flag.YHomed) {
       LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
-      SERIAL_LM(ECHO, MSG_HOST_ERR_Z_HOMING);
+      SERIAL_LM(ECHO, STR_ERR_Z_HOMING);
       return;
     }
 
@@ -1250,7 +1253,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     }
     else {
       LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
-      SERIAL_LM(ECHO, MSG_HOST_ZPROBE_OUT);
+      SERIAL_LM(ECHO, STR_ZPROBE_OUT);
     }
 
     if (printer.debugFeature()) DEBUG_EM("<<< DOUBLE_Z_HOMING");

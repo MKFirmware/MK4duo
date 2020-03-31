@@ -405,6 +405,8 @@ class TMC_Manager {
 
     static void test_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e);
 
+    static void go_to_homing_phase(const AxisEnum axis, const feedrate_t fr_mm_s);
+
     #if ENABLED(MONITOR_DRIVER_STATUS)
       static void monitor_drivers();
     #endif

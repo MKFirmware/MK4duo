@@ -41,7 +41,7 @@
 inline void gcode_M145() {
   uint8_t material = (uint8_t)parser.intval('S');
   if (material >= COUNT(lcdui.preheat_hotend_temp)) {
-    SERIAL_LM(ER, MSG_HOST_ERR_MATERIAL_INDEX);
+    SERIAL_LM(ER, STR_ERR_MATERIAL_INDEX);
   }
   else {
     int v;

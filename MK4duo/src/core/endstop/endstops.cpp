@@ -773,7 +773,7 @@ void Endstops::report_state() {
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
     #endif
 
-    SERIAL_SM(ECHO, MSG_HOST_ENDSTOPS_HIT);
+    SERIAL_SM(ECHO, STR_ENDSTOPS_HIT);
     if (TEST(hit_state, X_MIN) || TEST(hit_state, X_MAX)) {
       SERIAL_MV("X:", planner.triggered_position_mm(X_AXIS));
       #if HAS_LCD

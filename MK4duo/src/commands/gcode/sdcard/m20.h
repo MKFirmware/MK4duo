@@ -34,9 +34,9 @@
  * M20: List SD card to serial output
  */
 inline void gcode_M20() {
-  SERIAL_EM(MSG_HOST_BEGIN_FILE_LIST);
+  SERIAL_EM(STR_BEGIN_FILE_LIST);
   card.ls();
-  SERIAL_EM(MSG_HOST_END_FILE_LIST);
+  SERIAL_EM(STR_END_FILE_LIST);
 }
 
 #endif // HAS_SD_SUPPORT

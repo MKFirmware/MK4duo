@@ -56,7 +56,7 @@ inline void gcode_M106() {
     // Put off the fan
     fan->speed = 0;
     fan->data.pin = HAL::digital_value_pin();
-    SERIAL_LM(ECHO, MSG_HOST_CHANGE_PIN);
+    SERIAL_LM(ECHO, STR_CHANGE_PIN);
   }
 
   if (parser.seen('I'))

@@ -116,6 +116,7 @@
 #include "src/platform/platform.h"
 
 // Core modules
+#include "src/core/hostaction/hostaction.h"
 #include "src/core/utility/utility.h"
 #include "src/core/watch/watch.h"
 #include "src/core/mechanics/mechanics.h"

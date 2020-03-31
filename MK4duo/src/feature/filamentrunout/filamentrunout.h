@@ -140,10 +140,7 @@ class FilamentRunoutBase {
       #endif
 
       const char tool = DIGIT(toolManager.extruder.active);
-      host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
-      host_action.prompt_begin(PSTR("Filament Runout T"), false);
-      SERIAL_CHR(tool);
-      SERIAL_EOL();
+      host_action.prompt_begin(PROMPT_FILAMENT_RUNOUT, PSTR("Filament Runout T"), tool);
       host_action.prompt_show();
 
       const bool run_runout_script = !sensor.isHostHandling();

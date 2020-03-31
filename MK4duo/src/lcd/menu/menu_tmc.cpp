@@ -28,8 +28,8 @@
 
 #if HAS_LCD_MENU && HAS_TRINAMIC
 
-#define TMC_EDIT_STORED_I_RMS(ST)   EDIT_ITEM_P(uint16_4, PSTR(MSG_HOST_##ST), &driver[ST##_DRV]->tmc->val_mA, 100, 3000, []{ driver[ST##_DRV]->tmc->refresh_stepper_current(); })
-#define TMC_EDIT_STORED_I_RMS_E(I)  EDIT_ITEM_N_P(uint16_4, I, PSTR(MSG_HOST_E), &driver.e[I]->tmc->val_mA, 100, 3000,  []{ driver.e[MenuItemBase::itemIndex]->tmc->refresh_stepper_current(); })
+#define TMC_EDIT_STORED_I_RMS(ST)   EDIT_ITEM_P(uint16_4, PSTR(STR_##ST), &driver[ST##_DRV]->tmc->val_mA, 100, 3000, []{ driver[ST##_DRV]->tmc->refresh_stepper_current(); })
+#define TMC_EDIT_STORED_I_RMS_E(I)  EDIT_ITEM_N_P(uint16_4, I, PSTR(STR_E), &driver.e[I]->tmc->val_mA, 100, 3000,  []{ driver.e[MenuItemBase::itemIndex]->tmc->refresh_stepper_current(); })
 
 void menu_tmc_current() {
   START_MENU();
@@ -59,8 +59,8 @@ void menu_tmc_current() {
   END_MENU();
 }
 
-#define TMC_EDIT_STORED_MICROSTEPS(ST)  EDIT_ITEM_P(microstep, PSTR(MSG_HOST_##ST), &driver[ST##_DRV]->tmc->val_ms, 16, 128,  []() { driver[ST##_DRV]->tmc->refresh_stepper_microstep();  })
-#define TMC_EDIT_STORED_MICROSTEPS_E(I) EDIT_ITEM_N_P(microstep, I, PSTR(MSG_HOST_E), &driver.e[I]->tmc->val_ms, 16, 128,     []() { driver.e[MenuItemBase::itemIndex]->tmc->refresh_stepper_microstep();       })
+#define TMC_EDIT_STORED_MICROSTEPS(ST)  EDIT_ITEM_P(microstep, PSTR(STR_##ST), &driver[ST##_DRV]->tmc->val_ms, 16, 128,  []() { driver[ST##_DRV]->tmc->refresh_stepper_microstep();  })
+#define TMC_EDIT_STORED_MICROSTEPS_E(I) EDIT_ITEM_N_P(microstep, I, PSTR(STR_E), &driver.e[I]->tmc->val_ms, 16, 128,     []() { driver.e[MenuItemBase::itemIndex]->tmc->refresh_stepper_microstep();       })
 
 void menu_tmc_microstep() {
   START_MENU();
@@ -92,8 +92,8 @@ void menu_tmc_microstep() {
 
 #if ENABLED(HYBRID_THRESHOLD)
 
-  #define TMC_EDIT_STORED_HYBRID_THRS(ST)   EDIT_ITEM_P(uint8, PSTR(MSG_HOST_##ST), &driver[ST##_DRV]->tmc->hybrid_thrs, 0, 255,  []() { driver[ST##_DRV]->tmc->refresh_hybrid_thrs(); })
-  #define TMC_EDIT_STORED_HYBRID_THRS_E(I)  EDIT_ITEM_N_P(uint8, I, PSTR(MSG_HOST_E), &driver.e[I]->tmc->hybrid_thrs, 0, 255,     []() { driver.e[MenuItemBase::itemIndex]->tmc->refresh_hybrid_thrs(); })
+  #define TMC_EDIT_STORED_HYBRID_THRS(ST)   EDIT_ITEM_P(uint8, PSTR(STR_##ST), &driver[ST##_DRV]->tmc->hybrid_thrs, 0, 255,  []() { driver[ST##_DRV]->tmc->refresh_hybrid_thrs(); })
+  #define TMC_EDIT_STORED_HYBRID_THRS_E(I)  EDIT_ITEM_N_P(uint8, I, PSTR(STR_E), &driver.e[I]->tmc->hybrid_thrs, 0, 255,     []() { driver.e[MenuItemBase::itemIndex]->tmc->refresh_hybrid_thrs(); })
 
   void menu_tmc_hybrid_thrs() {
     START_MENU();
@@ -144,7 +144,7 @@ void menu_tmc_microstep() {
 
 #if HAS_SENSORLESS
 
-  #define TMC_EDIT_STORED_SGT(ST) EDIT_ITEM_P(int4, PSTR(MSG_HOST_##ST), &driver[ST##_DRV]->tmc->homing_thrs, -64, 63, []() { driver[ST##_DRV]->tmc->refresh_homing_thrs(); })
+  #define TMC_EDIT_STORED_SGT(ST) EDIT_ITEM_P(int4, PSTR(STR_##ST), &driver[ST##_DRV]->tmc->homing_thrs, -64, 63, []() { driver[ST##_DRV]->tmc->refresh_homing_thrs(); })
 
   void menu_tmc_homing_thrs() {
     START_MENU();
@@ -165,8 +165,8 @@ void menu_tmc_microstep() {
 
 #if TMC_HAS_STEALTHCHOP
 
-  #define TMC_EDIT_STEP_MODE(ST)    EDIT_ITEM_P(bool, PSTR(MSG_HOST_##ST), &driver[ST##_DRV]->tmc->stealthChop_enabled, []() { driver[ST##_DRV]->tmc->refresh_stepping_mode(); })
-  #define TMC_EDIT_STEP_MODE_E(I) EDIT_ITEM_N_P(bool, I, PSTR(MSG_HOST_E), &driver.e[I]->tmc->stealthChop_enabled,      []() { driver.e[MenuItemBase::itemIndex]->tmc->refresh_stepping_mode(); })
+  #define TMC_EDIT_STEP_MODE(ST)    EDIT_ITEM_P(bool, PSTR(STR_##ST), &driver[ST##_DRV]->tmc->stealthChop_enabled, []() { driver[ST##_DRV]->tmc->refresh_stepping_mode(); })
+  #define TMC_EDIT_STEP_MODE_E(I) EDIT_ITEM_N_P(bool, I, PSTR(STR_E), &driver.e[I]->tmc->stealthChop_enabled,      []() { driver.e[MenuItemBase::itemIndex]->tmc->refresh_stepping_mode(); })
 
   void menu_tmc_step_mode() {
     START_MENU();

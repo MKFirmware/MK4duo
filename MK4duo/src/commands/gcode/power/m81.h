@@ -64,6 +64,6 @@ inline void gcode_M81() {
     powerManager.power_off();
   #endif
 
-  LCD_MESSAGEPGM_P(PSTR(MACHINE_NAME " " MSG_HOST_OFF "."));
+  LCD_MESSAGEPGM_P(PSTR(MACHINE_NAME " " STR_OFF "."));
 
 }

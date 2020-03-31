@@ -32,14 +32,8 @@
 
 #if ENABLED(PHOTO_RETRACT_MM)
   inline void e_move_m240(const float length, const feedrate_t fr_mm_s) {
-    if (length && tempManager.hotEnoughToExtrude(toolManager.active_hotend())) {
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        advancedpause.do_pause_e_move(length, fr_mm_s);
-      #else
-        position.e += length / extruders[toolManager.extruder.active]->e_factor;
-        planner.buffer_line(mechanics.position, fr_mm_s, toolManager.extruder.active);
-      #endif
-    }
+    if (length && tempManager.hotEnoughToExtrude(toolManager.active_hotend()))
+      mechanics.unscaled_e_move(length, fr_mm_s);
   }
 #endif
 

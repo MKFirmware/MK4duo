@@ -44,7 +44,7 @@ static void host_cap(PGM_P const pstr, const bool ena=false) {
  */
 inline void gcode_M115() {
 
-  SERIAL_EM(MSG_HOST_M115_REPORT);
+  SERIAL_EM(STR_M115_REPORT);
 
   // SERIAL_XON_XOFF
   #if ENABLED(SERIAL_XON_XOFF)

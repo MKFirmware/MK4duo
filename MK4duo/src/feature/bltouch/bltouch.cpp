@@ -165,7 +165,7 @@ bool BLTouch::deploy() {
       // The deploy might have failed or the probe is actually triggered (nozzle too low?) again
       if (printer.debugFeature()) DEBUG_EM("BLTouch Recovery Failed");
 
-      SERIAL_LM(ER, MSG_HOST_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
+      SERIAL_LM(ER, STR_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
       printer.stop();                   // but it's not too bad, no need to kill, allow restart
 
       return true;                      // Tell our caller we goofed in case he cares to know
@@ -210,7 +210,7 @@ bool BLTouch::stow() {
 
       if (printer.debugFeature()) DEBUG_EM("BLTouch Recovery Failed");
 
-      SERIAL_LM(ER, MSG_HOST_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
+      SERIAL_LM(ER, STR_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
       printer.stop();                   // but it's not too bad, no need to kill, allow restart
 
       return true;                      // Tell our caller we goofed in case he cares to know

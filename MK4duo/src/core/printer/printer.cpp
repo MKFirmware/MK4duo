@@ -237,7 +237,7 @@ void Printer::kill(PGM_P const lcd_msg/*=nullptr*/, const bool steppers_off/*=fa
 
   tempManager.disable_all_heaters();
 
-  SERIAL_LM(ER, MSG_HOST_ERR_KILLED);
+  SERIAL_LM(ER, STR_ERR_KILLED);
 
   #if HAS_LCD
     lcdui.kill_screen(lcd_msg ? lcd_msg : GET_TEXT(MSG_KILLED));
@@ -345,7 +345,7 @@ void Printer::stop() {
 
   if (isRunning()) {
     setRunning(false);
-    SERIAL_LM(ER, MSG_HOST_ERR_STOPPED);
+    SERIAL_LM(ER, STR_ERR_STOPPED);
     LCD_MESSAGEPGM(MSG_STOPPED);
   }
 }
@@ -405,7 +405,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
   handle_safety_watch();
 
   if (max_inactivity_timer.expired(max_inactive_time * 1000)) {
-    SERIAL_LMT(ER, MSG_HOST_KILL_INACTIVE_TIME, parser.command_ptr);
+    SERIAL_LMT(ER, STR_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(GET_TEXT(MSG_KILLED));
   }
 
@@ -504,7 +504,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
     // KILL the machine
     // ----------------------------------------------------------------
     if (killCount >= KILL_DELAY) {
-      SERIAL_LM(ER, MSG_HOST_KILL_BUTTON);
+      SERIAL_LM(ER, STR_KILL_BUTTON);
       kill(GET_TEXT(MSG_KILLED));
     }
   #endif
@@ -612,7 +612,7 @@ void Printer::print_M353() {
     // End File print
     card.endFilePrint();
 
-    // Clear all command in quee
+    // Clear all command in queue
     commands.clear_queue();
 
     // Stop printer job timer
@@ -632,52 +632,19 @@ void Printer::print_M353() {
   }
 
   void Printer::finish_sd_printing() {
+    if (commands.enqueue_one_P(PSTR("M1001"))) card.setComplete(false);
+  }
 
-    bool did_state = true;
+#endif
 
-    switch (card.printing_done_state) {
+#if HAS_RESUME_CONTINUE
 
-      case 1:
-        did_state = print_job_counter.duration() < 60 || commands.enqueue_one_P(PSTR("M31"));
-        break;
-
-      case 2:
-        did_state = commands.enqueue_one_P(PSTR("M77"));
-        break;
-
-      case 3:                                   // Display "Click to Continue..."
-        #if HAS_RESUME_CONTINUE
-          did_state = commands.enqueue_one_P(
-            print_job_counter.duration() < 60 ? PSTR("M0Q1P1") : PSTR("M0Q1S"
-              #if HAS_LCD_MENU
-                "1800"                          // ...for 30 minutes with LCD
-              #else
-                "60"                            // ...for 1 minute with no LCD
-            #endif
-          ));
-        #endif
-        break;
-
-      case 4:
-        #if HAS_SD_RESTART
-          restart.purge_job();
-        #endif
-
-        #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
-           planner.finish_and_disable();
-        #endif
-
-        #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
-          lcdui.reselect_last_file();
-        #endif
-
-      default:
-        did_state = false;
-        card.printing_done_state = 0;
-    }
-
-    if (did_state) ++card.printing_done_state;
-
+  void Printer::wait_for_user_response(millis_l ms/*=0*/, const bool no_sleep/*=false*/) {
+    PRINTER_KEEPALIVE(PausedforUser);
+    printer.setWaitForUser(true);
+    if (ms) ms += millis();
+    while (printer.isWaitForUser() && !(ms && ELAPSED(millis(), ms))) idle(no_sleep);
+    printer.setWaitForUser(false);
   }
 
 #endif
@@ -715,7 +682,7 @@ void Printer::handle_safety_watch() {
     safety_timer.start();
   else if (safety_timer.expired(safety_time * 60000)) {
     tempManager.disable_all_heaters();
-    SERIAL_EM(MSG_HOST_MAX_INACTIVITY_TIME);
+    SERIAL_EM(STR_MAX_INACTIVITY_TIME);
     lcdui.set_status_P(GET_TEXT(MSG_MAX_INACTIVITY_TIME), 99);
   }
 }
@@ -732,16 +699,16 @@ void Printer::handle_safety_watch() {
       switch (busy_state) {
         case InHandler:
         case InProcess:
-          SERIAL_LM(BUSY, MSG_HOST_BUSY_PROCESSING);
+          SERIAL_LM(BUSY, STR_BUSY_PROCESSING);
           break;
         case PausedforUser:
-          SERIAL_LM(BUSY, MSG_HOST_BUSY_PAUSED_FOR_USER);
+          SERIAL_LM(BUSY, STR_BUSY_PAUSED_FOR_USER);
           break;
         case PausedforInput:
-          SERIAL_LM(BUSY, MSG_HOST_BUSY_PAUSED_FOR_INPUT);
+          SERIAL_LM(BUSY, STR_BUSY_PAUSED_FOR_INPUT);
           break;
         case DoorOpen:
-          SERIAL_LM(BUSY, MSG_HOST_BUSY_DOOR_OPEN);
+          SERIAL_LM(BUSY, STR_BUSY_DOOR_OPEN);
           break;
         default:
           break;
@@ -841,12 +808,12 @@ void setup() {
   SERIAL_LM(ECHO, BUILD_VERSION);
 
   #if ENABLED(STRING_REVISION_DATE) && ENABLED(STRING_CONFIG_AUTHOR)
-    SERIAL_LM(ECHO, MSG_HOST_CONFIGURATION_VER STRING_REVISION_DATE MSG_HOST_AUTHOR STRING_CONFIG_AUTHOR);
-    SERIAL_LM(ECHO, MSG_HOST_COMPILED __DATE__);
+    SERIAL_LM(ECHO, STR_CONFIGURATION_VER STRING_REVISION_DATE STR_AUTHOR STRING_CONFIG_AUTHOR);
+    SERIAL_LM(ECHO, STR_COMPILED __DATE__);
   #endif // STRING_REVISION_DATE
 
-  SERIAL_SMV(ECHO, MSG_HOST_FREE_MEMORY, freeMemory());
-  SERIAL_EMV(MSG_HOST_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
+  SERIAL_SMV(ECHO, STR_FREE_MEMORY, freeMemory());
+  SERIAL_EMV(STR_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
 
   #if ENABLED(MK4DUO_DEV_MODE)
     auto log_current_msg = [&](PGM_P const msg) {
@@ -1010,7 +977,7 @@ void loop() {
     #if HAS_SD_SUPPORT
       card.checkautostart();
       if (card.isAbortSDprinting()) printer.abort_sd_printing();
-      if (card.printing_done_state) printer.finish_sd_printing();
+      if (card.isComplete()) printer.finish_sd_printing();
     #endif // HAS_SD_SUPPORT
 
     commands.advance_queue();

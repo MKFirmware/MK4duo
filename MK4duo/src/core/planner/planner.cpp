@@ -855,10 +855,11 @@ float Planner::triggered_position_mm(const AxisEnum axis) {
  * Get an axis position according to stepper position(s)
  * For CORE machines apply translation from ABC to XYZ.
  */
-float Planner::get_axis_position(const AxisEnum axis) {
+float Planner::get_axis_position_mm(const AxisEnum axis) {
+
+  float axis_steps;
 
   #if IS_CORE
-
     // Requesting one of the "core" axes?
     if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
 
@@ -870,17 +871,19 @@ float Planner::get_axis_position(const AxisEnum axis) {
 
       if (isr_enabled) stepper.wake_up();
 
-      return (axis == CORE_AXIS_2 ? CORESIGN(p1 - p2) : p1 + p2) * 0.5f;
+      axis_steps = (axis == CORE_AXIS_2 ? CORESIGN(p1 - p2) : p1 + p2) * 0.5f;
 
     }
     else
-      return stepper.position(axis);
-
+      axis_steps = stepper.position(axis);
   #else
-
-    return stepper.position(axis);
-
+    axis_steps = stepper.position(axis);
   #endif
+
+  if (axis == E_AXIS)
+    return axis_steps * extruders[toolManager.extruder.active]->steps_to_mm;
+  else
+    return axis_steps * mechanics.steps_to_mm[axis];
 
 }
 
@@ -913,8 +916,8 @@ bool Planner::buffer_steps(const xyze_long_t &target
   #if HAS_POSITION_FLOAT
     , const xyze_float_t &target_float
   #endif
-  #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-    , const xyze_float_t &delta_mm_cart
+  #if HAS_DIST_MM_ARG
+    , const xyze_float_t &cart_dist_mm
   #endif
   , feedrate_t fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
 ) {
@@ -931,8 +934,8 @@ bool Planner::buffer_steps(const xyze_long_t &target
     #if HAS_POSITION_FLOAT
       , target_float
     #endif
-    #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-      , delta_mm_cart
+    #if HAS_DIST_MM_ARG
+      , cart_dist_mm
     #endif
     , fr_mm_s, extruder, millimeters
   )) {
@@ -977,10 +980,10 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #if HAS_POSITION_FLOAT
     , const xyze_float_t &target_float
   #endif
-  #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-    , const xyze_float_t &delta_mm_cart
+  #if HAS_DIST_MM_ARG
+    , const xyze_float_t &cart_dist_mm
   #endif
-  , float fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
+  , feedrate_t fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
 ) {
 
   const int32_t dx = target.x - position.x,
@@ -1010,7 +1013,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
             position_float.e = target_float.e;
           #endif
           de = 0; // no difference
-          SERIAL_LM(ER, MSG_HOST_ERR_COLD_EXTRUDE_STOP);
+          SERIAL_LM(ER, STR_ERR_COLD_EXTRUDE_STOP);
         }
       #endif
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
@@ -1020,7 +1023,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
             position_float.e = target_float.e;
           #endif
           de = 0; // no difference
-          SERIAL_LM(ER, MSG_HOST_ERR_LONG_EXTRUDE_STOP);
+          SERIAL_LM(ER, STR_ERR_LONG_EXTRUDE_STOP);
         }
       #endif // PREVENT_LENGTHY_EXTRUDE
     }
@@ -1097,39 +1100,41 @@ bool Planner::fill_block(block_t * const block, bool split_move,
    * So we need to create other 2 "AXIS", named X_HEAD and Y_HEAD, meaning the real displacement of the Head.
    * Having the real displacement of the head, we can calculate the total movement length and apply the desired speed.
    */
-  #if IS_CORE
-    struct DeltaMM : abce_float_t {
+  struct DistanceMM : abce_float_t {
+    #if IS_CORE
       xyz_pos_t head;
-    } delta_mm;
+    #endif
+  } steps_dist_mm;
+  #if IS_CORE
     #if CORE_IS_XY
-      delta_mm.head.x = dx * mechanics.steps_to_mm.a;
-      delta_mm.head.y = dy * mechanics.steps_to_mm.b;
-      delta_mm.z      = dz * mechanics.steps_to_mm.z;
-      delta_mm.a      = da * mechanics.steps_to_mm.a;
-      delta_mm.b      = CORESIGN(db) * mechanics.steps_to_mm.b;
+      steps_dist_mm.head.x  = dx * mechanics.steps_to_mm.a;
+      steps_dist_mm.head.y  = dy * mechanics.steps_to_mm.b;
+      steps_dist_mm.z       = dz * mechanics.steps_to_mm.z;
+      steps_dist_mm.a       = da * mechanics.steps_to_mm.a;
+      steps_dist_mm.b       = CORESIGN(db) * mechanics.steps_to_mm.b;
     #elif CORE_IS_XZ
-      delta_mm.head.x = dx * mechanics.steps_to_mm.a;
-      delta_mm.y      = dy * mechanics.steps_to_mm.y;
-      delta_mm.head.z = dz * mechanics.steps_to_mm.c;
-      delta_mm.a      = da * mechanics.steps_to_mm.a;
-      delta_mm.c      = CORESIGN(dc) * mechanics.steps_to_mm.c;
+      steps_dist_mm.head.x  = dx * mechanics.steps_to_mm.a;
+      steps_dist_mm.y       = dy * mechanics.steps_to_mm.y;
+      steps_dist_mm.head.z  = dz * mechanics.steps_to_mm.c;
+      steps_dist_mm.a       = da * mechanics.steps_to_mm.a;
+      steps_dist_mm.c       = CORESIGN(dc) * mechanics.steps_to_mm.c;
     #elif CORE_IS_YZ
-      delta_mm.x      = dx * mechanics.steps_to_mm.x;
-      delta_mm.head.y = dy * mechanics.steps_to_mm.b;
-      delta_mm.head.z = dz * mechanics.steps_to_mm.c;
-      delta_mm.b      = db * mechanics.steps_to_mm.b;
-      delta_mm.c      = CORESIGN(dc) * mechanics.steps_to_mm.c;
+      steps_dist_mm.x       = dx * mechanics.steps_to_mm.x;
+      steps_dist_mm.head.y  = dy * mechanics.steps_to_mm.b;
+      steps_dist_mm.head.z  = dz * mechanics.steps_to_mm.c;
+      steps_dist_mm.b       = db * mechanics.steps_to_mm.b;
+      steps_dist_mm.c       = CORESIGN(dc) * mechanics.steps_to_mm.c;
     #endif
   #else
-    xyze_float_t delta_mm;
-    delta_mm.x        = dx * mechanics.steps_to_mm.x;
-    delta_mm.y        = dy * mechanics.steps_to_mm.y;
-    delta_mm.z        = dz * mechanics.steps_to_mm.z;
+    steps_dist_mm.x         = dx * mechanics.steps_to_mm.x;
+    steps_dist_mm.y         = dy * mechanics.steps_to_mm.y;
+    steps_dist_mm.z         = dz * mechanics.steps_to_mm.z;
   #endif
-  delta_mm.e = esteps_float * extruders[extruder]->steps_to_mm;
+
+  steps_dist_mm.e = esteps_float * extruders[extruder]->steps_to_mm;
 
   if (block->steps.x < MIN_STEPS_PER_SEGMENT && block->steps.y < MIN_STEPS_PER_SEGMENT && block->steps.z < MIN_STEPS_PER_SEGMENT) {
-    block->millimeters = ABS(delta_mm.e);
+    block->millimeters = ABS(steps_dist_mm.e);
   }
   else {
     if (millimeters)
@@ -1137,13 +1142,13 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     else
       block->millimeters = SQRT(
         #if CORE_IS_XY
-          sq(delta_mm.head.x) + sq(delta_mm.head.y) + sq(delta_mm.z)
+          sq(steps_dist_mm.head.x) + sq(steps_dist_mm.head.y) + sq(steps_dist_mm.z)
         #elif CORE_IS_XZ
-          sq(delta_mm.head.x) + sq(delta_mm.y) + sq(delta_mm.head.z)
+          sq(steps_dist_mm.head.x) + sq(steps_dist_mm.y) + sq(steps_dist_mm.head.z)
         #elif CORE_IS_YZ
-          sq(delta_mm.x) + sq(delta_mm.head.y) + sq(delta_mm.head.z)
+          sq(steps_dist_mm.x) + sq(steps_dist_mm.head.y) + sq(steps_dist_mm.head.z)
         #else
-          sq(delta_mm.x) + sq(delta_mm.y) + sq(delta_mm.z)
+          sq(steps_dist_mm.x) + sq(steps_dist_mm.y) + sq(steps_dist_mm.z)
         #endif
       );
 
@@ -1393,8 +1398,8 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       constexpr int MMD_CM = MAX_MEASUREMENT_DELAY + 1, MMD_MM = MMD_CM * 10;
 
       // increment counters with next move in e axis
-      filwidth_e_count += delta_mm.e;
-      filwidth_delay_dist += delta_mm.e;
+      filwidth_e_count += steps_dist_mm.e;
+      filwidth_delay_dist += steps_dist_mm.e;
 
       // Only get new measurements on forward E movement
       if (!UNEAR_ZERO(filwidth_e_count)) {
@@ -1422,17 +1427,13 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   xyze_float_t current_speed;
   float speed_factor = 1.0f; // factor < 1 decreases speed
   LOOP_XYZE(i) {
-    const float delta_mm_i = delta_mm[i];
-    const float cs = ABS(current_speed[i] = delta_mm_i * inverse_secs);
-    if (i == E_AXIS) {
-      if (cs > extruders[extruder]->data.max_feedrate_mm_s) NOMORE(speed_factor, extruders[extruder]->data.max_feedrate_mm_s / cs);
-    }
-    else {
-      if (cs > mechanics.data.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.data.max_feedrate_mm_s[i] / cs);
-    }
+    current_speed[i]          = steps_dist_mm[i] * inverse_secs;
+    const feedrate_t      cs  = ABS(current_speed[i]),
+                      max_fr  = (i == E_AXIS) ? extruders[extruder]->data.max_feedrate_mm_s : mechanics.data.max_feedrate_mm_s[i];
+    if (cs > max_fr) NOMORE(speed_factor, max_fr / cs);
   }
 
-  // Max segment time in Âµs.
+  // Max segment time in µs.
   #if ENABLED(XY_FREQUENCY_LIMIT)
 
     // Check and limit the xy direction change frequency
@@ -1581,13 +1582,15 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     // Unit vector of previous path line segment
     static xyze_float_t previous_unit_vec;
 
-    #if IS_KINEMATIC
-      xyze_float_t unit_vec = delta_mm_cart * inverse_millimeters;
+    #if HAS_DIST_MM_ARG
+      xyze_float_t unit_vec = cart_dist_mm;
     #else
-      xyze_float_t unit_vec = delta_mm * inverse_millimeters;
+      xyze_float_t unit_vec = { steps_dist_mm.x, steps_dist_mm.y, steps_dist_mm.z, steps_dist_mm.e };
     #endif
 
-    #if IS_CORE
+    unit_vec *= inverse_millimeters;
+
+    #if IS_CORE && ENABLED(JUNCTION_DEVIATION)
       /**
        * On CoreXY the length of the vector [A,B] is SQRT(2) times the length of the head movement vector [X,Y].
        * So taking Z and E into account, we cannot scale to a unit vector with "inverse_millimeters".
@@ -1826,8 +1829,8 @@ void Planner::buffer_sync_block() {
  *  millimeters - the length of the movement, if known
  */
 bool Planner::buffer_segment(const float &a, const float &b, const float &c, const float &e
-  #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-    , const xyze_float_t &delta_mm_cart
+  #if HAS_DIST_MM_ARG
+    , const xyze_float_t &cart_dist_mm
   #endif
   , const feedrate_t &fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
 ) {
@@ -1892,8 +1895,8 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
     #if HAS_POSITION_FLOAT
       , target_float
     #endif
-    #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-      , delta_mm_cart
+    #if HAS_DIST_MM_ARG
+      , cart_dist_mm
     #endif
     , fr_mm_s, extruder, millimeters
   )) return false;
@@ -1925,17 +1928,17 @@ bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, con
   #if IS_KINEMATIC
 
     #if ENABLED(JUNCTION_DEVIATION)
-      const xyze_pos_t delta_mm_cart = {
+      const xyze_pos_t cart_dist_mm = {
         rx - position_cart.x, ry - position_cart.y,
         rz - position_cart.z, e  - position_cart.e
       };
     #else
-      const xyz_pos_t delta_mm_cart = { rx - position_cart.x, ry - position_cart.y, rz - position_cart.z };
+      const xyz_pos_t cart_dist_mm = { rx - position_cart.x, ry - position_cart.y, rz - position_cart.z };
     #endif
 
     float mm = millimeters;
     if (mm == 0.0)
-      mm = (delta_mm_cart.x != 0.0 || delta_mm_cart.y != 0.0) ? SQRT(sq(delta_mm_cart.x) + sq(delta_mm_cart.y) + sq(delta_mm_cart.z)) : ABS(delta_mm_cart.z);
+      mm = (cart_dist_mm.x != 0.0 || cart_dist_mm.y != 0.0) ? cart_dist_mm.magnitude() : ABS(cart_dist_mm.z);
 
     mechanics.Transform(raw);
 
@@ -1950,7 +1953,7 @@ bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, con
 
     if (buffer_segment(mechanics.delta.a, mechanics.delta.b, mechanics.delta.c, raw.e
       #if ENABLED(JUNCTION_DEVIATION)
-        , delta_mm_cart
+        , cart_dist_mm
       #endif
       , feedrate, extruder, mm
     )) {
@@ -2059,7 +2062,7 @@ void Planner::reset_acceleration_rates() {
 
   cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL
 
-  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+  #if HAS_LINEAR_E_JERK
     mechanics.recalculate_max_e_jerk();
   #endif
 

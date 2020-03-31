@@ -21,23 +21,26 @@
  */
 #pragma once
 
+/**
+ * hostaction.h
+ *
+ * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
+ */
+
 class Host_Action {
 
   public: /** Constructor */
 
     Host_Action() {}
 
-  public: /** Public Parameters */
+  private: /** Private Parameters */
 
     static HostPromptEnum prompt_reason;
 
   public: /** Public Function */
 
-    static void say_m876_response(PGM_P const msg);
-
     static void response_handler(const uint8_t response);
-    static void action_notify(const char * const msg);
-    static void action_notify_P(PGM_P const msg);
+    static void action_notify(const char * const pstr);
 
     static void pause(const bool eol=true)  { print_action(PSTR("pause"), eol); }
     static void paused(const bool eol=true) { print_action(PSTR("paused"), eol); }
@@ -48,24 +51,25 @@ class Host_Action {
 
     static void filrunout(const uint8_t t);
 
-    static void prompt_begin(PGM_P const msg, const bool eol=true);
-    static void prompt_choice(PGM_P const msg);
-    static void prompt_button(PGM_P const msg);
+    static void prompt_begin(const HostPromptEnum reason, const char * const pstr, const char extra_char='\0');
+    static void prompt_button(const char * const pstr);
 
     static void prompt_show() { print_prompt(PSTR("show")); }
     static void prompt_end()  { print_prompt(PSTR("end")); }
 
-    static void prompt_do(const HostPromptEnum reason, PGM_P const pstr, PGM_P const pbtn=NULL);
+    static void prompt_do(const HostPromptEnum reason, const char * const pstr, const char * const btn1=nullptr, const char * const btn2=nullptr);
 
-    static inline void prompt_open(const HostPromptEnum reason, PGM_P const pstr, PGM_P const pbtn=NULL) {
-      if (prompt_reason == PROMPT_NOT_DEFINED) prompt_do(reason, pstr, pbtn);
+    static inline void prompt_open(const HostPromptEnum reason, const char * const pstr, const char * const btn1=nullptr, const char * const btn2=nullptr) {
+      if (prompt_reason == PROMPT_NOT_DEFINED) prompt_do(reason, pstr, btn1, btn2);
     }
 
   private: /** Private Function */
 
-    static void print_action(PGM_P const msg, const bool eol=true);
-    static void print_prompt(PGM_P const msg, const bool eol=true);
-    static void print_prompt_plus(PGM_P const ptype, PGM_P const msg, const bool eol=true);
+    static void print_action(const char * const pstr, const bool eol=true);
+    static void print_prompt(const char * const ptype, const bool eol=true);
+    static void print_prompt_plus(const char * const ptype, const char * const pstr, const char extra_char='\0');
+
+    static void filament_load_prompt();
 
 };
 

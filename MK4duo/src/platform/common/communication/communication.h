@@ -49,6 +49,10 @@ FSTRINGVAR(M22_CMD);            // M22 command
 FSTRINGVAR(M23_CMD);            // M23 command
 FSTRINGVAR(M24_CMD);            // M24 command
 
+// String for host action
+FSTRINGVAR(CONTINUE_BTN);       // Continue button
+FSTRINGVAR(DISMISS_BTN);        // Dismiss button
+
 class Com {
 
   public: /** Public Parameters */
