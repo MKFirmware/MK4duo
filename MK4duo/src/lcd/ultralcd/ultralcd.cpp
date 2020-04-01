@@ -24,16 +24,14 @@
 
 #if HAS_SPI_LCD
 
-#if LCD_HAS_WAIT_FOR_MOVE
-  bool LcdUI::wait_for_move = false;
-#endif
-
 #if ENABLED(STATUS_MESSAGE_SCROLLING)
   uint8_t LcdUI::status_scroll_offset; // = 0
   constexpr uint8_t MAX_MESSAGE_LENGTH = MAX(LONG_FILENAME_LENGTH, MAX_LANG_CHARSIZE * 2 * (LCD_WIDTH));
 #else
   constexpr uint8_t MAX_MESSAGE_LENGTH = MAX_LANG_CHARSIZE * (LCD_WIDTH);
 #endif
+
+bool    LcdUI::wait_for_move = false;
 
 uint8_t LcdUI::alert_level  = 0,
         LcdUI::lang         = 0;

@@ -75,9 +75,7 @@ uint8_t LcdUI::alert_level = 0,
 
   int8_t        LcdUI::manual_move_e_index = 0;
 
-  #if LCD_HAS_WAIT_FOR_MOVE
-    bool LcdUI::wait_for_move = false;
-  #endif
+  bool          LcdUI::wait_for_move = false;
 
   #if HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
