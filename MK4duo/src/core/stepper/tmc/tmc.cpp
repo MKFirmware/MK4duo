@@ -511,24 +511,20 @@ void TMC_Manager::go_to_homing_phase(const AxisEnum axis, const feedrate_t fr_mm
 
   int phaseDelta = drv->isDir() ? phaseCurrent - phaseHome[axis] : phaseHome[axis] - phaseCurrent;
 
-  if (printer.debugFeature()) {
-    if ((ABS(phaseDelta) / microstepSize * mechanics.steps_to_mm[axis]) < 0.05f)
-      DEBUG_EMT("Home phase too close to endstop trigger. Pick a different phase for ", axis_codes[axis]);
-  }
+  if ((ABS(phaseDelta) / microstepSize * mechanics.steps_to_mm[axis]) < 0.05f)
+    SERIAL_LMT(ECHO, "Home phase too close to endstop trigger. Pick a different phase for ", axis_codes[axis]);
 
   if (phaseDelta < 0) phaseDelta += 1024;
 
-  const float distanceDelta = -(int(phaseDelta / microstepSize) * mechanics.steps_to_mm[axis]);
+  const float dist = -(int(phaseDelta / microstepSize) * mechanics.steps_to_mm[axis]);
 
-  if (printer.debugFeature()) {
-    DEBUG_MT("Endstop ", axis_codes[axis]);
-    DEBUG_MV(" hit at Phase:", phaseCurrent);
-    DEBUG_MV(" Delta:", phaseDelta);
-    DEBUG_MV(" Distance:", distanceDelta);
-    DEBUG_EOL();
-  }
+  SERIAL_SMT(ECHO, "Endstop ", axis_codes[axis]);
+  SERIAL_MV(" hit at Phase:", phaseCurrent);
+  SERIAL_MV(" Phase delta:", phaseDelta);
+  SERIAL_MV(" Distance:", dist);
+  SERIAL_EOL();
 
-  if (distanceDelta > 0) mechanics.do_homing_move(axis, distanceDelta, fr_mm_s);
+  if (dist > 0) mechanics.do_homing_move(axis, dist, fr_mm_s);
 
 }
 
