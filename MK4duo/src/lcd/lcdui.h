@@ -27,6 +27,8 @@
 #define LCD_MESSAGEPGM(x)         LCD_MESSAGEPGM_P(GET_TEXT(x))
 #define LCD_ALERTMESSAGEPGM(x)    LCD_ALERTMESSAGEPGM_P(GET_TEXT(x))
 
+#define LCD_HAS_WAIT_FOR_MOVE     MECH(DELTA) || HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING)
+
 #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
   #define LCD_SET_CHARSET(C)      set_custom_characters(C)
 #else
@@ -154,7 +156,11 @@ class LcdUI {
       static constexpr bool external_control = false;
     #endif
 
-    static bool wait_for_move;
+    #if LCD_HAS_WAIT_FOR_MOVE
+      static bool wait_for_move;
+    #else
+      static constexpr bool wait_for_move = false;
+    #endif
 
     #if HAS_ENCODER_ACTION
 

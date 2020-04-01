@@ -39,6 +39,10 @@
     }
   }
 
+#endif
+
+#if HAS_LCD_MENU && HAS_PROBE_MANUALLY
+
   float lcd_probe_pt(const xy_pos_t &xy) {
     _man_probe_pt(xy);
     PRINTER_KEEPALIVE(PausedforUser);
