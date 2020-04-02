@@ -511,20 +511,24 @@ void TMC_Manager::go_to_homing_phase(const AxisEnum axis, const feedrate_t fr_mm
 
   int phaseDelta = drv->isDir() ? phaseCurrent - phaseHome[axis] : phaseHome[axis] - phaseCurrent;
 
-  if ((ABS(phaseDelta) / microstepSize * mechanics.steps_to_mm[axis]) < 0.05f)
-    SERIAL_LMT(ECHO, "Home phase too close to endstop trigger. Pick a different phase for ", axis_codes[axis]);
+  if ((ABS(phaseDelta) / microstepSize * mechanics.steps_to_mm[axis]) < 0.05f) {
+    SERIAL_SMV(ECHO, "Selected home phase ", phaseHome[axis]);
+    SERIAL_MV(" too close to endstop trigger phase ", phaseCurrent);
+    SERIAL_MT(". Pick a different phase for ", axis_codes[axis]);
+    SERIAL_EOL();
+  }
 
   if (phaseDelta < 0) phaseDelta += 1024;
 
-  const float dist = -(int(phaseDelta / microstepSize) * mechanics.steps_to_mm[axis]);
+  const float distmm = -(int(phaseDelta / microstepSize) * mechanics.steps_to_mm[axis]);
 
   SERIAL_SMT(ECHO, "Endstop ", axis_codes[axis]);
   SERIAL_MV(" hit at Phase:", phaseCurrent);
   SERIAL_MV(" Phase delta:", phaseDelta);
-  SERIAL_MV(" Distance:", dist);
+  SERIAL_MV(" Distance:", distmm);
   SERIAL_EOL();
 
-  if (dist > 0) mechanics.do_homing_move(axis, dist, fr_mm_s);
+  if (distmm > 0) mechanics.do_homing_move(axis, distmm, fr_mm_s);
 
 }
 

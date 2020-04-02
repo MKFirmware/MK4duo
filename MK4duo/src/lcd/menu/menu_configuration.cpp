@@ -238,13 +238,13 @@ void menu_tool_change() {
 
   void menu_laser_test_fire() {
     START_MENU();
-     BACK_ITEM("Laser Functions");
-     ACTION_ITEM("Weak ON",             []{ laser.fire(0.3); });
-     ACTION_ITEM(" 20%  50ms",          []{ laser_test_fire( 20,  50); });
-     ACTION_ITEM(" 20% 100ms",          []{ laser_test_fire( 20, 100); });
-     ACTION_ITEM("100%  50ms",          []{ laser_test_fire(100,  50); });
-     ACTION_ITEM("100% 100ms",          []{ laser_test_fire(100, 100); });
-     ACTION_ITEM("Warm-up Laser 2sec",  []{ laser_test_fire( 15,2000); });
+     BACK_ITEM(MSG_LASER_MENU);
+     ACTION_ITEM_P(PSTR("Weak ON"),             []{ laser.fire(0.3); });
+     ACTION_ITEM_P(PSTR(" 20%  50ms"),          []{ laser_test_fire( 20,  50); });
+     ACTION_ITEM_P(PSTR(" 20% 100ms"),          []{ laser_test_fire( 20, 100); });
+     ACTION_ITEM_P(PSTR("100%  50ms"),          []{ laser_test_fire(100,  50); });
+     ACTION_ITEM_P(PSTR("100% 100ms"),          []{ laser_test_fire(100, 100); });
+     ACTION_ITEM_P(PSTR("Warm-up Laser 2sec"),  []{ laser_test_fire( 15,2000); });
      END_MENU();
   }  
 
@@ -261,15 +261,15 @@ void menu_tool_change() {
 
   void menu_laser_focus() {
     START_MENU();
-    BACK_ITEM("Laser Functions");
-    ACTION_ITEM("1mm",          []{ laser_set_focus(1); });
-    ACTION_ITEM("2mm",          []{ laser_set_focus(2); });
-    ACTION_ITEM("3mm - 1/8in",  []{ laser_set_focus(3); });
-    ACTION_ITEM("4mm",          []{ laser_set_focus(4); });
-    ACTION_ITEM("5mm",          []{ laser_set_focus(5); });
-    ACTION_ITEM("6mm - 1/4in",  []{ laser_set_focus(6); });
-    ACTION_ITEM("7mm",          []{ laser_set_focus(7); });
-    EDIT_ITEM(float52, "Custom", &focalLength, 0, LASER_FOCAL_HEIGHT, []{ laser_set_focus(focalLength); });
+    BACK_ITEM(MSG_LASER_MENU);
+    ACTION_ITEM_P(PSTR("1mm"),          []{ laser_set_focus(1); });
+    ACTION_ITEM_P(PSTR("2mm"),          []{ laser_set_focus(2); });
+    ACTION_ITEM_P(PSTR("3mm - 1/8in"),  []{ laser_set_focus(3); });
+    ACTION_ITEM_P(PSTR("4mm"),          []{ laser_set_focus(4); });
+    ACTION_ITEM_P(PSTR("5mm"),          []{ laser_set_focus(5); });
+    ACTION_ITEM_P(PSTR("6mm - 1/4in"),  []{ laser_set_focus(6); });
+    ACTION_ITEM_P(PSTR("7mm"),          []{ laser_set_focus(7); });
+    EDIT_ITEM_P(float52, PSTR("Custom"), &focalLength, 0, LASER_FOCAL_HEIGHT, []{ laser_set_focus(focalLength); });
     END_MENU();
   }
 
@@ -357,6 +357,11 @@ void menu_configuration() {
     #if HAS_BLTOUCH
       SUBMENU(MSG_BLTOUCH, menu_bltouch);
     #endif
+
+    #if ENABLED(LASER)
+      if (printer.mode == PRINTER_MODE_LASER) SUBMENU(MSG_LASER_MENU, menu_laser);
+    #endif
+
   }
 
   if (toolManager.extruder.total > 1) SUBMENU(MSG_TOOL_CHANGE, menu_tool_change);
