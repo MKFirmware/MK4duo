@@ -567,8 +567,8 @@ void Probe::print_error() {
 
   void Probe::run_deploy_moves_script() {
 
-    const float z_probe_deploy_start_location[]  = Z_PROBE_DEPLOY_START_LOCATION,
-                z_probe_deploy_end_location[]    = Z_PROBE_DEPLOY_END_LOCATION;
+    constexpr xyz_pos_t z_probe_deploy_start_location = Z_PROBE_DEPLOY_START_LOCATION,
+                        z_probe_deploy_end_location   = Z_PROBE_DEPLOY_END_LOCATION;
 
     // Move to the start position to initiate deployment
     mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s.z);
@@ -578,11 +578,13 @@ void Probe::print_error() {
 
     // Move to trigger deployment
     mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s.z);
+
   }
+
   void Probe::run_stow_moves_script() {
 
-    const float z_probe_retract_start_location[] = Z_PROBE_RETRACT_START_LOCATION,
-                z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
+    constexpr xyz_pos_t z_probe_retract_start_location  = Z_PROBE_RETRACT_START_LOCATION,
+                        z_probe_retract_end_location    = Z_PROBE_RETRACT_END_LOCATION;
 
     // Move to the start position to initiate retraction
     mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s.z);
@@ -592,6 +594,7 @@ void Probe::print_error() {
 
     // Move up for safety
     mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s.z);
+
   }
 
 #endif
