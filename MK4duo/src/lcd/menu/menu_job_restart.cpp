@@ -34,9 +34,8 @@ static void lcd_sdcard_restart_resume() {
   commands.inject_P(PSTR("M800"));
 }
 
-static void lcd_sdcard_restart_cancel() {
+void lcd_sdcard_restart_cancel() {
   restart.purge_job();
-  card.autostart_index = 0;
   lcdui.return_to_status();
 }
 

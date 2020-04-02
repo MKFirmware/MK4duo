@@ -52,9 +52,9 @@ inline void gcode_M421() {
   if (hasC) ij = ubl.find_closest_mesh_point_of_type(REAL, mechanics.position);
 
   if (int(hasC) + int(hasI && hasJ) != 1 || !(hasZ || hasQ || hasN))
-    SERIAL_LM(ER, MSG_HOST_ERR_M421_PARAMETERS);
+    SERIAL_LM(ER, STR_ERR_M421_PARAMETERS);
   else if (!WITHIN(ij.x, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(ij.y, 0, GRID_MAX_POINTS_Y - 1))
-    SERIAL_LM(ER, MSG_HOST_ERR_MESH_XY);
+    SERIAL_LM(ER, STR_ERR_MESH_XY);
   else
     ubl.z_values[ij.x][ij.y] = hasN ? NAN : parser.value_linear_units() + (hasQ ? ubl.z_values[ij.x][ij.y] : 0);
 }

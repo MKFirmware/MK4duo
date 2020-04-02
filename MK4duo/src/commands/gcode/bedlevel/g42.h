@@ -41,7 +41,7 @@ inline void gcode_G42() {
     const int8_t iy = hasJ ? parser.value_int() : 0;
 
     if ((hasI && !WITHIN(ix, 0, GRID_MAX_POINTS_X - 1)) || (hasJ && !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1))) {
-      SERIAL_EM(MSG_HOST_ERR_MESH_XY);
+      SERIAL_EM(STR_ERR_MESH_XY);
       return;
     }
 

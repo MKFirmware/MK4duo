@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 15-03-2020
+* Revision 31-03-2020
 *
 * Version EEPROM MKV80
 *
@@ -51,6 +51,8 @@
 * Rename DELTA_SEGMENTS_PER_SECOND in DELTA_SEGMENTS_PER_SECOND_PRINT for delta print
 * Add DELTA_SEGMENTS_PER_SECOND_MOVE for delta move
 * Add Linear advanced K-Factor for Extruder
+*
+* Add TMC Homing stepper phase (For now only for Delta)
 *
 * Add Nextion Baudrate
 * Add Nextion CRC on serial

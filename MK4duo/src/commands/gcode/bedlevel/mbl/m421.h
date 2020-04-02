@@ -47,10 +47,10 @@ inline void gcode_M421() {
   const bool hasZ = parser.seen('Z'), hasQ = !hasZ && parser.seen('Q');
 
   if (int(hasI && hasJ) + int(hasX && hasY) != 1 || !(hasZ || hasQ)) {
-    SERIAL_LM(ER, MSG_HOST_ERR_M421_PARAMETERS);
+    SERIAL_LM(ER, STR_ERR_M421_PARAMETERS);
   }
   else if (ix < 0 || iy < 0) {
-    SERIAL_LM(ER, MSG_HOST_ERR_MESH_XY);
+    SERIAL_LM(ER, STR_ERR_MESH_XY);
   }
   else
     mbl.set_z(ix, iy, parser.value_linear_units() + (hasQ ? mbl.data.z_values[ix][iy] : 0));

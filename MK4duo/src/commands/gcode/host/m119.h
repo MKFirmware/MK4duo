@@ -31,7 +31,7 @@
 static void print_state(const bool is_hit, PGM_P const label=nullptr) {
   if (label) SERIAL_STR(label);
   SERIAL_MSG(": ");
-  SERIAL_STR(is_hit ? PSTR(MSG_HOST_ENDSTOP_HIT) : PSTR(MSG_HOST_ENDSTOP_OPEN));
+  SERIAL_STR(is_hit ? PSTR(STR_ENDSTOP_HIT) : PSTR(STR_ENDSTOP_OPEN));
   SERIAL_EOL();
 }
 
@@ -40,9 +40,9 @@ static void print_state(const bool is_hit, PGM_P const label=nullptr) {
  */
 inline void gcode_M119() {
 
-  SERIAL_EM(MSG_HOST_M119_REPORT);
+  SERIAL_EM(STR_M119_REPORT);
 
-  #define ES_REPORT(S) print_state(READ(S##_PIN) ^ endstops.isLogic(S), PSTR(MSG_HOST_##S))
+  #define ES_REPORT(S) print_state(READ(S##_PIN) ^ endstops.isLogic(S), PSTR(STR_##S))
 
   #if HAS_BLTOUCH
     bltouch.cmd_mode_SW();
@@ -94,28 +94,28 @@ inline void gcode_M119() {
     ES_REPORT(Z_PROBE);
   #endif
   #if HAS_FIL_RUNOUT_0
-    print_state(READ(FIL_RUNOUT_0_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_0), PSTR(MSG_HOST_FILAMENT_RUNOUT " 0"));
+    print_state(READ(FIL_RUNOUT_0_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_0), PSTR(STR_FILAMENT_RUNOUT " 0"));
   #endif
   #if HAS_FIL_RUNOUT_1
-    print_state(READ(FIL_RUNOUT_1_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_1), PSTR(MSG_HOST_FILAMENT_RUNOUT " 1"));
+    print_state(READ(FIL_RUNOUT_1_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_1), PSTR(STR_FILAMENT_RUNOUT " 1"));
   #endif
   #if HAS_FIL_RUNOUT_2
-    print_state(READ(FIL_RUNOUT_2_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_2), PSTR(MSG_HOST_FILAMENT_RUNOUT " 2"));
+    print_state(READ(FIL_RUNOUT_2_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_2), PSTR(STR_FILAMENT_RUNOUT " 2"));
   #endif
   #if HAS_FIL_RUNOUT_3
-    print_state(READ(FIL_RUNOUT_3_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_3), PSTR(MSG_HOST_FILAMENT_RUNOUT " 3"));
+    print_state(READ(FIL_RUNOUT_3_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_3), PSTR(STR_FILAMENT_RUNOUT " 3"));
   #endif
   #if HAS_FIL_RUNOUT_4
-    print_state(READ(FIL_RUNOUT_4_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_4), PSTR(MSG_HOST_FILAMENT_RUNOUT " 4"));
+    print_state(READ(FIL_RUNOUT_4_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_4), PSTR(STR_FILAMENT_RUNOUT " 4"));
   #endif
   #if HAS_FIL_RUNOUT_5
-    print_state(READ(FIL_RUNOUT_5_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_5), PSTR(MSG_HOST_FILAMENT_RUNOUT " 5"));
+    print_state(READ(FIL_RUNOUT_5_PIN) ^ filamentrunout.sensor.isLogic(FIL_RUNOUT_5), PSTR(STR_FILAMENT_RUNOUT " 5"));
   #endif
   #if HAS_DOOR_OPEN
     ES_REPORT(DOOR_OPEN);
   #endif
   #if HAS_POWER_CHECK
-    print_state(READ(POWER_CHECK_PIN) ^ powerManager.isLogic(), PSTR(MSG_HOST_POWER_CHECK));
+    print_state(READ(POWER_CHECK_PIN) ^ powerManager.isLogic(), PSTR(STR_POWER_CHECK));
   #endif
 
   #if HAS_BLTOUCH

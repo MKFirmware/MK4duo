@@ -39,13 +39,16 @@
     }
   }
 
+#endif
+
+#if HAS_LCD_MENU && HAS_PROBE_MANUALLY
+
   float lcd_probe_pt(const xy_pos_t &xy) {
     _man_probe_pt(xy);
     PRINTER_KEEPALIVE(PausedforUser);
     lcdui.defer_status_screen();
-    printer.setWaitForUser(true);
-    host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Delta Calibration in progress"), PSTR("Continue"));
-    while (printer.isWaitForUser()) printer.idle();
+    host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Delta Calibration in progress"), CONTINUE_BTN);
+    printer.wait_for_user_response();
     lcdui.goto_previous_screen_no_defer();
     return mechanics.position.z;
   }

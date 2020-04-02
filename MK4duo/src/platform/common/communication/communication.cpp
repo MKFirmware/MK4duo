@@ -50,6 +50,10 @@ FSTRINGVALUE(M22_CMD, "M22");
 FSTRINGVALUE(M23_CMD, "M23 %s");
 FSTRINGVALUE(M24_CMD, "M24");
 
+// String for host action
+FSTRINGVALUE(CONTINUE_BTN, "Continue");
+FSTRINGVALUE(DISMISS_BTN, "Dismiss");
+
 /** Public Parameters */
 int8_t Com::serial_port_index = -1;
 

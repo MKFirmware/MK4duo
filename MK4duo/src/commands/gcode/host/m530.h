@@ -56,8 +56,8 @@ inline void gcode_M530() {
     }
     else {
       print_job_counter.stop();   // Stop the timer job
-      LCD_MESSAGEPGM(MSG_STOPPING);
-      SERIAL_EM("Stop Printing");
+      LCD_MESSAGEPGM(MSG_PRINT_DONE);
+      SERIAL_EM("Print Done");
 
       #if ENABLED(STOP_GCODE)
         commands.enqueue_now_P(PSTR(STOP_PRINTING_SCRIPT));

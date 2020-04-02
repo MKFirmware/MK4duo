@@ -88,8 +88,9 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
 #if ENABLED(SHOW_BOOTSCREEN)
 
   #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
+
     // Draws a slice of a particular frame of the custom bootscreen, without the u8g loop
-    void LcdUI::draw_custom_bootscreen(const uint8_t frame/*=0*/) {
+    void draw_custom_bootscreen(const uint8_t frame/*=0*/) {
       constexpr u8g_uint_t left = u8g_uint_t((LCD_PIXEL_WIDTH  - (CUSTOM_BOOTSCREEN_BMPWIDTH)) / 2),
                             top = u8g_uint_t((LCD_PIXEL_HEIGHT - (CUSTOM_BOOTSCREEN_BMPHEIGHT)) / 2);
       #if ENABLED(CUSTOM_BOOTSCREEN_INVERTED)
@@ -119,7 +120,7 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
     }
 
     // Shows the custom bootscreen, with the u8g loop, animations and delays
-    void LcdUI::show_custom_bootscreen() {
+    void show_custom_bootscreen() {
       #if DISABLED(CUSTOM_BOOTSCREEN_ANIMATED)
         constexpr millis_l d = 0;
         constexpr uint8_t f = 0;
@@ -130,7 +131,7 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
         {
           u8g.firstPage();
           do { draw_custom_bootscreen(f); } while (u8g.nextPage());
-          if (d) safe_delay(d);
+          if (d) printer.safe_delay(d);
         }
 
       #ifndef CUSTOM_BOOTSCREEN_TIMEOUT
@@ -138,6 +139,7 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
       #endif
       HAL::delayMilliseconds(CUSTOM_BOOTSCREEN_TIMEOUT);
     }
+
   #endif // SHOW_CUSTOM_BOOTSCREEN
 
   // Two-part needed to display all info

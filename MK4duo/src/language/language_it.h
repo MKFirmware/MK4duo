@@ -305,9 +305,9 @@ namespace language_it {
   FSTRINGVALUE(MSG_USERWAIT                         , _UxGT("Premi tasto.."));
   FSTRINGVALUE(MSG_PRINT_PAUSED                     , _UxGT("Stampa sospesa"));
   FSTRINGVALUE(MSG_PRINTING                         , _UxGT("Stampa..."));
-  FSTRINGVALUE(MSG_STOPPING                         , _UxGT("Stampa finita"));
   FSTRINGVALUE(MSG_RESUMING                         , _UxGT("Ripresa Stampa"));
   FSTRINGVALUE(MSG_PRINT_ABORTED                    , _UxGT("Stampa annullata"));
+  FSTRINGVALUE(MSG_PRINT_DONE                       , _UxGT("Stampa finita"));
   FSTRINGVALUE(MSG_NO_MOVE                          , _UxGT("Nessun Movimento"));
   FSTRINGVALUE(MSG_KILLED                           , _UxGT("UCCISO. "));
   FSTRINGVALUE(MSG_STOPPED                          , _UxGT("ARRESTATO. "));

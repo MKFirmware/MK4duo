@@ -93,6 +93,10 @@ namespace language_en {
   FSTRINGVALUE(MSG_PREHEAT_3_SETTINGS               , _UxGT("Preheat ") PREHEAT_3_LABEL _UxGT(" Conf"));
   FSTRINGVALUE(MSG_PREHEAT_CUSTOM                   , _UxGT("Preheat Custom"));
   FSTRINGVALUE(MSG_COOLDOWN                         , _UxGT("Cooldown"));
+  FSTRINGVALUE(MSG_LASER_MENU                       , _UxGT("Laser Control"));
+  FSTRINGVALUE(MSG_LASER_OFF                        , _UxGT("Laser Off"));
+  FSTRINGVALUE(MSG_LASER_ON                         , _UxGT("Laser On"));
+  FSTRINGVALUE(MSG_LASER_POWER                      , _UxGT("Laser Power"));
   FSTRINGVALUE(MSG_SWITCH_PS_ON                     , _UxGT("Switch Power On"));
   FSTRINGVALUE(MSG_SWITCH_PS_OFF                    , _UxGT("Switch Power Off"));
   FSTRINGVALUE(MSG_EXTRUDE                          , _UxGT("Extrude"));
@@ -326,9 +330,9 @@ namespace language_en {
   FSTRINGVALUE(MSG_USERWAIT                         , _UxGT("Click to Resume..."));
   FSTRINGVALUE(MSG_PRINT_PAUSED                     , _UxGT("Print Paused"));
   FSTRINGVALUE(MSG_PRINTING                         , _UxGT("Printing..."));
-  FSTRINGVALUE(MSG_STOPPING                         , _UxGT("Print finish"));
   FSTRINGVALUE(MSG_RESUMING                         , _UxGT("Resuming print"));
   FSTRINGVALUE(MSG_PRINT_ABORTED                    , _UxGT("Print Aborted"));
+  FSTRINGVALUE(MSG_PRINT_DONE                       , _UxGT("Print Done"));
   FSTRINGVALUE(MSG_NO_MOVE                          , _UxGT("No Move."));
   FSTRINGVALUE(MSG_KILLED                           , _UxGT("KILLED. "));
   FSTRINGVALUE(MSG_STOPPED                          , _UxGT("STOPPED. "));
@@ -582,7 +586,6 @@ namespace language_en {
   // Extra
   FSTRINGVALUE(MSG_RESTART_PRINT                    , _UxGT("Restart print"));
   FSTRINGVALUE(MSG_FIX_LOSE_STEPS                   , _UxGT("Fix axis steps"));
-  FSTRINGVALUE(MSG_LASER                            , _UxGT("Laser Preset"));
   FSTRINGVALUE(MSG_NEED_TUNE_PID                    , _UxGT("Need Tune PID"));
   FSTRINGVALUE(MSG_ARE_YOU_SURE                     , _UxGT("Are you sure"));
 

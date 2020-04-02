@@ -30,7 +30,10 @@
 
 #define CODE_M800
 
-void menu_sdcard_restart();
+#if HAS_LCD_MENU
+  void menu_sdcard_restart();
+  void lcd_sdcard_restart_cancel();
+#endif
 
 /**
  * M800: Resume from Restart Job
@@ -39,15 +42,25 @@ void menu_sdcard_restart();
  */
 inline void gcode_M800() {
   if (restart.valid()) {
-    #if HAS_LCD_MENU
-      if (parser.seen('S'))
+    if (parser.seen('S')) {
+      #if HAS_LCD_MENU
         lcdui.goto_screen(menu_sdcard_restart);
-      else
-    #endif
+      #else
+        SERIAL_EM("Restart requires LCD.");
+      #endif
+    }
+    else if (parser.seen('C')) {
+      #if HAS_LCD_MENU
+        lcd_sdcard_restart_cancel();
+      #else
+        restart.purge_job();
+      #endif
+    }
+    else
       restart.resume_job();
   }
   else
-    DEBUG_LSM(DEB, restart.job_info.valid_head ? PSTR(" No") : PSTR(" Invalid"), " Restart Job Data");
+    DEBUG_LSM(DEB, restart.job_info.valid_head ? PSTR("No") : PSTR("Invalid"), " Restart Job Data");
 }
 
 #endif // HAS_SD_RESTART

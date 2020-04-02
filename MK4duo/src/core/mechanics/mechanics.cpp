@@ -78,6 +78,8 @@ uint8_t Mechanics::axis_relative_modes = (
 feedrate_t  Mechanics::saved_feedrate_mm_s        = 0.0f;
 int16_t     Mechanics::saved_feedrate_percentage  = 0;
 
+/** Public Function */
+
 /**
  * Get homedir for axis
  */
@@ -209,6 +211,15 @@ void Mechanics::sync_plan_position_e() {
   planner.set_e_position_mm(position.e);
 }
 
+void Mechanics::unscaled_e_move(const float &length, const feedrate_t &fr_mm_s) {
+  #if HAS_FILAMENT_SENSOR
+    filamentrunout.reset();
+  #endif
+  position.e += length /extruders[toolManager.extruder.active]->e_factor;
+  planner.buffer_line(position, fr_mm_s, toolManager.extruder.active);
+  planner.synchronize();
+}
+
 /**
  * Report position to host
  */
@@ -230,7 +241,7 @@ void Mechanics::report_xyze(const xyze_pos_t &pos, const uint8_t n/*=4*/) {
 /**
  * Homing bump feedrate (mm/s)
  */
-float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
+feedrate_t Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
   #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS) return MMM_TO_MMS(Z_PROBE_SPEED_SLOW);
   #endif
@@ -256,9 +267,9 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
     PGM_P home_first = GET_TEXT(MSG_HOME_FIRST);
     char msg[strlen_P(home_first)+1];
     sprintf_P(msg, home_first,
-      TEST(axis_bits, X_AXIS) ? MSG_HOST_X : "",
-      TEST(axis_bits, Y_AXIS) ? MSG_HOST_Y : "",
-      TEST(axis_bits, Z_AXIS) ? MSG_HOST_Y : ""
+      TEST(axis_bits, X_AXIS) ? STR_X : "",
+      TEST(axis_bits, Y_AXIS) ? STR_Y : "",
+      TEST(axis_bits, Z_AXIS) ? STR_Y : ""
     );
     SERIAL_STR(ECHO);
     SERIAL_STR(msg);

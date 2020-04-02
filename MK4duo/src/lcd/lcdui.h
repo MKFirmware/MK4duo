@@ -27,7 +27,7 @@
 #define LCD_MESSAGEPGM(x)         LCD_MESSAGEPGM_P(GET_TEXT(x))
 #define LCD_ALERTMESSAGEPGM(x)    LCD_ALERTMESSAGEPGM_P(GET_TEXT(x))
 
-#define LCD_HAS_WAIT_FOR_MOVE     MECH(DELTA) || (ENABLED(LCD_BED_LEVELING) && (HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING)))
+#define LCD_HAS_WAIT_FOR_MOVE     MECH(DELTA) || HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING)
 
 #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
   #define LCD_SET_CHARSET(C)      set_custom_characters(C)
@@ -227,10 +227,6 @@ class LcdUI {
 
     static void clear_lcd();
 
-    static void set_status(const char* const message, const bool persist=false);
-    static void set_status_P(PGM_P const message, int8_t level=0);
-    static void status_printf_P(const uint8_t level, PGM_P const message, ...);
-
     #if HAS_LCD
 
       static void init();
@@ -299,6 +295,9 @@ class LcdUI {
       static bool get_blink(uint8_t moltiplicator=1);
       static void kill_screen(PGM_P const lcd_msg);
       static void draw_kill_screen();
+      static void set_status(const char* const message, const bool persist=false);
+      static void set_status_P(PGM_P const message, int8_t level=0);
+      static void status_printf_P(const uint8_t level, PGM_P const message, ...);
       static void reset_status();
 
       static void pause_print();
@@ -306,6 +305,11 @@ class LcdUI {
       static void stop_print();
 
     #else // NO LCD
+
+      // Send status to host as a notification
+      static void set_status(const char* message, const bool=false);
+      static void set_status_P(PGM_P message, const int8_t=0);
+      static void status_printf_P(const uint8_t, PGM_P const message, ...);
 
       static inline void init() {}
       static inline void update() {}

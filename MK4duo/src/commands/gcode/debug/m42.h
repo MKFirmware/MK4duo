@@ -42,7 +42,7 @@ inline void gcode_M42() {
   if (pin_number == NoPin) return;
 
   if (printer.pin_is_protected(pin_number)) {
-    SERIAL_LM(ER, MSG_HOST_ERR_PROTECTED_PIN);
+    SERIAL_LM(ER, STR_ERR_PROTECTED_PIN);
     return;
   }
 

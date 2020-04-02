@@ -217,8 +217,9 @@ void menu_advanced_temperature() {
     START_MENU();
     BACK_ITEM(MSG_ADVANCED_SETTINGS);
 
+    const float max_accel = MAX(mechanics.data.max_acceleration_mm_per_s2.x, mechanics.data.max_acceleration_mm_per_s2.y, mechanics.data.max_acceleration_mm_per_s2.z);
     // M204 P Acceleration
-    EDIT_ITEM_FAST(float5_25, MSG_ACC, &mechanics.data.acceleration, 25, 99000);
+    EDIT_ITEM_FAST(float5_25, MSG_ACC, &mechanics.data.acceleration, 25, max_accel);
 
     // M204 R Retract Acceleration
     LOOP_EXTRUDER()

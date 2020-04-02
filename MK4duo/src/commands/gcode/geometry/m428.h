@@ -50,7 +50,7 @@
       if (WITHIN(diff[i], -20, 20) && mechanics.get_homedir((AxisEnum)i) > 0)
         diff[i] = -mechanics.position[i];
       if (!WITHIN(diff[i], -20, 20)) {
-        SERIAL_LM(ER, MSG_HOST_ERR_M428_TOO_FAR);
+        SERIAL_LM(ER, STR_ERR_M428_TOO_FAR);
         LCD_ALERTMESSAGEPGM_P(PSTR("Err: Too far!"));
         sound.feedback(false); // BUZZ(200, 40);
         return;

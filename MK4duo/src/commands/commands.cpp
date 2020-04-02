@@ -231,7 +231,7 @@ bool Commands::get_target_tool(const uint16_t code) {
     const int8_t t = parser.value_byte();
     if (t >= toolManager.extruder.total) {
       SERIAL_SMV(ECHO, "M", code);
-      SERIAL_EMV(" " MSG_HOST_INVALID_EXTRUDER " ", t);
+      SERIAL_EMV(" " STR_INVALID_EXTRUDER " ", t);
       return true;
     }
     toolManager.extruder.target = t;
@@ -247,7 +247,7 @@ bool Commands::get_target_driver(const uint16_t code) {
     const int8_t t = parser.value_byte();
     if (t >= MAX_DRIVER_E) {
       SERIAL_SMV(ECHO, "M", code);
-      SERIAL_EMV(" " MSG_HOST_INVALID_DRIVER " ", t);
+      SERIAL_EMV(" " STR_INVALID_DRIVER " ", t);
       return true;
     }
     toolManager.extruder.target = t;
@@ -276,7 +276,7 @@ Heater* Commands::get_target_heater() {
     if (h == -3 && WITHIN(t, 0 , tempManager.heater.coolers - 1)) return coolers[t];
   #endif
 
-  SERIAL_LM(ER, MSG_HOST_INVALID_HEATER);
+  SERIAL_LM(ER, STR_INVALID_HEATER);
   return nullptr;
 
 }
@@ -365,7 +365,7 @@ void Commands::get_serial() {
           gcode_N = strtol(npos + 1, nullptr, 10);
 
           if (gcode_N != gcode_last_N + 1 && !M110) {
-            gcode_line_error(PSTR(MSG_HOST_ERR_LINE_NO), i);
+            gcode_line_error(PSTR(STR_ERR_LINE_NO), i);
             return;
           }
 
@@ -374,12 +374,12 @@ void Commands::get_serial() {
             uint8_t checksum = 0, count = uint8_t(apos - command);
             while (count) checksum ^= command[--count];
             if (strtol(apos + 1, nullptr, 10) != checksum) {
-              gcode_line_error(PSTR(MSG_HOST_ERR_CHECKSUM_MISMATCH), i);
+              gcode_line_error(PSTR(STR_ERR_CHECKSUM_MISMATCH), i);
               return;
             }
           }
           else {
-            gcode_line_error(PSTR(MSG_HOST_ERR_NO_CHECKSUM), i);
+            gcode_line_error(PSTR(STR_ERR_NO_CHECKSUM), i);
             return;
           }
 
@@ -388,7 +388,7 @@ void Commands::get_serial() {
         #if HAS_SD_SUPPORT
           // Pronterface "M29" and "M29 " has no line number
           else if (card.isSaving() && !is_M29(command)) {
-            gcode_line_error(PSTR(MSG_HOST_ERR_NO_CHECKSUM), i);
+            gcode_line_error(PSTR(STR_ERR_NO_CHECKSUM), i);
             return;
           }
         #endif
@@ -409,7 +409,7 @@ void Commands::get_serial() {
               #if ENABLED(G5_BEZIER)
                 case 5:
               #endif
-                SERIAL_LM(ER, MSG_HOST_ERR_STOPPED);
+                SERIAL_LM(ER, STR_ERR_STOPPED);
                 LCD_MESSAGEPGM(MSG_STOPPED);
                 break;
             }
@@ -472,7 +472,7 @@ void Commands::get_serial() {
       const int16_t n = card.get();
       card_eof = card.eof();
 
-      if (n < 0 && !card_eof) { SERIAL_LM(ER, MSG_HOST_SD_ERR_READ); continue; }
+      if (n < 0 && !card_eof) { SERIAL_LM(ER, STR_SD_ERR_READ); continue; }
 
       const char sd_char  = (char)n;
       const bool is_eol   = sd_char == '\n' || sd_char == '\r';
@@ -526,7 +526,7 @@ void Commands::unknown_warning() {
     gcode_t tmp = buffer_ring.peek();
     SERIAL_PORT(tmp.s_port);
   #endif
-  SERIAL_SMT(ECHO, MSG_HOST_UNKNOWN_COMMAND, parser.command_ptr);
+  SERIAL_SMT(ECHO, STR_UNKNOWN_COMMAND, parser.command_ptr);
   SERIAL_CHR('"');
   SERIAL_EOL();
   SERIAL_PORT(-1);
@@ -549,7 +549,7 @@ bool Commands::enqueue_one(const char * cmd) {
     return true;
 
   if (enqueue(cmd)) {
-    SERIAL_SMT(ECHO, MSG_HOST_ENQUEUEING, cmd);
+    SERIAL_SMT(ECHO, STR_ENQUEUEING, cmd);
     SERIAL_CHR('"');
     SERIAL_EOL();
     return true;
@@ -3982,6 +3982,9 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
         #endif
         #if ENABLED(CODE_M1000)
           case 1000: gcode_M1000(); break;
+        #endif
+        #if ENABLED(CODE_M1001)
+          case 1001: gcode_M1001(); break;
         #endif
         #if ENABLED(CODE_M9999)
           case 9999: gcode_M9999(); break;

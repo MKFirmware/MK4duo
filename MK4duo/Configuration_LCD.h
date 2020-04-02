@@ -483,6 +483,13 @@
 //#define SLIM_LCD_MENUS
 
 //
+// Display Full Graphics delay
+//
+//#define ST7920_DELAY_1  DELAY_NS(0)
+//#define ST7920_DELAY_2  DELAY_NS(0)
+//#define ST7920_DELAY_3  DELAY_NS(64)
+
+//
 // ENCODER SETTINGS
 //
 // This option overrides the default number of encoder pulses needed to

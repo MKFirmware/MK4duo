@@ -35,8 +35,8 @@ LcdUI lcdui;
 
 #define MAX_MESSAGE_LENGTH 50
 
-void LcdUI::set_status(const char* const message, const bool)         { host_action.action_notify(message);   }
-void LcdUI::set_status_P(PGM_P const message, int8_t)                 { host_action.action_notify_P(message); }
-void LcdUI::status_printf_P(const uint8_t, PGM_P const message, ...)  { host_action.action_notify_P(message); }
+void LcdUI::set_status(const char* const message, const bool)         { host_action.action_notify(message); }
+void LcdUI::set_status_P(PGM_P const message, const int8_t)           { host_action.action_notify(message); }
+void LcdUI::status_printf_P(const uint8_t, PGM_P const message, ...)  { host_action.action_notify(message); }
 
 #endif

@@ -42,19 +42,13 @@ inline void gcode_M0_M1() {
   if (parser.seenval('P')) ms = parser.value_millis();              // Milliseconds to wait
   if (parser.seenval('S')) ms = parser.value_millis_from_seconds(); // Seconds to wait
 
-  const bool seenQ = parser.seen('Q');
-
   planner.synchronize();
-
-  #if HAS_LEDS_OFF_FLAG
-    if (seenQ) ledevents.onPrintCompleted();                        // Change LED color for Print Completed
-  #endif
 
   #if HAS_LCD_MENU
 
     if (parser.string_arg)
       lcdui.set_status(parser.string_arg, true);
-    else if (!seenQ) {
+    else {
       LCD_MESSAGEPGM(MSG_USERWAIT);
       #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
         lcdui.reset_progress_bar_timeout();
@@ -67,25 +61,21 @@ inline void gcode_M0_M1() {
 
   #endif
 
-  PRINTER_KEEPALIVE(PausedforUser);
-  printer.setWaitForUser(true);
-
   #if HAS_NEXTION_LCD
     lcdui.goto_screen(menu_m0);
   #endif
 
-  if (ms > 0) ms += millis();   // wait until this time for a click
-  while (printer.isWaitForUser() && (ms == 0 || PENDING(millis(), ms))) printer.idle();
+  // wait until this time for a click
+  printer.wait_for_user_response(ms);
 
   #if HAS_NEXTION_LCD
-    if (!seenQ) lcdui.return_to_status();
+    lcdui.return_to_status();
   #endif
 
   #if HAS_LCD_MENU
-    if (!seenQ) lcdui.reset_status();
+    lcdui.reset_status();
   #endif
 
-  printer.setWaitForUser(false);
 }
 
 #endif // HAS_RESUME_CONTINUE

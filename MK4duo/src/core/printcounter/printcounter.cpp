@@ -91,7 +91,7 @@ void PrintCounter::initStats() {
 void PrintCounter::showStats() {
   char buffer[21];
 
-  SERIAL_MSG(MSG_HOST_STATS);
+  SERIAL_MSG(STR_STATS);
 
   SERIAL_MV("Total:", data.totalPrints);
   SERIAL_MV(", Finished:", data.finishedPrints);
@@ -99,15 +99,15 @@ void PrintCounter::showStats() {
   SERIAL_EV (data.totalPrints - data.finishedPrints -
             ((isRunning() || isPaused()) ? 1 : 0));
 
-  SERIAL_MSG(MSG_HOST_STATS);
+  SERIAL_MSG(STR_STATS);
 
   SERIAL_MT("Total print time:", duration_t(data.timePrint).toString(buffer));
   SERIAL_EMT(", Longest job:", duration_t(data.longestPrint).toString(buffer));
 
-  SERIAL_MSG(MSG_HOST_STATS);
+  SERIAL_MSG(STR_STATS);
   SERIAL_EMT("Power on time:", duration_t(data.timePowerOn).toString(buffer));
 
-  SERIAL_MSG(MSG_HOST_STATS);
+  SERIAL_MSG(STR_STATS);
 
   ftostrlength(buffer, data.filamentUsed);
   SERIAL_EMT("Filament used:", buffer);
@@ -123,7 +123,7 @@ void PrintCounter::showStats() {
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
-    SERIAL_MSG(MSG_HOST_STATS);
+    SERIAL_MSG(STR_STATS);
     SERIAL_MV("Watt/h consumed:", data.consumptionHour);
     SERIAL_EM(" Wh");
   #endif
@@ -329,7 +329,7 @@ void PrintCounter::reset() {
   void PrintCounter::service_when(char buffer[], const char * const msg, const uint32_t when) {
     duration_t elapsed = when;
     elapsed.toString(buffer);
-    SERIAL_MSG(MSG_HOST_SERVICE);
+    SERIAL_MSG(STR_SERVICE);
     SERIAL_STR(msg);
     SERIAL_EMT(" in ", buffer);
   }

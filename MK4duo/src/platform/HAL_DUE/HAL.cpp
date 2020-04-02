@@ -182,11 +182,11 @@ void HAL::hwSetup() {
 // Print apparent cause of start/restart
 void HAL::showStartReason() {
   switch ((RSTC->RSTC_SR >> 8) & 0x07) {
-    case 0: SERIAL_EM(MSG_HOST_POWERUP); break;
-    case 1: SERIAL_EM(MSG_HOST_BROWNOUT_RESET); break;
-    case 2: SERIAL_EM(MSG_HOST_WATCHDOG_RESET); break;
-    case 3: SERIAL_EM(MSG_HOST_SOFTWARE_RESET); break;
-    case 4: SERIAL_EM(MSG_HOST_EXTERNAL_RESET); break;
+    case 0: SERIAL_EM(STR_POWERUP); break;
+    case 1: SERIAL_EM(STR_BROWNOUT_RESET); break;
+    case 2: SERIAL_EM(STR_WATCHDOG_RESET); break;
+    case 3: SERIAL_EM(STR_SOFTWARE_RESET); break;
+    case 4: SERIAL_EM(STR_EXTERNAL_RESET); break;
     default: break;
   }
 }

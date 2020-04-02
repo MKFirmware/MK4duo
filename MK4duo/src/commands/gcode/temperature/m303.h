@@ -56,11 +56,11 @@ inline void gcode_M303() {
   const int16_t target = parser.celsiusval('S', act->type == IS_HOTEND ? 200 : 70);
 
   if (target > act->data.temp.max - 10) {
-    SERIAL_EM(MSG_HOST_PID_TEMP_TOO_HIGH);
+    SERIAL_EM(STR_PID_TEMP_TOO_HIGH);
     return;
   }
 
-  SERIAL_EM(MSG_HOST_PID_AUTOTUNE_START);
+  SERIAL_EM(STR_PID_AUTOTUNE_START);
   lcdui.reset_alert_level();
   LCD_MESSAGEPGM(MSG_PID_AUTOTUNE_START);
 

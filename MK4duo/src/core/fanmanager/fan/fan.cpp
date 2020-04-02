@@ -72,7 +72,7 @@ void Fan::set_auto_monitor(const int8_t h) {
   else if (h == -1)
     data.auto_monitor = 0;
   else
-    SERIAL_EM(MSG_HOST_INVALID_HOTEND);
+    SERIAL_EM(STR_INVALID_HOTEND);
   spin();
 }
 

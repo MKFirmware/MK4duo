@@ -497,6 +497,41 @@ void TMC_Manager::test_connection(const bool test_x, const bool test_y, const bo
   if (axis_connection) lcdui.set_status_P(PSTR("TMC CONNECTION ERROR"));
 }
 
+void TMC_Manager::go_to_homing_phase(const AxisEnum axis, const feedrate_t fr_mm_s) {
+
+  static const xyz_int_t phaseHome = PHASE_HOME;
+
+  Driver* drv = driver[axis];
+
+  // Check if home phase is disabled for this axis.
+  if (phaseHome[axis] < 0 || !drv->tmc) return;
+
+  const int microstepSize = 256 / (drv->tmc->getMicrosteps()),
+            phaseCurrent  = drv->tmc->MSCNT();
+
+  int phaseDelta = drv->isDir() ? phaseCurrent - phaseHome[axis] : phaseHome[axis] - phaseCurrent;
+
+  if ((ABS(phaseDelta) / microstepSize * mechanics.steps_to_mm[axis]) < 0.05f) {
+    SERIAL_SMV(ECHO, "Selected home phase ", phaseHome[axis]);
+    SERIAL_MV(" too close to endstop trigger phase ", phaseCurrent);
+    SERIAL_MT(". Pick a different phase for ", axis_codes[axis]);
+    SERIAL_EOL();
+  }
+
+  if (phaseDelta < 0) phaseDelta += 1024;
+
+  const float distmm = -(int(phaseDelta / microstepSize) * mechanics.steps_to_mm[axis]);
+
+  SERIAL_SMT(ECHO, "Endstop ", axis_codes[axis]);
+  SERIAL_MV(" hit at Phase:", phaseCurrent);
+  SERIAL_MV(" Phase delta:", phaseDelta);
+  SERIAL_MV(" Distance:", distmm);
+  SERIAL_EOL();
+
+  if (distmm > 0) mechanics.do_homing_move(axis, distmm, fr_mm_s);
+
+}
+
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
   void TMC_Manager::monitor_drivers() {

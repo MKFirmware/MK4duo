@@ -290,6 +290,8 @@ class Mechanics {
     static void sync_plan_position();
     static void sync_plan_position_e();
 
+    static void unscaled_e_move(const float &length, const feedrate_t &fr_mm_s);
+
     /**
      * Report position to host
      */
@@ -348,7 +350,7 @@ class Mechanics {
     /**
      * Homing bump feedrate (mm/s)
      */
-    static float get_homing_bump_feedrate(const AxisEnum axis);
+    static feedrate_t get_homing_bump_feedrate(const AxisEnum axis);
 
 };
 

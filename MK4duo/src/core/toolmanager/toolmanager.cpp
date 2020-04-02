@@ -166,14 +166,14 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
       #endif
       if (should_swap) {
         if (too_cold) {
-          SERIAL_LM(ER, MSG_HOST_HOTEND_TOO_COLD);
+          SERIAL_LM(ER, STR_HOTEND_TOO_COLD);
           extruder.previous = extruder.active;
           extruder.active   = extruder.target;
           return;
         }
         else {
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
-            advancedpause.do_pause_e_move(-extruders[extruder.active]->data.swap_length, MMM_TO_MMS(extruders[extruder.active]->data.retract_speed));
+            mechanics.unscaled_e_move(-extruders[extruder.active]->data.swap_length, MMM_TO_MMS(extruders[extruder.active]->data.retract_speed));
           #else
             mechanics.position.e -= extruders[extruder.active]->data.swap_length / extruders[extruder.active]->e_factor;
             planner.buffer_line(mechanics.position, MMM_TO_MMS(extruders[extruder.active]->data.retract_speed), extruder.active);
@@ -290,8 +290,8 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
         #if ENABLED(TOOL_CHANGE_FIL_SWAP)
           if (should_swap && !too_cold) {
             #if ENABLED(ADVANCED_PAUSE_FEATURE)
-              advancedpause.do_pause_e_move(extruders[extruder.active]->data.swap_length, MMM_TO_MMS(extruders[extruder.active]->data.prime_speed));
-              advancedpause.do_pause_e_move(extruders[extruder.active]->data.purge_lenght, PAUSE_PARK_PURGE_FEEDRATE);
+              mechanics.unscaled_e_move(extruders[extruder.active]->data.swap_length, MMM_TO_MMS(extruders[extruder.active]->data.prime_speed));
+              mechanics.unscaled_e_move(extruders[extruder.active]->data.purge_lenght, PAUSE_PARK_PURGE_FEEDRATE);
             #else
               mechanics.position.e += (extruders[extruder.active]->data.swap_length) / extruders[extruder.active]->e_factor;
               planner.buffer_line(mechanics.position, mechanics.data.max_feedrate_mm_s[E_AXIS], extruder.active);
@@ -344,7 +344,7 @@ void ToolManager::change(const uint8_t new_tool, bool no_move/*=false*/) {
       bedlevel.restore_bed_leveling_state();
     #endif
 
-    SERIAL_LMV(ECHO, MSG_HOST_ACTIVE_EXTRUDER, (int)extruder.active);
+    SERIAL_LMV(ECHO, STR_ACTIVE_EXTRUDER, (int)extruder.active);
 
   #endif // EXTRUDERS > 1
 
@@ -500,7 +500,7 @@ void ToolManager::print_M563() {
             break;
         #endif
       default:
-        SERIAL_LM(ER, MSG_HOST_INVALID_SOLENOID);
+        SERIAL_LM(ER, STR_INVALID_SOLENOID);
         break;
     }
   }
@@ -589,7 +589,7 @@ void ToolManager::extruder_factory_parameters(const uint8_t e) {
 
 void ToolManager::invalid_extruder_error() {
   SERIAL_SMV(ER, "T", (int)extruder.target);
-  SERIAL_EM(" " MSG_HOST_INVALID_EXTRUDER);
+  SERIAL_EM(" " STR_INVALID_EXTRUDER);
 }
 
 void ToolManager::fast_line_to_current(const AxisEnum fr_axis) {

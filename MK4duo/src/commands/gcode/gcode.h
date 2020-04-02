@@ -229,6 +229,7 @@
 #include "sdcard/m34.h"
 #include "sdcard/m39.h"
 #include "sdcard/m524.h"
+#include "sdcard/m1001.h"
 
 // Sensor Commands
 #include "sensor/m70.h"

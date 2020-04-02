@@ -35,11 +35,11 @@ union flagcard_t {
     bool  Mounted         : 1;
     bool  Saving          : 1;
     bool  Printing        : 1;
+    bool  PrintComplete   : 1;
     bool  Autoreport      : 1;
     bool  Abortprinting   : 1;
     bool  FilenameIsDir   : 1;
     bool  WorkdirIsRoot   : 1;
-    bool  bit7            : 1;
   };
   flagcard_t() { all = 0x00; }
 };
@@ -51,8 +51,6 @@ class SDCard {
     SDCard() {};
 
   public: /** Public Parameters */
-
-    static uint8_t    printing_done_state;
 
     static flagcard_t flag;
 
@@ -240,15 +238,19 @@ class SDCard {
     FORCE_INLINE static void setPrinting(const bool onoff) { flag.Printing = onoff; }
     FORCE_INLINE static bool isPrinting() { return flag.Printing; }
 
-    // Card flag bit 3 Autoreport
+    // Card flag bit 3 print complete
+    FORCE_INLINE static void setComplete(const bool onoff) { flag.PrintComplete = onoff; }
+    FORCE_INLINE static bool isComplete() { return flag.PrintComplete; }
+
+    // Card flag bit 4 Autoreport
     FORCE_INLINE static void setAutoreport(const bool onoff) { flag.Autoreport = onoff; }
     FORCE_INLINE static bool isAutoreport() { return flag.Autoreport; }
 
-    // Card flag bit 4 Abortprinting
+    // Card flag bit 5 Abortprinting
     FORCE_INLINE static void setAbortSDprinting(const bool onoff) { flag.Abortprinting = onoff; }
     FORCE_INLINE static bool isAbortSDprinting() { return flag.Abortprinting; }
 
-    // Card flag bit 5 Filename is dir
+    // Card flag bit 6 Filename is dir
     FORCE_INLINE static void setFilenameIsDir(const bool onoff) { flag.FilenameIsDir = onoff; }
     FORCE_INLINE static bool isFilenameIsDir() { return flag.FilenameIsDir; }
 
