@@ -610,7 +610,7 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
 
   PRINTER_KEEPALIVE(InHandler);
 
-  #if ENABLED(FASTER_GCODE_EXECUTE) || ENABLED(ARDUINO_ARCH_SAM)
+  #if ENABLED(FASTER_GCODE_EXECUTE)
 
     // Handle a known G, M, or T
     switch (parser.command_letter) {
@@ -621,9 +621,7 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
                     middle  = 0,
                     end     = COUNT(GCode_Table) - 1;
 
-        if (code_num <= 1) { // Execute directly the most common Gcodes
-          EXECUTE_G0_G1(code_num);
-        }
+        if (code_num <= 1) EXECUTE_G0_G1(code_num); // Execute directly the most common Gcodes
         else if (WITHIN(code_num, GCode_Table[start].code, GCode_Table[end].code)) {
           while (start <= end) {
             middle = (start + end) >> 1;

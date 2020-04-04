@@ -267,7 +267,7 @@
 #include "units/m83.h"
 #include "units/m149.h"
 
-#if ENABLED(FASTER_GCODE_EXECUTE) || ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(FASTER_GCODE_EXECUTE)
   // Table for G and M code
   #include "table_gcode.h"
   #include "table_mcode.h"
