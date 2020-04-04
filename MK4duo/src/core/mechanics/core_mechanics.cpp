@@ -409,7 +409,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
 
   const float scaled_fr_mm_s = MMS_SCALED(feedrate_mm_s);
 
-  #if ENABLED(LASER) && ENABLED(LASER_FIRE_E)
+  #if HAS_LASER_FIRE_E
     if (position.e < destination.e && ((position.x != destination.x) || (position.y != destination.y)))
       laser.status = LASER_ON;
     else

@@ -45,28 +45,16 @@
 
     switch (printer.mode) {
 
-      #if ENABLED(LASER) && ENABLED(LASER_FIRE_SPINDLE)
-        case PRINTER_MODE_LASER: {
-          if (printer.isRunning()) {
-            #if ENABLED(INTENSITY_IN_BYTE)
-              if (parser.seenval('S')) laser.intensity = parser.value_byte();
-            #else
-              if (parser.seenval('S')) laser.intensity = 255 * parser.value_float() * 0.01;
-            #endif
-            if (parser.seenval('L')) laser.duration = parser.value_ulong();
-            if (parser.seenval('P')) laser.ppm = parser.value_float();
-            if (parser.seenval('D')) laser.diagnostics = parser.value_bool();
-            if (parser.seenval('B')) laser.set_mode(parser.value_int());
-          }
-          laser.status = LASER_ON;
-        }
-        break;
+      #if HAS_LASER_SPINDLE
+        case PRINTER_MODE_LASER:
+          if (printer.isRunning()) laser.set_power();
+          break;
       #endif
 
       #if ENABLED(CNCROUTER)
         case PRINTER_MODE_CNC:
           if (parser.seenval('S')) cnc.setRouterSpeed(parser.value_ulong(), clockwise);
-        break;
+          break;
       #endif
 
       default: break; // other tools
