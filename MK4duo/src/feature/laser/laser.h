@@ -19,84 +19,83 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _LASER_H_
-#define _LASER_H_
+#pragma once
 
 #if ENABLED(LASER)
 
-  #include <inttypes.h>
+#include <inttypes.h>
 
-  #if ENABLED(HIGH_TO_FIRE) // Some cutters fire on high, some on low.
-    #define LASER_ARM   HIGH
-    #define LASER_UNARM LOW
-  #else
-    #define LASER_ARM   LOW
-    #define LASER_UNARM HIGH
-  #endif
+#if ENABLED(HIGH_TO_FIRE) // Some cutters fire on high, some on low.
+  #define LASER_ARM   HIGH
+  #define LASER_UNARM LOW
+#else
+  #define LASER_ARM   LOW
+  #define LASER_UNARM HIGH
+#endif
 
-  // Laser constants
-  #define LASER_OFF   0
-  #define LASER_ON    1
+// Laser constants
+#define LASER_OFF   0
+#define LASER_ON    1
 
-  #define CONTINUOUS  0
-  #define PULSED      1
-  #define RASTER      2
+#define CONTINUOUS  0
+#define PULSED      1
+#define RASTER      2
 
-  class Laser {
+class Laser {
 
-    public: /** Public Parameters */
+  public: /** Public Parameters */
 
-      static float    ppm;          // pulses per millimeter, for pulsed firing mode
+    static float    ppm;          // pulses per millimeter, for pulsed firing mode
 
-      static uint8_t  intensity,    // Laser firing instensity 0 - 255
-                      mode;         // CONTINUOUS, PULSED, RASTER
+    static uint8_t  intensity,    // Laser firing instensity 0 - 255
+                    mode;         // CONTINUOUS, PULSED, RASTER
 
-      static uint32_t duration,     // laser firing duration in microseconds, for pulsed firing mode
-                      dur;          // instantaneous duration
+    static uint32_t duration,     // laser firing duration in microseconds, for pulsed firing mode
+                    dur;          // instantaneous duration
 
-      static bool     status,       // LASER_ON / LASER_OFF - buffered
-                      firing,       // LASER_ON / LASER_OFF - instantaneous
-                      diagnostics;  // Verbose debugging output over serial
+    static bool     status,       // LASER_ON / LASER_OFF - buffered
+                    firing,       // LASER_ON / LASER_OFF - instantaneous
+                    diagnostics;  // Verbose debugging output over serial
 
-      static millis_l last_firing;  // microseconds since last laser firing
+    static millis_l last_firing;  // microseconds since last laser firing
 
-      static uint16_t time,         // temporary counter to limit eeprom writes
-                      lifetime;     // laser lifetime firing counter in minutes
+    static uint16_t time,         // temporary counter to limit eeprom writes
+                    lifetime;     // laser lifetime firing counter in minutes
 
-      #if ENABLED(LASER_RASTER)
+    #if ENABLED(LASER_RASTER)
 
-        static unsigned char  raster_data[LASER_MAX_RASTER_LINE],
-                              rasterlaserpower;
+      static unsigned char  raster_data[LASER_MAX_RASTER_LINE],
+                            rasterlaserpower;
 
-        static float          raster_aspect_ratio,
-                              raster_mm_per_pulse;
+      static float          raster_aspect_ratio,
+                            raster_mm_per_pulse;
 
-        static int            raster_raw_length,
-                              raster_num_pixels;
+      static int            raster_raw_length,
+                            raster_num_pixels;
 
-        static uint8_t        raster_direction;
+      static uint8_t        raster_direction;
 
-      #endif
+    #endif
 
-    public: /** Public Function */
+  public: /** Public Function */
 
-      static void init();
-      static void fire(uint8_t intensity=255);
-      static void extinguish();
-      static void set_mode(uint8_t mode);
+    static void init();
 
-      #if ENABLED(LASER_PERIPHERALS)
-        static bool peripherals_ok();
-        static void peripherals_on();
-        static void peripherals_off();
-        static void wait_for_peripherals();
-      #endif // LASER_PERIPHERALS
+    static void set_power();
 
-  };
+    static void fire(uint8_t intensity=255);
+    static void extinguish();
+    static void set_mode(uint8_t mode);
 
-  extern Laser laser;
+    #if ENABLED(LASER_PERIPHERALS)
+      static bool peripherals_ok();
+      static void peripherals_on();
+      static void peripherals_off();
+      static void wait_for_peripherals();
+    #endif // LASER_PERIPHERALS
+
+};
+
+extern Laser laser;
 
 #endif // ENABLED(LASER)
-
-#endif /* _LASER_H_ */

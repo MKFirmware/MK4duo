@@ -54,10 +54,10 @@ class timer {
       if (!running || !period_ms) return false;
       bool expired = false;
       const T now = millis();
-      if (ms <= ms + period_ms) {
-        if ((now >= ms + period_ms) || (now < ms)) expired = true;
+      if (ms <= T(ms + period_ms)) {
+        if ((now >= T(ms + period_ms)) || (now < ms)) expired = true;
       }
-      else if ((now >= ms + period_ms) && (now < ms)) expired = true;
+      else if ((now >= T(ms + period_ms)) && (now < ms)) expired = true;
       if (expired) {
         renew ? ms = now : running = false;
       }

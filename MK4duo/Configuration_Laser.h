@@ -75,6 +75,4 @@
 // Uncomment the following line to enable cubic bezier curve movement with the G5 code
 // #define G5_BEZIER
 
-#define LASER_WATTS 40.0
-#define LASER_DIAMETER 0.1        // milimeters
-#define LASER_FOCAL_HEIGHT 74.50  // z axis position at which the laser is focused
+#define LASER_FOCAL_HEIGHT 10.00  // z axis position at which the laser is focused

@@ -31,9 +31,9 @@
  */
 inline void gcode_G0_G1(
   #if IS_SCARA
-    bool fast_move = false
+    const bool fast_move = false
   #elif ENABLED(LASER)
-    bool lfire = false
+    const bool lfire = false
   #endif
 ) {
   if (printer.isRunning()) {
@@ -54,20 +54,8 @@ inline void gcode_G0_G1(
       }
     #endif // FWRETRACT
 
-    #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
-      if (lfire) {
-        #if ENABLED(INTENSITY_IN_BYTE)
-          if (parser.seenval('S')) laser.intensity = parser.value_byte();
-        #else
-          if (parser.seenval('S')) laser.intensity = 255 * parser.value_float() * 0.01;
-        #endif
-        if (parser.seen('L')) laser.duration = parser.value_ulong();
-        if (parser.seen('P')) laser.ppm = parser.value_float();
-        if (parser.seen('D')) laser.diagnostics = parser.value_bool();
-        if (parser.seen('B')) laser.set_mode(parser.value_int());
-
-        laser.status = LASER_ON;
-      }
+    #if HAS_LASER_FIRE_G1
+      if (lfire) laser.set_power();
     #endif
 
     #if IS_SCARA
@@ -76,7 +64,7 @@ inline void gcode_G0_G1(
       mechanics.prepare_move_to_destination();
     #endif
 
-    #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
+    #if HAS_LASER_FIRE_G1
       if (lfire) laser.status = LASER_OFF;
     #endif
 

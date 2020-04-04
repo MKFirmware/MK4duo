@@ -26,7 +26,7 @@
  * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(FASTER_GCODE_EXECUTE) || ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(FASTER_GCODE_EXECUTE)
 
   #define CODE_M44
 
