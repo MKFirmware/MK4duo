@@ -24,9 +24,16 @@
 class __FlashStringHelper;
 typedef const __FlashStringHelper *progmem_str;
 
+/**
+ * Type for pins
+ */
+typedef int8_t    pin_t;
+
+/**
+ * Type for millis
+ */
 typedef uint32_t  millis_l;
 typedef uint16_t  millis_s;
-typedef int8_t    pin_t;
 
 /**
  * Mixer color for AVR or 32 bit
