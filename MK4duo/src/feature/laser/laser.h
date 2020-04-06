@@ -85,7 +85,7 @@ class Laser {
 
     static void fire(uint8_t intensity=255);
     static void extinguish();
-    static void set_mode(uint8_t mode);
+    static void set_mode(uint8_t pmode);
 
     #if ENABLED(LASER_PERIPHERALS)
       static bool peripherals_ok();

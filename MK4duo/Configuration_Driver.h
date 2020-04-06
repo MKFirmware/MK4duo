@@ -83,7 +83,7 @@
 // Full step positions (128, 384, 640, 896) have the highest holding torque.
 // Values -1 to disable homing phase for that axis.
 //
-#define PHASE_HOME { 896, 896, 896 }
+#define PHASE_HOME { -1, -1, -1 }
 
 // TMC2130 only
 //#define SPI_ENDSTOPS
