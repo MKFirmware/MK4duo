@@ -169,7 +169,7 @@ void Laser::extinguish() {
       HAL::digitalWrite(LASER_PWR_PIN, LASER_UNARM);
     #endif
 
-    laser.time += millis() - (laser.last_firing / 1000);
+    laser.time += millis() - (laser.last_firing / 1000UL);
 
     if (laser.diagnostics)
       SERIAL_EM("Laser extinguished");
@@ -177,20 +177,9 @@ void Laser::extinguish() {
   }
 }
 
-void Laser::set_mode(uint8_t mode) {
-
-  switch (mode) {
-    case 0:
-      laser.mode = CONTINUOUS;
-      return;
-    case 1:
-      laser.mode = PULSED;
-      return;
-    case 2:
-      laser.mode = RASTER;
-      return;
-  }
-
+void Laser::set_mode(uint8_t pmode) {
+  LIMIT(pmode, CONTINUOUS, RASTER);
+  mode = pmode;
 }
 
 #if ENABLED(LASER_PERIPHERALS)

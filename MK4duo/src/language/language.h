@@ -214,14 +214,11 @@
 #define STR_INVALID_POS_SLOT              "Invalid slot, total slots:"
 
 // SD Card
-#define STR_SD_CANT_OPEN_SUBDIR           "Cannot open subdir "
-#define STR_SD_ERRORCODE                  "SD errorCode:"
-#define STR_SD_INIT_FAIL                  "SD init fail"
+#define STR_SD_INIT_FAIL                  "No SD card"
 #define STR_SD_CARD_OK                    "SD card ok"
 #define STR_SD_OPEN_FILE_FAIL             "open failed, File:"
 #define STR_SD_FILE_OPENED                "File opened:"
 #define STR_SD_SIZE                       " Size:"
-#define STR_SD_FILE_SELECTED              "File selected"
 #define STR_SD_WRITE_TO_FILE              "Writing to file:"
 #define STR_SD_FILE_SAVED                 "Done saving file."
 #define STR_SD_PRINTING_BYTE              "SD printing byte "
@@ -234,7 +231,6 @@
 #define STR_SD_DIRECTORY_CREATED          "Directory created"
 #define STR_SD_CREATION_FAILED            "Creation failed"
 #define STR_SD_SLASH                      "/"
-#define STR_SD_MAX_DEPTH                  "trying to call sub-gcode files with too many levels. MAX level is:"
 
 #define STR_ENDSTOPS_HIT                  "endstops hit: "
 #define STR_ERR_COLD_EXTRUDE_STOP         "cold extrusion prevented"

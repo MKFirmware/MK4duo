@@ -160,7 +160,7 @@
  *  - TMC5161                                                               *
  *  - TMC5161_STANDALONE                                                    *
  *                                                                          *
- * See Configuration_Motor_Driver.h for configuration Motor Driver          *
+ * See Configuration_Driver.h for configuration option for Driver           *
  *                                                                          *
  ****************************************************************************/
 #define  X_DRIVER_TYPE  A4988
