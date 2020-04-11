@@ -45,7 +45,7 @@
 
 #include "nextion_gfx.h"
 
-#define NEXTION_LCD_FIRMWARE_VERSION 131
+#define NEXTION_LCD_FIRMWARE_VERSION 132
 
 NextionLCD nexlcd;
 
@@ -294,8 +294,8 @@ void NextionLCD::init() {
       }
     }
 
-    // Attempt 500 millisecond
-    HAL::delayMilliseconds(500);
+    // Attempt 1 second
+    HAL::delayMilliseconds(SECOND_TO_MILLIS(1));
   }
 
   if (!NextionON) {
