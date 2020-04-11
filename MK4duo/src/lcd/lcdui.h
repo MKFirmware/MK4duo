@@ -326,7 +326,8 @@ class LcdUI {
       static inline void return_to_status() {}
       static inline void reset_status() {}
       static inline void reset_alert_level() {}
-      static constexpr bool has_status() { return false; }
+      static inline bool has_status() { return false; }
+      static inline bool detected() { return true; }
 
     #endif
 
