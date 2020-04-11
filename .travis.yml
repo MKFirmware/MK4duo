@@ -1,7 +1,3 @@
-dist: MagoKimbra
-
-sudo: true
-
 language: c
 
 notifications:
