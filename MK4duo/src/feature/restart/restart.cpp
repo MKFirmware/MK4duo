@@ -86,7 +86,7 @@ void Restart::save_job(const bool force_save/*=true*/) {
   static short_timer_t save_restart_timer(millis());
 
   // Did Z change since the last call?
-  if (save_restart_timer.expired((SD_RESTART_FILE_SAVE_TIME) * 1000) || force_save
+  if (save_restart_timer.expired(SECOND_TO_MILLIS(SD_RESTART_FILE_SAVE_TIME)) || force_save
       || mechanics.position.z > job_info.axis_position_mm.z
   ) {
 

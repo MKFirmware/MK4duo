@@ -41,7 +41,7 @@
  */
 
 // For debug Connect
-//#define NEXTION_CONNECT_DEBUG
+#define NEXTION_CONNECT_DEBUG
 
 #if HAS_NEXTION_LCD
 
@@ -157,10 +157,6 @@ class NextionLCD {
 
     static uint8_t  PageID;
 
-    #if HAS_SD_SUPPORT
-      static uint8_t lcd_sd_status;
-    #endif
-
     #if HAS_LCD_MENU
       static bool line_encoder_touch;
       #if LCD_TIMEOUT_TO_STATUS
@@ -238,7 +234,7 @@ class NextionLCD {
 
     static uint16_t recvRetNumber();
 
-    static bool getConnect(char* buffer);
+    static bool getConnect(const uint32_t baudrate, char * buffer);
 
     FORCE_INLINE static void sendCommand_end()  { nexSerial.write(end, 3); }
     FORCE_INLINE static void sendCRC_end()      { nexSerial.write(crc_end, 3); }

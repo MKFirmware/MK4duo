@@ -153,8 +153,8 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   #endif
 
   // Start the heater idle timers
-  constexpr millis_l  nozzle_timeout  = (PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL,
-                      bed_timeout     = (PAUSE_PARK_PRINTER_OFF)    * 60000UL;
+  constexpr millis_l  nozzle_timeout  = SECOND_TO_MILLIS(PAUSE_PARK_NOZZLE_TIMEOUT),
+                      bed_timeout     = MINUTE_TO_MILLIS(PAUSE_PARK_PRINTER_OFF);
 
   LOOP_HOTEND() hotends[h]->start_idle_timer(nozzle_timeout);
 

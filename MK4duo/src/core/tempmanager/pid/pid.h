@@ -59,7 +59,8 @@ struct pid_data_t {
       #endif
     ) {
 
-      if (next_sample_ms.expired(1000UL)) {
+      // Check every second
+      if (next_sample_ms.expired(SECOND_TO_MILLIS(1))) {
 
         const float pid_error = target_temp - current_temp,
                     dInput    = current_temp - last_temp,

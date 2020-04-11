@@ -40,7 +40,8 @@ class Host_Action {
   public: /** Public Function */
 
     static void response_handler(const uint8_t response);
-    static void action_notify(const char * const pstr);
+    static void action_notify(const char * const message);
+    static void action_notify_P(PGM_P const pstr);
 
     static void pause(const bool eol=true)  { print_action(PSTR("pause"), eol); }
     static void paused(const bool eol=true) { print_action(PSTR("paused"), eol); }

@@ -320,6 +320,7 @@ namespace language_en {
   FSTRINGVALUE(MSG_BUTTON_RESET                     , _UxGT("Reset"));
   FSTRINGVALUE(MSG_BUTTON_CANCEL                    , _UxGT("Cancel"));
   FSTRINGVALUE(MSG_BUTTON_DONE                      , _UxGT("Done"));
+  FSTRINGVALUE(MSG_PAUSING                          , _UxGT("Pausing..."));
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Pause Print"));
   FSTRINGVALUE(MSG_RESUME_PRINT                     , _UxGT("Resume Print"));
   FSTRINGVALUE(MSG_STOP_PRINT                       , _UxGT("Stop Print"));

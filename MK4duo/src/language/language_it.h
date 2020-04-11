@@ -295,6 +295,7 @@ namespace language_it {
   FSTRINGVALUE(MSG_BUTTON_RESET                     , _UxGT("Resetta"));
   FSTRINGVALUE(MSG_BUTTON_CANCEL                    , _UxGT("Annulla"));
   FSTRINGVALUE(MSG_BUTTON_DONE                      , _UxGT("Fatto"));
+  FSTRINGVALUE(MSG_PAUSING                          , _UxGT("Pausing..."));
   FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Pausa stampa"));
   FSTRINGVALUE(MSG_RESUME_PRINT                     , _UxGT("Riprendi stampa"));
   FSTRINGVALUE(MSG_STOP_PRINT                       , _UxGT("Arresta stampa"));

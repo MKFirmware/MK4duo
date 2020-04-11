@@ -227,7 +227,7 @@ class HAL {
     }
 
     FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {
-      hal_delayMicroseconds(delayNs * 1000);
+      hal_delayMicroseconds(delayNs * 1000UL);
     }
 
     FORCE_INLINE static void delayMicroseconds(uint32_t usec) { // usec += 3;

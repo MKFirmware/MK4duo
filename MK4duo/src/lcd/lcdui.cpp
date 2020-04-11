@@ -31,12 +31,46 @@
 
 LcdUI lcdui;
 
+#if HAS_SD_SUPPORT
+
+void LcdUI::sd_changed(const uint8_t old_status, const uint8_t status) {
+
+  if (old_status == status) return;
+
+  if (status) {
+    if (old_status < 2) set_status_P(GET_TEXT(MSG_SD_INSERTED));
+  }
+  else {
+    if (old_status < 2) {
+      #if PIN_EXISTS(SD_DETECT)
+        set_status_P(GET_TEXT(MSG_SD_REMOVED));
+        #if HAS_LCD_MENU
+          return_to_status();
+        #endif
+      #endif
+    }
+  }
+
+  #if PIN_EXISTS(SD_DETECT) && HAS_SPI_LCD
+    init_lcd();                                                   // Revive a noisy shared SPI LCD
+  #endif
+
+  refresh();
+
+  #if HAS_LCD
+    next_lcd_update_timer.start(millis() + LCD_UPDATE_INTERVAL);  // Delay LCD update for SD activity
+  #endif
+
+}
+
+#endif // HAS_SD_SUPPORT
+
 #if !HAS_LCD
 
 #define MAX_MESSAGE_LENGTH 50
 
-void LcdUI::set_status(const char* const message, const bool)         { host_action.action_notify(message); }
-void LcdUI::set_status_P(PGM_P const message, const int8_t)           { host_action.action_notify(message); }
-void LcdUI::status_printf_P(const uint8_t, PGM_P const message, ...)  { host_action.action_notify(message); }
+void LcdUI::set_status(const char * const message, const bool)        { host_action.action_notify(message); }
+void LcdUI::set_status_P(PGM_P const message, const int8_t)           { host_action.action_notify_P(message); }
+void LcdUI::status_printf_P(const uint8_t, PGM_P const message, ...)  { host_action.action_notify_P(message); }
 
 #endif

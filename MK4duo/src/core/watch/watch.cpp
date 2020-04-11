@@ -78,5 +78,5 @@ void Watch::reset() {
 }
 
 millis_l Watch::duration() {
-  return (((isRunning()) ? millis() : stopwatch) - startwatch) / 1000UL + accumulator;
+  return accumulator + MILLIS_TO_SECOND((isRunning() ? millis() : stopwatch) - startwatch);
 }

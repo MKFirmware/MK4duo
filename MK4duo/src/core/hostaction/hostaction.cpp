@@ -98,9 +98,15 @@ void Host_Action::response_handler(const uint8_t response) {
 
 }
 
-void Host_Action::action_notify(const char * const pstr) {
+void Host_Action::action_notify(const char * const message) {
   print_action(PSTR("notification "), false);
-  SERIAL_TXT(pstr);
+  SERIAL_TXT(message);
+  SERIAL_EOL();
+}
+
+void Host_Action::action_notify_P(PGM_P const pstr) {
+  print_action(PSTR("notification "), false);
+  SERIAL_STR(pstr);
   SERIAL_EOL();
 }
 

@@ -28,42 +28,42 @@
 
 #if HAS_MULTI_MODE
 
-  #define CODE_M3
-  #define CODE_M4
+#define CODE_M3
+#define CODE_M4
 
-  /**
-   * M3: Setting laser beam or fire laser - CNC clockwise speed
-   * M4: Turn on laser beam or CNC counter clockwise speed
-   *      S - Laser intensity or CNC speed
-   *      L - Laser Duration
-   *      P - PPM
-   *      D - Diagnostic
-   *      B - Set mode
-   */
-  void gcode_M3_M4(bool clockwise) {
-    planner.synchronize();
+/**
+ * M3: Setting laser beam or fire laser - CNC clockwise speed
+ * M4: Turn on laser beam or CNC counter clockwise speed
+ *      S - Laser intensity or CNC speed
+ *      L - Laser Duration
+ *      P - PPM
+ *      D - Diagnostic
+ *      B - Set mode
+ */
+void gcode_M3_M4(bool clockwise) {
+  planner.synchronize();
 
-    switch (printer.mode) {
+  switch (printer.mode) {
 
-      #if HAS_LASER_SPINDLE
-        case PRINTER_MODE_LASER:
-          if (printer.isRunning()) laser.set_power();
-          break;
-      #endif
+    #if HAS_LASER_SPINDLE
+      case PRINTER_MODE_LASER:
+        if (printer.isRunning()) laser.set_power();
+        break;
+    #endif
 
-      #if ENABLED(CNCROUTER)
-        case PRINTER_MODE_CNC:
-          if (parser.seenval('S')) cnc.setRouterSpeed(parser.value_ulong(), clockwise);
-          break;
-      #endif
+    #if ENABLED(CNCROUTER)
+      case PRINTER_MODE_CNC:
+        if (parser.seenval('S')) cnc.setRouterSpeed(parser.value_ulong(), clockwise);
+        break;
+    #endif
 
-      default: break; // other tools
+    default: break; // other tools
 
-    } // printer.mode
+  } // printer.mode
 
-  }
+}
 
-  inline void gcode_M3() { gcode_M3_M4(true); }
-  inline void gcode_M4() { gcode_M3_M4(false); }
+inline void gcode_M3() { gcode_M3_M4(true); }
+inline void gcode_M4() { gcode_M3_M4(false); }
 
 #endif // HAS_MULTI_MODE

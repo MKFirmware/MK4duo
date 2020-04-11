@@ -194,11 +194,11 @@ void HAL::Tick() {
   // Fans set output PWM
   fanManager.set_output_pwm();
 
-  // Event 100 ms
+  // Event every 100 ms
   if (cycle_100_timer.expired(100)) tempManager.spin();
 
-  // Event 1.0 Second
-  if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
+  // Event every second
+  if (cycle_1s_timer.expired(SECOND_TO_MILLIS(1))) printer.check_periodical_actions();
 
   #if HAS_HOTENDS
     LOOP_HOTEND() {

@@ -175,6 +175,9 @@ class SDCard {
     static void mount();
     static void unmount();
     static void ls();
+
+    static void manage_sd();
+
     static void getfilename(uint16_t nr, PGM_P const match=nullptr);
     static void getAbsFilename(char * name);
     static void openAndPrintFile(const char * const path);
