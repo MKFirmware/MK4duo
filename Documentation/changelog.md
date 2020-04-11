@@ -4,7 +4,7 @@
 *
 * Version EEPROM MKV80
 *
-* Version Nextion 1_3_1
+* Version Nextion 1_3_2
 *
 * Add support SdFat library by Bill Greiman 1.1.1 or higher
 *
