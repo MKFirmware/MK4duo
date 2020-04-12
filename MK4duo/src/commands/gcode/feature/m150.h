@@ -60,7 +60,7 @@ inline void gcode_M150() {
         #endif
       );
       HAL::delayMilliseconds(100);
-    } while (end_timer.pending(second * 1000));
+    } while (end_timer.pending(SECOND_TO_MILLIS(second)));
   } 
   else {
     leds.set_color(MakeLEDColor(

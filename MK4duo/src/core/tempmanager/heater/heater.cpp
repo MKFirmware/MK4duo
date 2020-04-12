@@ -126,7 +126,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
   #if TEMP_RESIDENCY_TIME > 0
     long_timer_t residency_start_timer;
     // Loop until the temperature has stabilized
-    #define TEMP_CONDITIONS (!residency_start_timer.isRunning() || residency_start_timer.pending((TEMP_RESIDENCY_TIME) * 1000))
+    #define TEMP_CONDITIONS (!residency_start_timer.isRunning() || residency_start_timer.pending(SECOND_TO_MILLIS(TEMP_RESIDENCY_TIME)))
   #else
     #define TEMP_CONDITIONS (wants_to_cool ? isCooling() : isHeating())
   #endif
@@ -170,7 +170,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
       if (!residency_start_timer.isRunning()) {
         // Start the residency_start_timer timer when we reach target temp for the first time.
         if (temp_diff < TEMP_WINDOW) {
-          first_loop ? residency_start_timer.start((TEMP_RESIDENCY_TIME) * 1000UL) : residency_start_timer.start();
+          first_loop ? residency_start_timer.start(SECOND_TO_MILLIS(TEMP_RESIDENCY_TIME)) : residency_start_timer.start();
         }
       }
       else if (temp_diff > temp_hysteresis) {
@@ -184,7 +184,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     if (wants_to_cool) {
       // Break after 60 seconds
       // if the temperature did not drop at least 1.5
-      if (!next_cool_check_timer.isRunning() || next_cool_check_timer.expired(60000)) {
+      if (!next_cool_check_timer.isRunning() || next_cool_check_timer.expired(SECOND_TO_MILLIS(60))) {
         if (old_temp - temp < 1.5) break;
         next_cool_check_timer.start();
         old_temp = temp;
@@ -478,10 +478,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       }
     }
 
-    #if DISABLED(MAX_OVERSHOOT_PID_AUTOTUNE)
-      #define MAX_OVERSHOOT_PID_AUTOTUNE 20
-    #endif
-    if (current_temp > target_temp + MAX_OVERSHOOT_PID_AUTOTUNE
+    if (current_temp > data.temp.max
       #if HAS_COOLERS
         && type != IS_COOLER
       #endif
@@ -492,7 +489,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       break;
     }
     #if HAS_COOLERS
-      else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && type == IS_COOLER) {
+      else if (current_temp < data.temp.min && type == IS_COOLER) {
         SERIAL_LM(ER, STR_PID_TEMP_TOO_LOW);
         LCD_ALERTMESSAGEPGM_P(PSTR(STR_PID_TEMP_TOO_LOW));
         Pidtuning = false;
@@ -716,7 +713,7 @@ void Heater::thermal_runaway_protection() {
         thermal_runaway_timer.start();
         break;
       }
-      else if (thermal_runaway_timer.pending((THERMAL_PROTECTION_PERIOD) * 1000)) break;
+      else if (thermal_runaway_timer.pending(SECOND_TO_MILLIS(THERMAL_PROTECTION_PERIOD))) break;
       thermal_runaway_state = TRRunaway;
 
     default: break;

@@ -241,7 +241,7 @@ class GCodeParser {
 
     // Code value for use as time
     static inline millis_l  value_millis()              { return value_ulong(); }
-    static inline millis_l  value_millis_from_seconds() { return (millis_l)(value_float() * 1000UL); }
+    static inline millis_l  value_millis_from_seconds() { return SECOND_TO_MILLIS(value_float()); }
 
     // Reduce to fewer bits
     static inline int16_t   value_int()     { return  (int16_t)value_long(); }

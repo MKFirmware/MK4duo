@@ -90,7 +90,7 @@ Power powerManager;
     void Power::spin() {
       if (tempManager.heaters_isActive() || stepper.driver_is_enable()) power_on();
       #if (POWER_TIMEOUT > 0)
-        else if (last_power_on_timer.expired((POWER_TIMEOUT) * 1000))
+        else if (last_power_on_timer.expired(SECOND_TO_MILLIS(POWER_TIMEOUT)))
           power_off();
       #endif
     }
@@ -106,7 +106,7 @@ Power powerManager;
           HAL::delayMilliseconds(100); // Wait for power to settle
           tmcManager.restore();
         #endif
-        HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
+        HAL::delayMilliseconds(SECOND_TO_MILLIS(DELAY_AFTER_POWER_ON));
       }
     }
 

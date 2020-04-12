@@ -1,61 +1,61 @@
-dist: MagoKimbra
-
-sudo: true
-
+dist: magokimbra
+#
+sudo: false
+#
 language: c
-
+#
 notifications:
   email: false
-
+#
 before_install:
   # Fetch the tag information for the current branch
   - git fetch origin --tags
-
+  #
   # Publish the buildroot script folder
   - chmod +x ${TRAVIS_BUILD_DIR}/buildroot/bin/*
   - export PATH=${TRAVIS_BUILD_DIR}/buildroot/bin/:${PATH}
-
+  #
   # Start fb X server
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16"
+  #- "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16"
   - sleep 3
   - export DISPLAY=:1.0
-
+  #
 install:
-  # Install arduino 1.8.12
-  - wget http://downloads.arduino.cc/arduino-1.8.12-linux64.tar.xz
-  - tar xf arduino-1.8.12-linux64.tar.xz
-  - sudo mv arduino-1.8.12 /usr/local/share/arduino
+  # Install arduino 1.8.10
+  - wget http://downloads.arduino.cc/arduino-1.8.10-linux64.tar.xz
+  - tar xf arduino-1.8.10-linux64.tar.xz
+  - sudo mv arduino-1.8.10 /usr/local/share/arduino
   - ln -s /usr/local/share/arduino/arduino ${TRAVIS_BUILD_DIR}/buildroot/bin/arduino
   - eval \"${TRAVIS_BUILD_DIR}/buildroot/bin/arduino\" --pref "compiler.warning_level=none" --save-prefs
-
+  #
   # Install: LiquidCrystal_I2C library
   - git clone https://github.com/kiyoshigawa/LiquidCrystal_I2C.git
   - mv LiquidCrystal_I2C/LiquidCrystal_I2C /usr/local/share/arduino/libraries/LiquidCrystal_I2C
-
+  #
   # Install: LiquidTWI2 library
   - git clone https://github.com/lincomatic/LiquidTWI2.git
   - sudo mv LiquidTWI2 /usr/local/share/arduino/libraries/LiquidTWI2
-
+  #
   # Install: SDFAT library
   - git clone https://github.com/greiman/SdFat.git
   - sudo mv SdFat /usr/local/share/arduino/libraries/SdFat
-
+  #
   # Install: Monochrome Graphics Library for LCDs and OLEDs
   - git clone https://github.com/olikraus/U8glib_Arduino.git
   - sudo mv U8glib_Arduino /usr/local/share/arduino/libraries/U8glib
-
+  #
   # Install: TMCStepper Motor Controller library
   - git clone https://github.com/teemuatlut/TMCStepper.git
   - sudo mv TMCStepper /usr/local/share/arduino/libraries/TMCStepper
-
+  #
   # Install: Adafruit Neopixel library
   - git clone https://github.com/adafruit/Adafruit_NeoPixel.git
   - sudo mv Adafruit_NeoPixel /usr/local/share/arduino/libraries/Adafruit_NeoPixel
-
+  #
 before_script:
   # Change current working directory to the build dir
   - cd ${TRAVIS_BUILD_DIR}
-
+  #
 script:
   # Backup Configuration pins_RAMPS.h
   - cp MK4duo/Configuration_Basic.h         MK4duo/Configuration_Basic.h.backup
@@ -66,10 +66,10 @@ script:
   - cp MK4duo/Configuration_LCD.h           MK4duo/Configuration_LCD.h.backup
   - cp MK4duo/Configuration_Motor_Driver.h  MK4duo/Configuration_Motor_Driver.h.backup
   - cp MK4duo/Configuration_Temperature.h   MK4duo/Configuration_Temperature.h.backup
-
+  #
   # Build with the default configurations
   - build_mk4duo
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test MECH_CARTESIAN
   # Test SDSUPPORT EEPROM_SETTINGS
@@ -82,7 +82,7 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
   - build_mk4duo
   - restore_configs
-  
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test MECH_CARTESIAN
   # Test SDSUPPORT EEPROM_SETTINGS
@@ -95,7 +95,7 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test MECH_COREXY
   # Test SDSUPPORT EEPROM_SETTINGS
@@ -108,7 +108,7 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test Cartesian
   # Test SDSUPPORT EEPROM_SETTINGS
@@ -121,7 +121,7 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test MECH_DELTA
   # Test SDSUPPORT EEPROM_SETTINGS
@@ -134,7 +134,7 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test Cartesian
   # Test SDSUPPORT EEPROM_SETTINGS
@@ -147,7 +147,7 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 2 extruders and heated bed on basic RAMPS 1.4
   # Test SDSUPPORT EEPROM_SETTINGS
   # Test Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
@@ -164,7 +164,7 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test SDSUPPORT EEPROM_SETTINGS
   # Test a NOZZLE_PARK_FEATURE ADVANCED_PAUSE_FEATURE 
@@ -182,7 +182,7 @@ script:
   - pin_set FIL_RUNOUT_0_PIN ORIG_X_MAX_PIN
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test SDSUPPORT EEPROM_SETTINGS
   # Test a NOZZLE_PARK_FEATURE ADVANCED_PAUSE_FEATURE 
@@ -203,7 +203,7 @@ script:
   - pin_set FIL_RUNOUT_0_PIN ORIG_X_MAX_PIN
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test SDSUPPORT EEPROM_SETTINGS
   # Test a NOZZLE_PARK_FEATURE ADVANCED_PAUSE_FEATURE 
@@ -224,7 +224,7 @@ script:
   - pin_set FIL_RUNOUT_0_PIN ORIG_X_MAX_PIN
   - build_mk4duo
   - restore_configs
-
+  #
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test MECH_DELTA
   # Test SDSUPPORT EEPROM_SETTINGS
@@ -239,4 +239,4 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
   - build_mk4duo
   - restore_configs
- 
+  #

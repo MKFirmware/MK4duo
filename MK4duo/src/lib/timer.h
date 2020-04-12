@@ -26,6 +26,11 @@
  * Copyright (c) 2018 Alberto Cotronei @MagoKimbra
  */
 
+// Conversion define
+#define SECOND_TO_MILLIS(S) ((S)*1000UL)
+#define MINUTE_TO_MILLIS(M) SECOND_TO_MILLIS((M)*60UL)
+#define MILLIS_TO_SECOND(M) ((M)/1000UL)
+
 template <class T>
 class timer {
 

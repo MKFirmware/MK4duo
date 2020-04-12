@@ -185,6 +185,9 @@ class LcdUI {
   private: /** Private Parameters */
 
     #if HAS_LCD
+
+      static short_timer_t next_lcd_update_timer;
+
       #if HAS_LCD_MENU
         #if LCD_TIMEOUT_TO_STATUS
           static bool defer_return_to_status;
@@ -192,6 +195,7 @@ class LcdUI {
           static constexpr bool defer_return_to_status = false;
         #endif
       #endif
+
     #endif
 
   public: /** Public Function */
@@ -226,6 +230,10 @@ class LcdUI {
     }
 
     static void clear_lcd();
+
+    #if HAS_SD_SUPPORT
+      static void sd_changed(const uint8_t old_status, const uint8_t status);
+    #endif
 
     #if HAS_LCD
 
@@ -318,7 +326,8 @@ class LcdUI {
       static inline void return_to_status() {}
       static inline void reset_status() {}
       static inline void reset_alert_level() {}
-      static constexpr bool has_status() { return false; }
+      static inline bool has_status() { return false; }
+      static inline bool detected() { return true; }
 
     #endif
 

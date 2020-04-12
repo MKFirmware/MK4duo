@@ -1386,8 +1386,8 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
   #endif
 
-  block->nominal_speed_sqr = sq(block->millimeters * inverse_secs);   //   (mm/sec)^2 Always > 0
-  block->nominal_rate = CEIL(block->step_event_count * inverse_secs); // (step/sec) Always > 0
+  block->nominal_speed_sqr  = sq(block->millimeters * inverse_secs);        //   (mm/sec)^2 Always > 0
+  block->nominal_rate       = CEIL(block->step_event_count * inverse_secs); // (step/sec)   Always > 0
 
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
     static float filwidth_e_count = 0, filwidth_delay_dist = 0;

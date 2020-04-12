@@ -387,6 +387,10 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
     }
   #endif
 
+  #if HAS_SD_SUPPORT
+    card.manage_sd();
+  #endif
+
   lcdui.update();
 
   #if HAS_POWER_CHECK
@@ -404,7 +408,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
 
   handle_safety_watch();
 
-  if (max_inactivity_timer.expired(max_inactive_time * 1000)) {
+  if (max_inactivity_timer.expired(SECOND_TO_MILLIS(max_inactive_time))) {
     SERIAL_LMT(ER, STR_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(GET_TEXT(MSG_KILLED));
   }
@@ -446,7 +450,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
     static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
       reset_move_timer();  // reset stepper move watch to keep steppers powered
-    else if (MOVE_AWAY_TEST && !no_stepper_sleep && move_timer.expired(move_time * 1000UL, false)) {
+    else if (MOVE_AWAY_TEST && !no_stepper_sleep && move_timer.expired(SECOND_TO_MILLIS(move_time), false)) {
       if (!already_shutdown_steppers) {
         if (printer.debugFeature()) DEBUG_EM("Stepper shutdown");
         already_shutdown_steppers = true; 
@@ -523,7 +527,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
     static long_timer_t extruder_runout_timer(millis());
     if (hotends[toolManager.active_hotend()]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
-      && extruder_runout_timer.expired((EXTRUDER_RUNOUT_SECONDS) * 1000)
+      && extruder_runout_timer.expired(SECOND_TO_MILLIS(EXTRUDER_RUNOUT_SECONDS))
       && !planner.has_blocks_queued()
     ) {
       const float olde = mechanics.position.e;
@@ -537,7 +541,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (mechanics.delayed_move_timer.expired(1000, false) && isRunning()) {
+    if (mechanics.delayed_move_timer.expired(SECOND_TO_MILLIS(1), false) && isRunning()) {
       // travel moves have been received so enact them
       mechanics.destination = mechanics.position;
       mechanics.prepare_move_to_destination();
@@ -550,7 +554,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
     if (hotends[toolManager.active_hotend()]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
       if (hotends[toolManager.active_hotend()]->deg_target() < IDLE_OOZING_MINTEMP)
         toolManager.IDLE_OOZING_retract(false);
-      else if (axis_last_activity_timer.expired((IDLE_OOZING_SECONDS) * 1000))
+      else if (axis_last_activity_timer.expired(SECOND_TO_MILLIS(IDLE_OOZING_SECONDS)))
         toolManager.IDLE_OOZING_retract(true);
     }
   #endif
@@ -695,7 +699,7 @@ void Printer::handle_safety_watch() {
    */
   void Printer::host_keepalive_tick() {
     static short_timer_t host_keepalive_timer(millis());
-    if (!isSuspendAutoreport() && host_keepalive_timer.expired(host_keepalive_time * 1000) && busy_state != NotBusy) {
+    if (!isSuspendAutoreport() && host_keepalive_timer.expired(SECOND_TO_MILLIS(host_keepalive_time)) && busy_state != NotBusy) {
       switch (busy_state) {
         case InHandler:
         case InProcess:
@@ -726,7 +730,7 @@ void Printer::handle_safety_watch() {
     static short_timer_t next_status_led_update_timer(millis());
 
     // Update every 0.5s
-    if (next_status_led_update_timer.expired(500)) {
+    if (next_status_led_update_timer.expired(SECOND_TO_MILLIS(0.5))) {
       float max_temp = 0.0;
       #if HAS_CHAMBERS
         LOOP_CHAMBER()

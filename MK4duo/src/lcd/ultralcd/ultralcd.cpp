@@ -52,14 +52,6 @@ char    LcdUI::status_message[MAX_MESSAGE_LENGTH + 1];
   #endif
 #endif
 
-#if HAS_SD_SUPPORT
-  uint8_t lcd_sd_status;
-#endif
-
-#if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
-  bool LcdUI::defer_return_to_status;
-#endif
-
 uint8_t LcdUI::status_update_delay = 1; // First update one loop delayed
 
 #if (HAS_LCD_FILAMENT_SENSOR && HAS_SD_SUPPORT) || HAS_LCD_POWER_SENSOR
@@ -76,6 +68,13 @@ millis_l LcdUI::next_button_update_ms = 0;
 #if HAS_ENCODER_ACTION
   uint32_t LcdUI::encoderPosition;
   volatile int8_t encoderDiff; // Updated in update_buttons, added to encoderPosition every LCD update
+#endif
+
+/** Private Parameters */
+short_timer_t LcdUI::next_lcd_update_timer(millis());
+
+#if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
+  bool LcdUI::defer_return_to_status;
 #endif
 
 #if HAS_LCD_MENU
@@ -265,11 +264,8 @@ void LcdUI::init() {
 
   #endif // !HAS_DIGITAL_BUTTONS
 
-  #if HAS_SD_SUPPORT
-    #if PIN_EXISTS(SD_DETECT)
-      SET_INPUT_PULLUP(SD_DETECT_PIN);
-    #endif
-    lcd_sd_status = 2; // UNKNOWN
+  #if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
+    SET_INPUT_PULLUP(SD_DETECT_PIN);
   #endif
 
   #if HAS_ENCODER_ACTION && HAS_SLOW_BUTTONS
@@ -287,7 +283,7 @@ void LcdUI::init() {
 bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   static uint8_t blink = 0;
   static short_timer_t next_blink_timer(millis());
-  if (next_blink_timer.expired(1000 * moltiplicator)) blink ^= 0xFF;
+  if (next_blink_timer.expired(SECOND_TO_MILLIS(moltiplicator))) blink ^= 0xFF;
   return blink != 0;
 }
 
@@ -644,7 +640,6 @@ bool LcdUI::detected() {
 void LcdUI::update() {
 
   static uint16_t max_display_update_time = 0;
-  static short_timer_t next_lcd_update_timer(millis());
   const millis_l ms = millis();
 
   #if HAS_LCD_MENU
@@ -680,40 +675,6 @@ void LcdUI::update() {
     #endif
 
   #endif // HAS_LCD_MENU
-
-  #if HAS_SD_SUPPORT
-
-    const uint8_t sd_status = (uint8_t)IS_SD_INSERTED();
-    if (sd_status != lcd_sd_status && detected()) {
-
-      uint8_t old_sd_status = lcd_sd_status; // prevent re-entry to this block!
-      lcd_sd_status = sd_status;
-
-      if (sd_status) {
-        HAL::delayMilliseconds(500);  // Some boards need a delay to get settled
-        card.mount();
-        if (old_sd_status == 2)
-          card.beginautostart();  // Initial boot
-        else
-          set_status_P(GET_TEXT(MSG_SD_INSERTED));
-      }
-      #if PIN_EXISTS(SD_DETECT)
-        else {
-          card.unmount();
-          if (old_sd_status != 2) {
-            set_status_P(GET_TEXT(MSG_SD_REMOVED));
-            if (!on_status_screen()) return_to_status();
-          }
-        }
-        init_lcd(); // May revive the LCD if static electricity killed it
-      #endif
-
-      refresh();
-      next_lcd_update_timer.start();
-
-    }
-
-  #endif // HAS_SD_SUPPORT
 
   if (next_lcd_update_timer.expired(LCD_UPDATE_INTERVAL)
     #if HAS_GRAPHICAL_LCD
@@ -1297,7 +1258,7 @@ void LcdUI::reset_status() {
 void LcdUI::pause_print() {
 
   #if HAS_LCD_MENU
-    synchronize(GET_TEXT(MSG_PAUSE_PRINT));
+    synchronize(GET_TEXT(MSG_PAUSING));
   #endif
 
   host_action.prompt_open(PROMPT_PAUSE_RESUME, PSTR("LCD Pause"), PSTR("Resume"));

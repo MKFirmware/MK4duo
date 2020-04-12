@@ -146,36 +146,15 @@ typedef ab_float_t                       ab_pos_t;
 typedef abc_float_t                     abc_pos_t;
 typedef abce_float_t                   abce_pos_t;
 
-#if ENABLED(WORKSPACE_OFFSETS)
-
-  #define NATIVE_TO_LOGICAL(POS, AXIS)    ((POS) + mechanics.workspace_offset[AXIS])
-  #define LOGICAL_TO_NATIVE(POS, AXIS)    ((POS) - mechanics.workspace_offset[AXIS])
-  inline void toLogical(xy_pos_t &raw)    { raw += mechanics.workspace_offset; }
-  inline void toLogical(xyz_pos_t &raw)   { raw += mechanics.workspace_offset; }
-  inline void toLogical(xyze_pos_t &raw)  { raw += mechanics.workspace_offset; }
-  inline void toNative(xy_pos_t &raw)     { raw -= mechanics.workspace_offset; }
-  inline void toNative(xyz_pos_t &raw)    { raw -= mechanics.workspace_offset; }
-  inline void toNative(xyze_pos_t &raw)   { raw -= mechanics.workspace_offset; }
-
-#else
-
-  #define NATIVE_TO_LOGICAL(POS, AXIS)    (POS)
-  #define LOGICAL_TO_NATIVE(POS, AXIS)    (POS)
-  inline void toLogical(xy_pos_t &raw)    { UNUSED(raw); }
-  inline void toLogical(xyz_pos_t &raw)   { UNUSED(raw); }
-  inline void toLogical(xyze_pos_t &raw)  { UNUSED(raw); }
-  inline void toNative(xy_pos_t &raw)     { UNUSED(raw); }
-  inline void toNative(xyz_pos_t &raw)    { UNUSED(raw); }
-  inline void toNative(xyze_pos_t &raw)   { UNUSED(raw); }
-
-#endif
-
-#define LOGICAL_X_POSITION(POS) NATIVE_TO_LOGICAL(POS, X_AXIS)
-#define LOGICAL_Y_POSITION(POS) NATIVE_TO_LOGICAL(POS, Y_AXIS)
-#define LOGICAL_Z_POSITION(POS) NATIVE_TO_LOGICAL(POS, Z_AXIS)
-#define NATIVE_X_POSITION(POS)  LOGICAL_TO_NATIVE(POS, X_AXIS)
-#define NATIVE_Y_POSITION(POS)  LOGICAL_TO_NATIVE(POS, Y_AXIS)
-#define NATIVE_Z_POSITION(POS)  LOGICAL_TO_NATIVE(POS, Z_AXIS)
+/**
+ * External conversion methods
+ */
+void toLogical(xy_pos_t &raw);
+void toLogical(xyz_pos_t &raw);
+void toLogical(xyze_pos_t &raw);
+void toNative(xy_pos_t &raw);
+void toNative(xyz_pos_t &raw);
+void toNative(xyze_pos_t &raw);
 
 /**
  * XY coordinates, counters, etc.

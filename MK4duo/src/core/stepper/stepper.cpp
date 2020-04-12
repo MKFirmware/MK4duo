@@ -1486,7 +1486,7 @@ void Stepper::pulse_phase_step() {
 uint32_t Stepper::block_phase_step() {
 
   // If no queued movements, just wait 1ms for the next block
-  uint32_t interval = (STEPPER_TIMER_RATE) / 1000UL;
+  uint32_t interval = MILLIS_TO_SECOND(STEPPER_TIMER_RATE);
 
   // If there is a current block
   if (current_block) {

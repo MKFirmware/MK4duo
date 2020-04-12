@@ -28,35 +28,35 @@
 
 #if ENABLED(LASER)
 
-  #define CODE_M649
+#define CODE_M649
 
-  // M649 set laser options
-  inline void gcode_M649() {
-    // do this at the start so we can debug if needed!
-    if (parser.seen('D') && printer.isRunning()) laser.diagnostics = parser.value_bool();
+// M649 set laser options
+inline void gcode_M649() {
+  // do this at the start so we can debug if needed!
+  if (parser.seen('D') && printer.isRunning()) laser.diagnostics = parser.value_bool();
 
-    // Wait for the rest
-    // planner.synchronize();
-    if (parser.seen('S') && printer.isRunning()) {
-      laser.intensity = parser.value_float();
-      #if ENABLED(LASER_RASTER)
-        laser.rasterlaserpower = laser.intensity;
-      #endif
-    }
-
-    if (printer.isRunning()) {
-      if (parser.seen('L')) laser.duration = parser.value_ulong();
-      if (parser.seen('P')) laser.ppm = parser.value_float();
-      if (parser.seen('B')) laser.set_mode(parser.value_int());
-      #if ENABLED(LASER_RASTER)
-        if (parser.seen('R')) laser.raster_mm_per_pulse = (parser.value_float());
-      #endif
-    }
-
-    if (parser.seen('F')) {
-      float next_feedrate = parser.value_linear_units();
-      if (next_feedrate > 0.0) mechanics.feedrate_mm_s = next_feedrate;
-    }
+  // Wait for the rest
+  // planner.synchronize();
+  if (parser.seen('S') && printer.isRunning()) {
+    laser.intensity = parser.value_float();
+    #if ENABLED(LASER_RASTER)
+      laser.rasterlaserpower = laser.intensity;
+    #endif
   }
+
+  if (printer.isRunning()) {
+    if (parser.seen('L')) laser.duration = parser.value_ulong();
+    if (parser.seen('P')) laser.ppm = parser.value_float();
+    if (parser.seen('B')) laser.set_mode(parser.value_int());
+    #if ENABLED(LASER_RASTER)
+      if (parser.seen('R')) laser.raster_mm_per_pulse = (parser.value_float());
+    #endif
+  }
+
+  if (parser.seen('F')) {
+    float next_feedrate = parser.value_linear_units();
+    if (next_feedrate > 0.0) mechanics.feedrate_mm_s = next_feedrate;
+  }
+}
 
 #endif // ENABLED(LASER)

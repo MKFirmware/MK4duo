@@ -175,9 +175,10 @@ typedef struct {
 
     #if HAS_MAX6675
 
-      #define MAX6675_HEAT_INTERVAL 250u
+      #define MAX6675_HEAT_INTERVAL 250UL
       #define MAX6675_ERROR_MASK      4
       #define MAX6675_DISCARD_BITS    3
+      #define MAX6675_SPEED_BITS      2
 
       int16_t read_max6675() {
 
@@ -187,20 +188,11 @@ typedef struct {
         if (next_max6675_timer.pending(MAX6675_HEAT_INTERVAL))
           return int16_t(max6675_temp);
 
-        #if ENABLED(CPU_32_BIT)
-          HAL::spiBegin();
-        #else
-          CBI(
-            #ifdef PRR
-              PRR
-            #elif defined(PRR0)
-              PRR0
-            #endif
-              , PRSPI);
-          SPCR = _BV(MSTR) | _BV(SPE) | _BV(SPR0);
-        #endif
+        HAL::spiBegin();
+        HAL::spiInit(MAX6675_SPEED_BITS);
 
-        HAL::digitalWrite(pin, LOW); // enable TT_MAX6675
+        // enable TT_MAX6675
+        HAL::digitalWrite(pin, LOW);
 
         // ensure 100ns delay
         HAL::delayNanoseconds(100);
@@ -208,25 +200,19 @@ typedef struct {
         // Read a big-endian temperature value
         max6675_temp = 0;
         for (uint8_t i = sizeof(max6675_temp); i--;) {
-          #if ENABLED(CPU_32_BIT)
-            max6675_temp |= HAL::spiReceive();
-          #else
-            SPDR = 0;
-            for (;!TEST(SPSR, SPIF););
-            max6675_temp |= SPDR;
-          #endif
-          if (i > 0) max6675_temp <<= 8; // shift left if not the last byte
+          max6675_temp |= HAL::spiReceive();
+          if (i > 0) max6675_temp <<= 8;  // shift left if not the last byte
         }
 
-        HAL::digitalWrite(pin, HIGH); // disable TT_MAX6675
+        // disable TT_MAX6675
+        HAL::digitalWrite(pin, HIGH);
 
         if (max6675_temp & MAX6675_ERROR_MASK) {
           SERIAL_LM(ER, "MAX6675 Temp measurement error!");
           max6675_temp = 2000; // thermocouple open
         }
-        else {
+        else
           max6675_temp >>= MAX6675_DISCARD_BITS;
-        }
 
         return int16_t(max6675_temp);
       }

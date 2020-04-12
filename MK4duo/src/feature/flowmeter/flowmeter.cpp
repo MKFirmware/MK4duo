@@ -73,7 +73,7 @@ void FlowMeter::spin() {
   millis_l now = millis();
 
   detachInterrupt(digitalPinToInterrupt(FLOWMETER_PIN));
-  flowrate  = (float)(((1000.0 / (float)((float)now - (float)lastflow)) * (float)flowrate_pulsecount) / (float)FLOWMETER_CALIBRATION);
+  flowrate  = (float)(((1000.0f / (float)((float)now - (float)lastflow)) * (float)flowrate_pulsecount) / (float)FLOWMETER_CALIBRATION);
   #if ENABLED(FLOWMETER_DEBUG)
     SERIAL_SM(DEB, "FLOWMETER DEBUG ");
     SERIAL_MV(" flowrate:", flowrate);

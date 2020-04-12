@@ -134,7 +134,6 @@ LsActionEnum SDCard::lsAction   = LS_Count;
 #endif
 
 /** Public Function */
-
 void SDCard::mount() {
 
   if (isMounted()) return;
@@ -196,6 +195,36 @@ void SDCard::unmount() {
 void SDCard::ls() {
   setroot();
   lsRecursive(&root);
+}
+
+void SDCard::manage_sd() {
+
+  static uint8_t prev_sd_status = 2; // UNKNOWN
+
+  uint8_t sd_status = uint8_t(IS_SD_INSERTED());
+
+  if (sd_status != prev_sd_status && lcdui.detected()) {
+
+    uint8_t old_sd_status = prev_sd_status;
+    prev_sd_status = sd_status;                 // Change now to prevent re-entry
+
+    if (sd_status) {                            // Media Inserted
+      HAL::delayMilliseconds(500);              // Some boards need a delay to get settled
+      mount();                                  // Try to mount the media
+      if (!isMounted()) sd_status = 0;          // Not mounted?
+    }
+    else {
+      #if PIN_EXISTS(SD_DETECT)
+        unmount();                              // Card is released
+      #endif
+    }
+
+    lcdui.sd_changed(old_sd_status, sd_status); // Update the UI
+
+    if (sd_status && old_sd_status == 2)        // First mount?
+      beginautostart();                         // Look for autostart files soon
+
+  }
 }
 
 void SDCard::getfilename(uint16_t nr, PGM_P const match/*=nullptr*/) {
