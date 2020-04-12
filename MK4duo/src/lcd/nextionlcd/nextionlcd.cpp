@@ -51,10 +51,6 @@ NextionLCD nexlcd;
 
 /** LcdUI Parameters */
 char    LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH + 1];
-uint8_t LcdUI::alert_level = 0,
-        LcdUI::lang = 0;
-
-short_timer_t LcdUI::next_lcd_update_timer(millis());
 
 #if HAS_LCD_MENU
 
@@ -76,10 +72,6 @@ short_timer_t LcdUI::next_lcd_update_timer(millis());
   bool          LcdUI::screen_changed;
 
   int8_t        LcdUI::manual_move_e_index = 0;
-
-  #if LCD_HAS_WAIT_FOR_MOVE
-    bool LcdUI::wait_for_move = false;
-  #endif
 
   #if HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
