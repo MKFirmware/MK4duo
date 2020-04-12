@@ -31,6 +31,17 @@
 
 LcdUI lcdui;
 
+#if LCD_HAS_WAIT_FOR_MOVE
+  bool LcdUI::wait_for_move = false;
+#endif
+
+#if HAS_LCD
+  uint8_t LcdUI::alert_level = 0,
+          LcdUI::lang = 0;
+
+  short_timer_t LcdUI::next_lcd_update_timer(millis());
+#endif
+
 #if HAS_SD_SUPPORT
 
 void LcdUI::sd_changed(const uint8_t old_status, const uint8_t status) {

@@ -24,10 +24,6 @@
 
 #if HAS_SPI_LCD
 
-#if LCD_HAS_WAIT_FOR_MOVE
-  bool LcdUI::wait_for_move = false;
-#endif
-
 #if ENABLED(STATUS_MESSAGE_SCROLLING)
   uint8_t LcdUI::status_scroll_offset; // = 0
   constexpr uint8_t MAX_MESSAGE_LENGTH = MAX(LONG_FILENAME_LENGTH, MAX_LANG_CHARSIZE * 2 * (LCD_WIDTH));
@@ -35,8 +31,6 @@
   constexpr uint8_t MAX_MESSAGE_LENGTH = MAX_LANG_CHARSIZE * (LCD_WIDTH);
 #endif
 
-uint8_t LcdUI::alert_level  = 0,
-        LcdUI::lang         = 0;
 char    LcdUI::status_message[MAX_MESSAGE_LENGTH + 1];
 
 #if HAS_GRAPHICAL_LCD
@@ -71,8 +65,6 @@ millis_l LcdUI::next_button_update_ms = 0;
 #endif
 
 /** Private Parameters */
-short_timer_t LcdUI::next_lcd_update_timer(millis());
-
 #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
   bool LcdUI::defer_return_to_status;
 #endif
