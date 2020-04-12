@@ -257,9 +257,9 @@ NexObject *nex_listen_list[] =
 /** Public Function */
 void NextionLCD::init() {
 
-  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
+  const uint32_t baudrate_array[] = { 115200, 57600, 38400, 19200, 9600, 4800, 2400 };
 
-  const uint32_t baudrate_array[7] = { 115200, 57600, 38400, 19200, 9600, 4800, 2400 };
+  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   for (uint8_t i = 0; i < COUNT(baudrate_array); i++) {
 
@@ -274,6 +274,10 @@ void NextionLCD::init() {
       // Set Page 0 and NEXTION_BAUDRATE
       sendCommandPGM(PSTR("page pg0"));
       sendCommandPGM(PSTR("baud=" STRINGIFY(NEXTION_BAUDRATE)));
+      HAL::delayMilliseconds(20);
+
+      // Clear buffer RX
+      clear_rx();
 
       // Try at NEXTION_BAUDRATE
       NextionON = getConnect(NEXTION_BAUDRATE, cmd);
@@ -1019,6 +1023,7 @@ bool NextionLCD::getConnect(const uint32_t baudrate, char* buffer) {
   HAL::delayMilliseconds(100);
   nexSerial.begin(baudrate);
   HAL::delayMilliseconds(100);
+
   sendCommand("");
   HAL::delayMilliseconds(100);
   sendCommandPGM(PSTR("connect"));
