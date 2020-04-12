@@ -354,6 +354,37 @@ class Mechanics {
 
 };
 
+#if ENABLED(WORKSPACE_OFFSETS)
+
+  #define NATIVE_TO_LOGICAL(POS, AXIS)          ((POS) + Mechanics::workspace_offset[AXIS])
+  #define LOGICAL_TO_NATIVE(POS, AXIS)          ((POS) - Mechanics::workspace_offset[AXIS])
+  FORCE_INLINE void toLogical(xy_pos_t &raw)    { raw += Mechanics::workspace_offset; }
+  FORCE_INLINE void toLogical(xyz_pos_t &raw)   { raw += Mechanics::workspace_offset; }
+  FORCE_INLINE void toLogical(xyze_pos_t &raw)  { raw += Mechanics::workspace_offset; }
+  FORCE_INLINE void toNative(xy_pos_t &raw)     { raw -= Mechanics::workspace_offset; }
+  FORCE_INLINE void toNative(xyz_pos_t &raw)    { raw -= Mechanics::workspace_offset; }
+  FORCE_INLINE void toNative(xyze_pos_t &raw)   { raw -= Mechanics::workspace_offset; }
+
+#else
+
+  #define NATIVE_TO_LOGICAL(POS, AXIS)          (POS)
+  #define LOGICAL_TO_NATIVE(POS, AXIS)          (POS)
+  FORCE_INLINE void toLogical(xy_pos_t &raw)    { UNUSED(raw); }
+  FORCE_INLINE void toLogical(xyz_pos_t &raw)   { UNUSED(raw); }
+  FORCE_INLINE void toLogical(xyze_pos_t &raw)  { UNUSED(raw); }
+  FORCE_INLINE void toNative(xy_pos_t &raw)     { UNUSED(raw); }
+  FORCE_INLINE void toNative(xyz_pos_t &raw)    { UNUSED(raw); }
+  FORCE_INLINE void toNative(xyze_pos_t &raw)   { UNUSED(raw); }
+
+#endif
+
+#define LOGICAL_X_POSITION(POS) NATIVE_TO_LOGICAL(POS, X_AXIS)
+#define LOGICAL_Y_POSITION(POS) NATIVE_TO_LOGICAL(POS, Y_AXIS)
+#define LOGICAL_Z_POSITION(POS) NATIVE_TO_LOGICAL(POS, Z_AXIS)
+#define NATIVE_X_POSITION(POS)  LOGICAL_TO_NATIVE(POS, X_AXIS)
+#define NATIVE_Y_POSITION(POS)  LOGICAL_TO_NATIVE(POS, Y_AXIS)
+#define NATIVE_Z_POSITION(POS)  LOGICAL_TO_NATIVE(POS, Z_AXIS)
+
 #if MECH(CARTESIAN)
   #include "cartesian_mechanics.h"
 #elif IS_CORE
