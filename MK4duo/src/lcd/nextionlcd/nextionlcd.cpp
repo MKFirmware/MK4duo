@@ -263,18 +263,19 @@ void NextionLCD::init() {
 
   for (uint8_t i = 0; i < COUNT(baudrate_array); i++) {
 
-    ZERO(cmd);
+    // Attempt 1 second
+    HAL::delayMilliseconds(SECOND_TO_MILLIS(1));
 
     if (getConnect(baudrate_array[i], cmd)) {
       #if ENABLED(NEXTION_CONNECT_DEBUG)
         SERIAL_SMV(ECHO, "NEXTION connected at ", baudrate_array[i]);
-        SERIAL_EM(" baud, changing baudrate");
+        SERIAL_EMV(" baud, new baudrate:", NEXTION_BAUDRATE);
       #endif
 
       // Set Page 0 and NEXTION_BAUDRATE
       sendCommandPGM(PSTR("page pg0"));
       sendCommandPGM(PSTR("baud=" STRINGIFY(NEXTION_BAUDRATE)));
-      HAL::delayMilliseconds(20);
+      HAL::delayMilliseconds(50);
 
       // Clear buffer RX
       clear_rx();
@@ -283,15 +284,13 @@ void NextionLCD::init() {
       NextionON = getConnect(NEXTION_BAUDRATE, cmd);
       if (NextionON) {
         #if ENABLED(NEXTION_CONNECT_DEBUG)
-          SERIAL_SMT(ECHO, "NEXTION connected at ", NEXTION_BAUDRATE);
+          SERIAL_SMV(ECHO, "NEXTION connected at ", NEXTION_BAUDRATE);
           SERIAL_EM(" baud.");
         #endif
         break;
       }
     }
 
-    // Attempt 1 second
-    HAL::delayMilliseconds(SECOND_TO_MILLIS(1));
   }
 
   if (!NextionON) {
@@ -1019,6 +1018,8 @@ uint16_t NextionLCD::recvRetNumber() {
 
 bool NextionLCD::getConnect(const uint32_t baudrate, char* buffer) {
 
+  ZERO(buffer);
+
   nexSerial.end();
   HAL::delayMilliseconds(100);
   nexSerial.begin(baudrate);
@@ -1026,6 +1027,7 @@ bool NextionLCD::getConnect(const uint32_t baudrate, char* buffer) {
 
   sendCommand("");
   HAL::delayMilliseconds(100);
+  clear_rx();
   sendCommandPGM(PSTR("connect"));
   HAL::delayMilliseconds(100);
 
