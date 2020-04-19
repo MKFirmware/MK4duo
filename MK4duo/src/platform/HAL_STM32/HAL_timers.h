@@ -140,7 +140,7 @@ extern HardwareTimer *MK_step_timer;
 // ------------------------
 // Public functions for timer
 // ------------------------
-extern void Step_Handler(HardwareTimer*);
+extern void Step_Handler();
 
 // ------------------------
 // Public functions
