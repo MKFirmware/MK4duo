@@ -156,8 +156,8 @@ namespace language_pt_br {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Slot de Memória"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Ler Malha"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Salvar Malha"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Malha %i carregada"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Malha %i salva"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Malha %i carregada"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Malha %i salva"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Sem armazenamento"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Erro ao salvar UBL"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Erro no restauro UBL"));

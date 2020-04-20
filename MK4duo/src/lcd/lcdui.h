@@ -438,10 +438,6 @@ class LcdUI {
 
   private: /** Public Function */
 
-    #if HAS_LCD_MENU
-      static void _synchronize();
-    #endif
-
     #if HAS_SPI_LCD
       static void draw_status_screen();
       static void finish_status(const bool persist);

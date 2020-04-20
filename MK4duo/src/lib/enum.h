@@ -278,7 +278,7 @@ enum PauseModeEnum : uint8_t {
 };
 
 enum PauseMessageEnum : uint8_t {
-  PAUSE_MESSAGE_PAUSING,
+  PAUSE_MESSAGE_PARKING,
   PAUSE_MESSAGE_CHANGING,
   PAUSE_MESSAGE_WAITING,
   PAUSE_MESSAGE_UNLOAD,

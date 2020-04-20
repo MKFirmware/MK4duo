@@ -173,8 +173,8 @@ namespace language_cz {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Pametový slot"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Nacíst sít bodu"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Uložit sít bodu"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Sít %i nactena"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Sít %i uložena"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Sít %i nactena"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Sít %i uložena"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Nedostatek místa"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Ch.: Uložit UBL"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Ch.: Obnovit UBL"));
@@ -483,7 +483,7 @@ namespace language_cz {
   #if LCD_HEIGHT >= 4
     // Up to 3 lines allowed
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Stiknete tlacítko", "pro obnovení tisku")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parkování...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parkování...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Cekejte prosím", "na zahájení", "výmeny filamentu")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Vložte filament", "a stisknete", "tlacítko...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Kliknete pro", "nahrátí trysky")));
@@ -496,7 +496,7 @@ namespace language_cz {
   #else // LCD_HEIGHT < 4
     // Up to 2 lines allowed
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Stiknete tlac.", "pro obnovení")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parkování...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parkování...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Cekejte...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Vložte, kliknete")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Kliknete pro", "nahrátí")));

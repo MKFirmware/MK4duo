@@ -198,12 +198,8 @@ void Printer::check_periodical_actions() {
     if (card.isAutoreport()) card.print_status();
   #endif
 
-  if (planner.flag.clean_buffer_flag) {
-    planner.flag.clean_buffer_flag = false;
-    #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
-      commands.inject_P(PSTR(SD_FINISHED_RELEASECOMMAND));
-    #endif
-  }
+  if (planner.flag.clean_buffer)
+    planner.flag.clean_buffer = false;
 
   fanManager.spin();
 
@@ -772,6 +768,21 @@ void Printer::handle_safety_watch() {
  */
 void setup() {
 
+  #if ENABLED(MK4DUO_DEV_MODE)
+    auto log_current_msg = [&](PGM_P const msg) {
+      SERIAL_STR(ECHO);
+      SERIAL_CHR('[');
+      SERIAL_VAL(millis());
+      SERIAL_MSG("] ");
+      SERIAL_STR(msg);
+      SERIAL_EOL();
+    };
+    #define SERIAL_LOG(M)   log_current_msg(PSTR(M))
+  #else
+    #define SERIAL_LOG(...) NOOP
+  #endif
+  #define   SERIAL_RUN(C)   do{ SERIAL_LOG(STRINGIFY(C)); C; }while(0)
+
   HAL::hwSetup();
 
   #if ENABLED(MB_SETUP)
@@ -818,21 +829,6 @@ void setup() {
 
   SERIAL_SMV(ECHO, STR_FREE_MEMORY, freeMemory());
   SERIAL_EMV(STR_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
-
-  #if ENABLED(MK4DUO_DEV_MODE)
-    auto log_current_msg = [&](PGM_P const msg) {
-      SERIAL_STR(ECHO);
-      SERIAL_CHR('[');
-      SERIAL_VAL(millis());
-      SERIAL_MSG("] ");
-      SERIAL_STR(msg);
-      SERIAL_EOL();
-    };
-    #define SERIAL_LOG(M)   log_current_msg(PSTR(M))
-  #else
-    #define SERIAL_LOG(...) NOOP
-  #endif
-  #define   SERIAL_RUN(C)   do{ SERIAL_LOG(STRINGIFY(C)); C; }while(0)
 
   #if HAS_SD_SUPPORT
     SERIAL_RUN(card.mount());

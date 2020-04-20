@@ -182,8 +182,8 @@ namespace language_pl {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Slot Pamieci"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Zaladuj siatke stolu"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Zapisz siatke stolu"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Siatka %i zaladowana"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Siatka %i Zapisana"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Siatka %i zaladowana"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Siatka %i Zapisana"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Brak magazynu"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Blad: Zapis UBL"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Blad: Odczyt UBL"));
@@ -534,7 +534,7 @@ namespace language_pl {
   //
   #if LCD_HEIGHT >= 4
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Nacisnik przycisk", "by wznowic drukowanie")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parkowanie...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parkowanie...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Czekam na", "zmiane filamentu", "by wystartowac")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Wlóz filament", "i nacisnij przycisk", "by kontynuowac")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Nacisnij przycisk", "by nagrzac dysze")));
@@ -546,7 +546,7 @@ namespace language_pl {
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_2_LINE("Czekam na", "wznowienie wydruku...")));
   #else
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Kliknij by kontynuowac")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parkowanie...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parkowanie...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Prosze czekac...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Wlóz i kliknij")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_1_LINE("Kliknij by nagrzac")));

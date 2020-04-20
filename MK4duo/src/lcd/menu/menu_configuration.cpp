@@ -256,7 +256,7 @@ void menu_tool_change() {
     float focus = LASER_FOCAL_HEIGHT - f_length;
     char cmd[20];
     sprintf_P(cmd, PSTR("G0 Z%f F150"), focus);
-    lcd_enqueue_one_now(cmd);
+    commands.inject(cmd);
   }
 
   void menu_laser_focus() {
