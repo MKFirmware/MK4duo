@@ -180,8 +180,8 @@ namespace language_fr {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Slot mémoire"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Charger maille"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Sauver maille"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Maille %i chargée"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Maille %i enreg."));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Maille %i chargée"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Maille %i enreg."));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Pas de mémoire"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Err: Enreg. UBL"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Err: Ouvrir UBL"));
@@ -491,7 +491,7 @@ namespace language_fr {
   #if LCD_HEIGHT >= 4
     // Up to 3 lines allowed
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Presser bouton", "pour reprendre")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parking...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parking...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_2_LINE("Attente filament", "pour démarrer")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Insérer filament", "et app. bouton", "pour continuer...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Presser le bouton", "pour chauffer...")));

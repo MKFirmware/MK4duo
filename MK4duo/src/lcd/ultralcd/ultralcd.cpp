@@ -524,8 +524,6 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
 
 #if HAS_LCD_MENU
 
-  extern bool no_reentry; // Flag to prevent recursion into menu handlers
-
   int8_t manual_move_axis = (int8_t)NO_AXIS;
   short_timer_t manual_move_timer;
 
@@ -650,11 +648,11 @@ void LcdUI::update() {
     // If the action button is pressed...
     static bool wait_for_unclick; // = 0
     if (!external_control && button_pressed()) {
-      if (!wait_for_unclick) {                                  // If not waiting for a debounce release:
-        wait_for_unclick = true;                                //  - Set debounce flag to ignore continous clicks
-        lcd_clicked = !printer.isWaitForUser() && !no_reentry;  //  - Keep the click if not waiting for a user-click
-        printer.setWaitForUser(false);                          //  - Any click clears wait for user
-        quick_feedback();                                       //  - Always make a click sound
+      if (!wait_for_unclick) {                    // If not waiting for a debounce release:
+        wait_for_unclick = true;                  //  - Set debounce flag to ignore continous clicks
+        lcd_clicked = !printer.isWaitForUser();   //  - Keep the click if not waiting for a user-click
+        printer.setWaitForUser(false);            //  - Any click clears wait for user
+        quick_feedback();                         //  - Always make a click sound
       }
     }
     else wait_for_unclick = false;
@@ -1251,6 +1249,7 @@ void LcdUI::pause_print() {
 
   #if HAS_LCD_MENU
     synchronize(GET_TEXT(MSG_PAUSING));
+    defer_status_screen();
   #endif
 
   host_action.prompt_open(PROMPT_PAUSE_RESUME, PSTR("LCD Pause"), PSTR("Resume"));
@@ -1258,8 +1257,8 @@ void LcdUI::pause_print() {
   set_status_P(print_paused);
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
-    lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
-    commands.inject_P(PSTR("M25\nM24"));
+    lcd_pause_show_message(PAUSE_MESSAGE_PARKING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
+    commands.inject_P(PSTR("M25 P\nM24"));
   #elif HAS_SD_SUPPORT
     commands.inject_P(PSTR("M25"));
   #else

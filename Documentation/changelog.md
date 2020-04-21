@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 11-04-2020
+* Revision 20-04-2020
 *
 * Version EEPROM MKV80
 *
@@ -52,7 +52,7 @@
 * Add DELTA_SEGMENTS_PER_SECOND_MOVE for delta move
 * Add Linear advanced K-Factor for Extruder
 *
-* Add TMC Homing stepper phase (For now only for Delta)
+* Add TMC Homing stepper phase
 *
 * Add Nextion Baudrate
 * Add Nextion CRC on serial

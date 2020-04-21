@@ -256,7 +256,7 @@ void menu_tool_change() {
     float focus = LASER_FOCAL_HEIGHT - f_length;
     char cmd[20];
     sprintf_P(cmd, PSTR("G0 Z%f F150"), focus);
-    lcd_enqueue_one_now(cmd);
+    commands.inject(cmd);
   }
 
   void menu_laser_focus() {
@@ -382,7 +382,7 @@ void menu_configuration() {
 
   if (printer.mode == PRINTER_MODE_FFF) {
     #if ENABLED(IDLE_OOZING_PREVENT)
-      EDIT_ITEM(bool, MSG_IDLEOOZING, &printer.IDLE_OOZING_enabled);
+      EDIT_ITEM(bool, MSG_IDLEOOZING, &toolManager.IDLE_OOZING_enabled);
     #endif
 
     #if ENABLED(FWRETRACT)

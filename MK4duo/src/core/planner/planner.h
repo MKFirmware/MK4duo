@@ -33,7 +33,7 @@
 union plan_flag_t {
   uint8_t all;
   struct {
-    bool  clean_buffer_flag     : 1;  // A flag to disable queuing of blocks
+    bool  clean_buffer          : 1;  // A flag to disable queuing of blocks
     bool  abort_on_endstop_hit  : 1;  // Abort when endstop hit
     bool  autotemp_enabled      : 1;  // Autotemp
     bool  bit3                  : 1;

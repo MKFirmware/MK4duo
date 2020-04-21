@@ -28,31 +28,31 @@
 
 #if ENABLED(CNC_WORKSPACE_PLANES)
 
-  #define CODE_G17
-  #define CODE_G18
-  #define CODE_G19
+#define CODE_G17
+#define CODE_G18
+#define CODE_G19
 
-  void report_workspace_plane() {
-    SERIAL_SM(ECHO, "Workspace Plane ");
-    SERIAL_STR(
-        mechanics.workspace_plane == mechanics.PLANE_YZ ? PSTR("YZ\n")
-      : mechanics.workspace_plane == mechanics.PLANE_ZX ? PSTR("ZX\n")
-                                              : PSTR("XY\n")
-    );
-  }
+void report_workspace_plane() {
+  SERIAL_SM(ECHO, "Workspace Plane ");
+  SERIAL_STR(
+      mechanics.workspace_plane == PLANE_YZ ? PSTR("YZ\n")
+    : mechanics.workspace_plane == PLANE_ZX ? PSTR("ZX\n")
+                                            : PSTR("XY\n")
+  );
+}
 
-  void set_workspace_plane(const WorkspacePlaneEnum plane) {
-    mechanics.workspace_plane = plane;
-    if (printer.debugInfo()) report_workspace_plane();
-  }
+void set_workspace_plane(const WorkspacePlaneEnum plane) {
+  mechanics.workspace_plane = plane;
+  if (printer.debugInfo()) report_workspace_plane();
+}
 
-  /**
-   * G17: Select Plane XY
-   * G18: Select Plane ZX
-   * G19: Select Plane YZ
-   */
-  inline void gcode_G17() { set_workspace_plane(mechanics.PLANE_XY); }
-  inline void gcode_G18() { set_workspace_plane(mechanics.PLANE_ZX); }
-  inline void gcode_G19() { set_workspace_plane(mechanics.PLANE_YZ); }
+/**
+ * G17: Select Plane XY
+ * G18: Select Plane ZX
+ * G19: Select Plane YZ
+ */
+inline void gcode_G17() { set_workspace_plane(PLANE_XY); }
+inline void gcode_G18() { set_workspace_plane(PLANE_ZX); }
+inline void gcode_G19() { set_workspace_plane(PLANE_YZ); }
 
 #endif // CNC_WORKSPACE_PLANES

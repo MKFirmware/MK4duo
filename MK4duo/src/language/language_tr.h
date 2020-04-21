@@ -154,8 +154,8 @@ namespace language_tr {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Bellek Yuvası"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Yatak Mesh Yükle"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Yatak Mesh Kayıt Et"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Mesh %i yüklendi"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Mesh %i kayıtlandı"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Mesh %i yüklendi"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Mesh %i kayıtlandı"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Depolama Yok"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Hata: UBL Kayıt"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Hata: UBL Yenileme"));

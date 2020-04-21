@@ -953,8 +953,9 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
   // Delta has already moved all three towers up in G28
   // so here it re-homes each tower in turn.
   // Delta homing treats the axes as normal linear axes.
-  const float adjDistance = data.endstop_adj[axis];
-  const float minDistance = (MIN_STEPS_PER_SEGMENT) * steps_to_mm[axis];
+  const float adjDistance = data.endstop_adj[axis],
+              minDistance = (MIN_STEPS_PER_SEGMENT) * steps_to_mm[axis];
+
   // retrace by the amount specified in delta_endstop_adj if more than min steps.
   if (adjDistance < 0 && ABS(adjDistance) > minDistance) { // away from endstop, more than min distance
     if (printer.debugFeature()) DEBUG_EMV("endstop_adj:", adjDistance);

@@ -650,7 +650,7 @@ void EEPROM::post_process() {
     // IDLE oozing
     //
     #if ENABLED(IDLE_OOZING_PREVENT)
-      EEPROM_WRITE(printer.IDLE_OOZING_enabled);
+      EEPROM_WRITE(toolManager.IDLE_OOZING_enabled);
     #endif
 
     //
@@ -1055,7 +1055,7 @@ void EEPROM::post_process() {
       // IDLE oozing
       //
       #if ENABLED(IDLE_OOZING_PREVENT)
-        EEPROM_READ(printer.IDLE_OOZING_enabled);
+        EEPROM_READ(toolManager.IDLE_OOZING_enabled);
       #endif
 
       //

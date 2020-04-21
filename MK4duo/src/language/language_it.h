@@ -166,8 +166,8 @@ namespace language_it {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Slot di memoria"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Carica Mesh Piatto"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Salva Mesh Piatto"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Mesh %i caricata"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Mesh %i salvata"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Mesh %i caricata"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Mesh %i salvata"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Nessuna memoria"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Err: Salvataggio UBL"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Err: Ripristino UBL"));
@@ -507,7 +507,7 @@ namespace language_it {
   //                                                  ...o fino a 2 linee su un display a 3 righe.
   #if LCD_HEIGHT >= 4
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_3_LINE("Premi per", "riprendere", "la stampa")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parcheggiando...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parcheggiando...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Attendere avvio", "del cambio", "di filamento")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Inserisci il", "filamento e premi", "per continuare")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Premi per", "riscaldare ugello")));

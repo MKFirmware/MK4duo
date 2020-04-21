@@ -34,14 +34,23 @@ Commands commands;
 /** Public Parameters */
 Circular_Queue<gcode_t, BUFSIZE> Commands::buffer_ring;
 
+/**
+ * Next Injected PROGMEM Command pointer. (nullptr == empty)
+ * Internal commands are enqueued ahead of serial / SD commands.
+ */
+PGM_P Commands::injected_cmd_P = nullptr;
+
+/**
+ * Injected SRAM Commands
+ */
+char Commands::injected_cmd[64] = { 0 };
+
 long Commands::gcode_last_N = 0;
 
 /** Private Parameters */
 long Commands::gcode_N = 0;
 
 int Commands::serial_count[NUM_SERIAL] = { 0 };
-
-PGM_P Commands::injected_commands_P = nullptr;
 
 /** Public Function */
 void Commands::flush_and_request_resend() {
@@ -50,6 +59,12 @@ void Commands::flush_and_request_resend() {
   ok_to_send();
 }
 
+/**
+ * Add to the circular command queue the next command from:
+ *  - The command-injection queues (injected_cmd_P, injected_cmd)
+ *  - The active serial input (usually USB)
+ *  - The SD card file being actively printed
+ */
 void Commands::get_available() {
   if (buffer_ring.isFull()) return;
   get_serial();
@@ -61,7 +76,7 @@ void Commands::get_available() {
 void Commands::advance_queue() {
 
   // Process immediate commands
-  if (process_injected()) return;
+  if (process_injected_P() || process_injected()) return;
 
   // Return if the G-code buffer is empty
   if (!buffer_ring.count()) return;
@@ -106,10 +121,6 @@ void Commands::advance_queue() {
 
 void Commands::clear_queue() {
   buffer_ring.clear();
-}
-
-void Commands::inject_P(PGM_P const pgcode) {
-  injected_commands_P = pgcode;
 }
 
 void Commands::enqueue_one_now(const char * cmd) {
@@ -571,19 +582,23 @@ bool Commands::enqueue(const char * cmd, bool say_ok/*=false*/, int8_t port/*=-2
   return true;
 }
 
-bool Commands::process_injected() {
+/**
+ * Process the next "immediate" command from PROGMEM.
+ * Return 'true' if any commands were processed.
+ */
+bool Commands::process_injected_P() {
 
-  if (injected_commands_P == nullptr) return false;
+  if (injected_cmd_P == nullptr) return false;
 
   char c;
   size_t i = 0;
-  while ((c = pgm_read_byte(&injected_commands_P[i])) && c != '\n') i++;
+  while ((c = pgm_read_byte(&injected_cmd_P[i])) && c != '\n') i++;
 
   // Extract current command and move pointer to next command
   char cmd[i + 1];
-  memcpy_P(cmd, injected_commands_P, i);
+  memcpy_P(cmd, injected_cmd_P, i);
   cmd[i] = '\0';
-  injected_commands_P = c ? injected_commands_P + i + 1 : nullptr;
+  injected_cmd_P = c ? injected_cmd_P + i + 1 : nullptr;
 
   // Execute command if non-blank
   if (i) {
@@ -591,6 +606,30 @@ bool Commands::process_injected() {
     process_parsed();
   }
 
+  return true;
+}
+
+/**
+ * Process the next "immediate" command from SRAM.
+ * Return 'true' if any commands were processed.
+ */
+bool Commands::process_injected() {
+
+  if (injected_cmd[0] == '\0') return false;
+
+  char c;
+  size_t i = 0;
+  while ((c = injected_cmd[i]) && c != '\n') i++;
+
+  // Execute a non-blank command
+  if (i) {
+    injected_cmd[i] = '\0';
+    parser.parse(injected_cmd);
+    process_parsed();
+  }
+
+  // Copy the next command into place
+  strcpy(injected_cmd, &injected_cmd[i + (c != '\0')]);
   return true;
 }
 
