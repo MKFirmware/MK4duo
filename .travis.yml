@@ -64,7 +64,7 @@ script:
   - cp MK4duo/Configuration_Delta.h         MK4duo/Configuration_Delta.h.backup
   - cp MK4duo/Configuration_Feature.h       MK4duo/Configuration_Feature.h.backup
   - cp MK4duo/Configuration_LCD.h           MK4duo/Configuration_LCD.h.backup
-  - cp MK4duo/Configuration_Motor_Driver.h  MK4duo/Configuration_Motor_Driver.h.backup
+  - cp MK4duo/Configuration_Driver.h        MK4duo/Configuration_Driver.h.backup
   - cp MK4duo/Configuration_Temperature.h   MK4duo/Configuration_Temperature.h.backup
   #
   # Build with the default configurations
