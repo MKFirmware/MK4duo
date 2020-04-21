@@ -185,38 +185,44 @@ void TempManager::change_number_heater(const HeatertypeEnum type, const uint8_t 
       heater.hotends = h;
     }
   }
-  else if (type == IS_BED) {
-    if (heater.beds < h) {
-      heater.beds = h;
-      create_object();
-    }
-    else if (heater.beds > h) {
-      for (uint8_t hh = h; hh < MAX_BED; hh++) {
-        if (beds[hh]) {
-          delete (beds[hh]);
-          beds[hh] = nullptr;
-          SERIAL_LMV(ECHO, "Delete Bed", int(hh));
-        }
+
+  #if HAS_BEDS
+    else if (type == IS_BED) {
+      if (heater.beds < h) {
+        heater.beds = h;
+        create_object();
       }
-      heater.beds = h;
-    }
-  }
-  else if (type == IS_CHAMBER) {
-    if (heater.chambers < h) {
-      heater.chambers = h;
-      create_object();
-    }
-    else if (heater.chambers > h) {
-      for (uint8_t hh = h; hh < MAX_CHAMBER; hh++) {
-        if (chambers[hh]) {
-          delete (chambers[hh]);
-          chambers[hh] = nullptr;
-          SERIAL_LMV(ECHO, "Delete Chamber", int(hh));
+      else if (heater.beds > h) {
+        for (uint8_t hh = h; hh < MAX_BED; hh++) {
+          if (beds[hh]) {
+            delete (beds[hh]);
+            beds[hh] = nullptr;
+            SERIAL_LMV(ECHO, "Delete Bed", int(hh));
+          }
         }
+        heater.beds = h;
       }
-      heater.chambers = h;
     }
-  }
+  #endif
+
+  #if HAS_CHAMBERS
+    else if (type == IS_CHAMBER) {
+      if (heater.chambers < h) {
+        heater.chambers = h;
+        create_object();
+      }
+      else if (heater.chambers > h) {
+        for (uint8_t hh = h; hh < MAX_CHAMBER; hh++) {
+          if (chambers[hh]) {
+            delete (chambers[hh]);
+            chambers[hh] = nullptr;
+            SERIAL_LMV(ECHO, "Delete Chamber", int(hh));
+          }
+        }
+        heater.chambers = h;
+      }
+    }
+  #endif
 
 }
 

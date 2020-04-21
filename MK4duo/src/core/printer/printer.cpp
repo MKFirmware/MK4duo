@@ -547,7 +547,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
   #if ENABLED(IDLE_OOZING_PREVENT)
     static long_timer_t axis_last_activity_timer;
     if (planner.has_blocks_queued()) axis_last_activity_timer.start();
-    if (hotends[toolManager.active_hotend()]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
+    if (hotends[toolManager.active_hotend()]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && toolManager.IDLE_OOZING_enabled) {
       if (hotends[toolManager.active_hotend()]->deg_target() < IDLE_OOZING_MINTEMP)
         toolManager.IDLE_OOZING_retract(false);
       else if (axis_last_activity_timer.expired(SECOND_TO_MILLIS(IDLE_OOZING_SECONDS)))

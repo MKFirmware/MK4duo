@@ -181,14 +181,12 @@ void _lcd_ubl_edit_mesh() {
  */
 void _lcd_ubl_validate_custom_mesh() {
   char ubl_lcd_gcode[24];
-  const int temp =
-    #if HAS_BEDS
-      custom_bed_temp
-    #else
-      0
-    #endif
-  ;
-  sprintf_P(ubl_lcd_gcode, PSTR("G28\nG26 C B%i H%i P"), temp, custom_hotend_temp);
+  #if HAS_BEDS
+    const int16_t temp = custom_bed_temp;
+  #else
+    const int16_t temp = 0;
+  #endif
+  sprintf_P(ubl_lcd_gcode, PSTR("G28\nG26 C B%" PRIi16 " H%" PRIi16 " P"), temp, custom_hotend_temp);
   commands.inject(ubl_lcd_gcode);
 }
 

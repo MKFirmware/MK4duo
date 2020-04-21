@@ -382,7 +382,7 @@ void menu_configuration() {
 
   if (printer.mode == PRINTER_MODE_FFF) {
     #if ENABLED(IDLE_OOZING_PREVENT)
-      EDIT_ITEM(bool, MSG_IDLEOOZING, &printer.IDLE_OOZING_enabled);
+      EDIT_ITEM(bool, MSG_IDLEOOZING, &toolManager.IDLE_OOZING_enabled);
     #endif
 
     #if ENABLED(FWRETRACT)

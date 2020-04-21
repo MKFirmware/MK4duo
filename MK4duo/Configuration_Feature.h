@@ -513,11 +513,11 @@
  ***********************************************************************/
 //#define IDLE_OOZING_PREVENT
 #define IDLE_OOZING_MINTEMP           190
-#define IDLE_OOZING_FEEDRATE          50    //default feedrate for retracting (mm/s)
+#define IDLE_OOZING_FEEDRATE          50    // default feedrate for retracting (mm/s)
 #define IDLE_OOZING_SECONDS           5
-#define IDLE_OOZING_LENGTH            15    //default retract length (positive mm)
-#define IDLE_OOZING_RECOVER_LENGTH    0     //default additional recover length (mm, added to retract length when recovering)
-#define IDLE_OOZING_RECOVER_FEEDRATE  50    //default feedrate for recovering from retraction (mm/s)
+#define IDLE_OOZING_LENGTH            15    // default retract length (positive mm)
+#define IDLE_OOZING_RECOVER_LENGTH    0     // default additional recover length (mm, added to retract length when recovering)
+#define IDLE_OOZING_RECOVER_FEEDRATE  50    // default feedrate for recovering from retraction (mm/s)
 /***********************************************************************/
 
 
