@@ -185,8 +185,8 @@ namespace language_es {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Huecos de memoria"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Cargar Mallado cama"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Guardar Mallado cama"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Mallado %i Cargado"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Mallado %i Guardado"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Mallado %i Cargado"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Mallado %i Guardado"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Sin guardar"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Error: Guardar UBL"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Error: Restaurar UBL"));
@@ -505,7 +505,7 @@ namespace language_es {
 
   #if LCD_HEIGHT >= 4
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Pulsar el botón para", "reanudar impresión")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Aparcando...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Aparcando...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Esperando para", "iniciar el cambio", "de filamento")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Inserte el filamento", "y pulse el botón", "para continuar...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Pulse el botón para", "calentar la boquilla")));
@@ -516,7 +516,7 @@ namespace language_es {
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_2_LINE("Esperando impresora", "para reanudar...")));
   #else
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Pulse para continuar")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Aparcando...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Aparcando...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Por Favor espere...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Inserte y Pulse")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_1_LINE("Pulse para Calentar")));

@@ -40,7 +40,7 @@ class ExternalDac {
 
   private: /** Private Function */
 
-    static void setValue(uint8_t channel, uint8_t value);
+    static void setValue(const uint8_t channel, uint8_t value);
 
 };
 

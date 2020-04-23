@@ -582,11 +582,6 @@ void lcd_draw_homing();
   float lcd_probe_pt(const xy_pos_t &xy);
 #endif
 
-#if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(PID_AUTOTUNE_MENU) || ENABLED(ADVANCED_PAUSE_FEATURE)
-  void lcd_enqueue_one_now(const char * const cmd);
-  void lcd_enqueue_one_now_P(PGM_P const cmd);
-#endif
-
 #if ENABLED(LEVEL_BED_CORNERS)
   void lcd_level_bed_corners();
 #endif

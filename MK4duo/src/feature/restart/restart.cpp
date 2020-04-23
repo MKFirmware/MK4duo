@@ -51,13 +51,10 @@ void Restart::changed() {
 }
 
 void Restart::check() {
-  if (enabled) {
-    card.mount();
-    if (card.isMounted()) {
-      load_job();
-      if (!valid()) return purge_job();
-      commands.inject_P(PSTR("M800 S"));
-    }
+  if (card.isMounted()) {
+    load_job();
+    if (!valid()) return purge_job();
+    commands.inject_P(PSTR("M800 S"));
   }
 }
 

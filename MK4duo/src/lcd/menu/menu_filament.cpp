@@ -53,7 +53,7 @@ inline PGM_P _change_filament_temp_command() {
 static void _change_filament_temp(const uint16_t temperature) {
   sprintf_P(cmd, _change_filament_temp_command(), _change_filament_temp_extruder);
   hotends[_change_filament_temp_extruder]->set_target_temp(temperature);
-  lcd_enqueue_one_now(cmd);
+  commands.inject(cmd);
 }
 
 static PGM_P change_filament_header(const PauseModeEnum mode) {
@@ -104,7 +104,7 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
       else
         SUBMENU_N_P(e, msg, []{
           sprintf_P(cmd, PSTR("M600 B0 T%i"), int(MenuItemBase::itemIndex));
-          lcd_enqueue_one_now(cmd);
+          commands.inject(cmd);
         });
     }
 
@@ -118,7 +118,7 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
         else
           SUBMENU_N_P(e, msg, []{
             sprintf_P(cmd, PSTR("M701 T%i"), int(MenuItemBase::itemIndex));
-            lcd_enqueue_one_now(cmd);
+            commands.inject(cmd);
           });
       }
 
@@ -130,7 +130,7 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
         else
           SUBMENU_N_P(e, msg, []{
             sprintf_P(cmd, PSTR("M702 T%i"), int(MenuItemBase::itemIndex));
-            lcd_enqueue_one_now(cmd);
+            commands.inject(cmd);
           });
       }
 
@@ -229,7 +229,7 @@ void _lcd_pause_message(PGM_P const msg) {
   END_SCREEN();
 }
 
-void lcd_pause_pausing_message()  { _lcd_pause_message(GET_TEXT(MSG_PAUSE_PRINT_INIT));         }
+void lcd_pause_pausing_message()  { _lcd_pause_message(GET_TEXT(MSG_PAUSE_PRINT_PARKING));         }
 void lcd_pause_changing_message() { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_INIT));     }
 void lcd_pause_unload_message()   { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_UNLOAD));   }
 void lcd_pause_heating_message()  { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_HEATING));  }
@@ -250,7 +250,7 @@ void lcd_pause_purge_message() {
 
 FORCE_INLINE screenFunc_t ap_message_screen(const PauseMessageEnum message) {
   switch (message) {
-    case PAUSE_MESSAGE_PAUSING:     return lcd_pause_pausing_message;
+    case PAUSE_MESSAGE_PARKING:     return lcd_pause_pausing_message;
     case PAUSE_MESSAGE_CHANGING:    return lcd_pause_changing_message;
     case PAUSE_MESSAGE_UNLOAD:      return lcd_pause_unload_message;
     case PAUSE_MESSAGE_WAITING:     return lcd_pause_waiting_message;

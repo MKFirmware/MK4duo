@@ -178,8 +178,8 @@ namespace language_de {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Speicherort"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Bettnetz laden"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Bettnetz speichern"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Netz %i geladen"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Netz %i gespeichert"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Netz %i geladen"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Netz %i gespeichert"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Kein Speicher"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Err:UBL speichern"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Err:UBL wiederherst."));
@@ -522,7 +522,7 @@ namespace language_de {
   //                                       ...oder 2 Zeilen auf einem 3-Zeilen-Display.
   #if LCD_HEIGHT >= 4
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Knopf drücken um", "Druck fortzusetzen")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_2_LINE("Druck ist", "pausiert...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_2_LINE("Druck ist", "pausiert...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Warte auf den", "Start des", "Filamentwechsels...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Filament einlegen", "und Knopf drücken", "um fortzusetzen")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Knopf drücken um", "Düse aufzuheizen")));
@@ -534,7 +534,7 @@ namespace language_de {
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_3_LINE("Warte auf", "Fortsetzen des", "Drucks...")));
   #else // LCD_HEIGHT < 4
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Klick zum Fortsetzen")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Pausiert...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Pausiert...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Bitte warten...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Laden und Klick")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_1_LINE("Klick zum Heizen")));

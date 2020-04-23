@@ -154,8 +154,8 @@ namespace language_ru {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Слот памяти"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Загрузить сетку стола"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Сохранить сетку стола"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Сетка %i загружена"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Сетка %i сохранена"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Сетка %i загружена"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Сетка %i сохранена"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Нет хранилища"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Ошибка: Сохран. UBL"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Ошибка: Восстан. UBL"));

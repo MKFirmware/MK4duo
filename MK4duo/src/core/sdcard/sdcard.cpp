@@ -221,9 +221,15 @@ void SDCard::manage_sd() {
 
     lcdui.sd_changed(old_sd_status, sd_status); // Update the UI
 
-    if (sd_status && old_sd_status == 2)        // First mount?
-      beginautostart();                         // Look for autostart files soon
-
+    if (sd_status) {
+      if (old_sd_status == 2) {                 // First mount?
+        #if HAS_SD_RESTART
+          restart.check();
+        #else
+          beginautostart();                     // Look for autostart files soon
+        #endif
+      }
+    }
   }
 }
 

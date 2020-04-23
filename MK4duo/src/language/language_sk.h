@@ -189,8 +189,8 @@ namespace language_sk {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Pamäťový slot"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Načítať sieť bodov"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Uložiť sieť bodov"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Sieť %i načítaná"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Sieť %i uložená"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Sieť %i načítaná"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Sieť %i uložená"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("Nedostatok miesta"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Chyba: Ukladanie UBL"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Chyba: Obnovenie UBL"));
@@ -538,7 +538,7 @@ namespace language_sk {
   //
   #if LCD_HEIGHT >= 4
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Stlačte tlačidlo", "pre obnovu tlače")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parkovanie...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING             , _UxGT(MSG_1_LINE("Parkovanie...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Čakajte prosím", "na spustenie", "výmeny filamentu")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Vložte filament", "a stlačte tlačidlo", "pre pokračovanie")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Stlačte tlačidlo", "pre ohrev trysky")));
@@ -550,7 +550,7 @@ namespace language_sk {
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_2_LINE("Čakajte prosím na", "obnovenie tlače...")));
   #else
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Kliknite pre pokr.")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parkovanie...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parkovanie...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Čakajte prosím...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Vložte a kliknite")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_1_LINE("Kliknite pre ohrev")));

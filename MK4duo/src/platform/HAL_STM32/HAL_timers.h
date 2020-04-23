@@ -163,6 +163,7 @@ FORCE_INLINE uint32_t HAL_timer_get_current_count(const uint8_t) {
 FORCE_INLINE void HAL_timer_set_count(const uint8_t, const uint32_t count) {
   if (HAL_timer_initialized()) {
     MK_step_timer->setOverflow(count + 1, TICK_FORMAT);
-    if (count < MK_step_timer->getCount()) STEP_TIMER->EGR |= TIM_EGR_UG; // Generate an immediate update interrupt
+    if (count < MK_step_timer->getCount())
+      MK_step_timer->refresh();             // Generate an immediate update interrupt
   }
 }

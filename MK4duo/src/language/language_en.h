@@ -187,8 +187,8 @@ namespace language_en {
   FSTRINGVALUE(MSG_UBL_STORAGE_SLOT                 , _UxGT("Memory Slot"));
   FSTRINGVALUE(MSG_UBL_LOAD_MESH                    , _UxGT("Load Bed Mesh"));
   FSTRINGVALUE(MSG_UBL_SAVE_MESH                    , _UxGT("Save Bed Mesh"));
-  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("M117 Mesh %i Loaded"));
-  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("M117 Mesh %i Saved"));
+  FSTRINGVALUE(MSG_MESH_LOADED                      , _UxGT("Mesh %i Loaded"));
+  FSTRINGVALUE(MSG_MESH_SAVED                       , _UxGT("Mesh %i Saved"));
   FSTRINGVALUE(MSG_UBL_NO_STORAGE                   , _UxGT("No Storage"));
   FSTRINGVALUE(MSG_UBL_SAVE_ERROR                   , _UxGT("Err: UBL Save"));
   FSTRINGVALUE(MSG_UBL_RESTORE_ERROR                , _UxGT("Err: UBL Restore"));
@@ -543,7 +543,7 @@ namespace language_en {
   //
   #if LCD_HEIGHT >= 4
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Press Button", "to resume print")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parking...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parking...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Wait for", "filament change", "to start")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Insert filament", "and press button", "to continue")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Press button", "to heat nozzle")));
@@ -556,7 +556,7 @@ namespace language_en {
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_2_LINE("Wait for print", "to resume...")));
   #else // LCD_HEIGHT < 4
     FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Click to continue")));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parking...")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_PARKING            , _UxGT(MSG_1_LINE("Parking...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Please wait...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Insert and Click")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_1_LINE("Click to heat")));

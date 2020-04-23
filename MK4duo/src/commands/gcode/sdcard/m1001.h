@@ -65,8 +65,8 @@ inline void gcode_M1001() {
     }
   #endif
 
-  #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
-     planner.finish_and_disable();
+  #if SD_FINISHED_STEPPERRELEASE
+    commands.inject_P(PSTR(SD_FINISHED_RELEASECOMMAND));
   #endif
 
   #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
