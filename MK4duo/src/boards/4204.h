@@ -191,9 +191,9 @@
 //#define HAVE_VREF_MONITOR
 
 //###IF_BLOCKS
-#define ST7920_DELAY_1             DELAY_NS(350)
-#define ST7920_DELAY_2             DELAY_NS(100)
-#define ST7920_DELAY_3             DELAY_NS(350)
+#define ST7920_DELAY_1             DELAY_NS(96)
+#define ST7920_DELAY_2             DELAY_NS(48)
+#define ST7920_DELAY_3             DELAY_NS(600)
 #define LCD_PINS_RS                PE10
 #define LCD_PINS_ENABLE            PE9
 #define LCD_PINS_D4                PE12
