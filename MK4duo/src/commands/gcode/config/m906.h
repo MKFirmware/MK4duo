@@ -37,13 +37,48 @@
 
     if (commands.get_target_tool(906)) return;
 
-    LOOP_XYZE(i) {
-      if (parser.seen(axis_codes[i])) {
-        const uint8_t a = i + (i == E_AXIS ? toolManager.extruder.target : 0);
-        driver[a]->data.ma = parser.value_ushort();
-        externaldac.set_driver_current(a, driver[a]->data.ma);
+    #if DISABLED(DISABLE_M503)
+      // No arguments? Show M906 report.
+      if (!parser.seen("XYZE")) {
+        externaldac.print_M906();
+        return;
+      }
+    #endif
+
+    LOOP_XYZE(i) if (uint16_t value = parser.intval(axis_codes[i])) {
+      switch (i) {
+        case X_AXIS:
+          driver.x->data.ma = value;
+          externaldac.set_driver_current(driver.x);
+          #if ENABLED(X_TWO_STEPPER_DRIVERS)
+            driver.x2->data.ma = value;
+            externaldac.set_driver_current(driver.x2);
+          #endif
+          break;
+        case Y_AXIS:
+          driver.y->data.ma = value;
+          externaldac.set_driver_current(driver.y);
+          #if ENABLED(Y_TWO_STEPPER_DRIVERS)
+            driver.y2->data.ma = value;
+            externaldac.set_driver_current(driver.y2);
+          #endif
+          break;
+        case Z_AXIS:
+          driver.z->data.ma = value;
+          externaldac.set_driver_current(driver.z);
+          #if ENABLED(Z_TWO_STEPPER_DRIVERS)
+            driver.z2->data.ma = value;
+            externaldac.set_driver_current(driver.z2);
+          #endif
+          break;
+        case E_AXIS:
+          Driver* drv = driver.e[extruders[toolManager.extruder.target]->get_driver()];
+          drv->data.ma = value;
+          externaldac.set_driver_current(drv);
+          break;
       }
     }
+
   }
 
 #elif HAS_TRINAMIC

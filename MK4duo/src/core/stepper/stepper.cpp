@@ -194,7 +194,7 @@ void Stepper::create_xyz_driver() {
       driver[d]->printLabel(); SERIAL_EOL();
       driver[d]->init();
       #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-        externaldac.set_driver_current(d, driver[d]->data.ma);
+        externaldac.set_driver_current(driver[d]);
       #endif
     }
   }
@@ -253,7 +253,7 @@ void Stepper::create_ext_driver() {
       driver.e[d]->printLabel(); SERIAL_EOL();
       driver.e[d]->init();
       #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-        externaldac.set_driver_current(d + 3, driver.e[d]->data.ma);
+        externaldac.set_driver_current(driver.e[d]);
       #endif
     }
   }

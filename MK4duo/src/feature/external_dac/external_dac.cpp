@@ -59,19 +59,39 @@ void ExternalDac::begin() {
   HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
   HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
 
-  return;
 }
 
-void ExternalDac::set_driver_current(const uint8_t index, const uint16_t ma) {
-  const uint8_t digipot_motor = 255 * ma / 1000 / 3.3;
+void ExternalDac::set_driver_current(Driver* act) {
+  constexpr uint8_t dac_order[] = { 96, 94, 98, 5, 28, 11, 30 };
+  const uint8_t digipot_motor = 255 * act->data.ma / 1000 / 3.3;
+  uint8_t index = 0;
+  for (index = 0; index < COUNT(dac_order); index++) {
+    if (act->data.pin.step == dac_order[index]) break;
+  }
   setValue(index, digipot_motor);
 }
 
-void ExternalDac::setValue(uint8_t channel, uint8_t value) {
+void ExternalDac::print_M906() {
+  SERIAL_LM(CFG, "Stepper driver current (mA)");
+  SERIAL_SM(CFG, "  M906");
+  SERIAL_MV(" X", driver.x->data.ma);
+  SERIAL_MV(" Y", driver.y->data.ma);
+  SERIAL_MV(" Z", driver.z->data.ma);
+  SERIAL_EOL();
+  LOOP_DRV_EXT() {
+    SERIAL_SM(CFG, "  M906");
+    SERIAL_MV(" T", int(d));
+    SERIAL_MV(" E", driver.e[extruders[d]->get_driver()]->data.ma);
+    SERIAL_EOL();
+  }
+}
+
+/** Private Function */
+void ExternalDac::setValue(const uint8_t channel, uint8_t value) {
 
   if (channel >= 7) return; // max channel (X,Y,Z,E0,E1,E2,E3)
 
-  uint8_t externalDac_buf[2] = {0x10, 0x00};
+  uint8_t externalDac_buf[2] = { 0x10, 0x00 };
 
   if (channel > 3)
     externalDac_buf[0] |= ((7 - channel) << 6);
@@ -102,7 +122,6 @@ void ExternalDac::setValue(uint8_t channel, uint8_t value) {
   HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
   HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
 
-  return;
 }
 
 #endif // MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
