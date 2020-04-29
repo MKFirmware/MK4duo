@@ -1406,7 +1406,7 @@ void LcdUI::status_printf_P(const uint8_t level, PGM_P const message, ...) {
   alert_level = level;
   va_list args;
   va_start(args, message);
-  vsnprintf(status_message, NEXTION_MAX_MESSAGE_LENGTH, message, args);
+  vsnprintf_P(status_message, NEXTION_MAX_MESSAGE_LENGTH, message, args);
   va_end(args);
   nexlcd.setText(LcdStatus, status_message);
 }
