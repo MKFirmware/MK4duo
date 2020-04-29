@@ -1738,21 +1738,8 @@ void EEPROM::reset() {
      * Alligator current drivers M906
      */
     #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-
-      SERIAL_LM(CFG, "Stepper driver current (mA)");
-      SERIAL_SM(CFG, "  M906");
-      SERIAL_MV(" X", driver.x->data.ma);
-      SERIAL_MV(" Y", driver.y->data.ma);
-      SERIAL_MV(" Z", driver.z->data.ma);
-      SERIAL_EOL();
-      LOOP_DRV_EXT() {
-        SERIAL_SM(CFG, "  M906");
-        SERIAL_MV(" T", int(d));
-        SERIAL_MV(" E", driver.e[extruders[d]->get_driver()]->data.ma);
-        SERIAL_EOL();
-      }
-
-    #endif // ALLIGATOR_R2 || ALLIGATOR_R3
+      externaldac.print_M906();
+    #endif
 
     #if HAS_TRINAMIC
 

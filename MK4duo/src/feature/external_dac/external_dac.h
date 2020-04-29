@@ -36,11 +36,12 @@ class ExternalDac {
   public: /** Public Function */
 
     static void begin();
-    static void set_driver_current(const uint8_t index, const uint16_t ma);
+    static void set_driver_current(Driver* act);
+    static void print_M906();
 
   private: /** Private Function */
 
-    static void setValue(uint8_t channel, uint8_t value);
+    static void setValue(const uint8_t channel, uint8_t value);
 
 };
 
