@@ -308,7 +308,7 @@
     #else
 
       // arduino pin which triggers an piezzo beeper
-      #define ORIG_BEEPER_PIN   33  // Beeper on AUX-4
+      #define ORIG_BEEPER_PIN   33
 
       // buttons are directly attached using AUX-2
       #if ENABLED(REPRAPWORLD_KEYPAD)
