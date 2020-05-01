@@ -65,13 +65,25 @@
 extern "C" char *sbrk(int i);
 uint8_t MCUSR;
 
+#if HEATER_COUNT > 0
+  ADCAveragingFilter HAL::sensorFilters[HEATER_COUNT];
+#endif
+
 #if ANALOG_INPUTS > 0
   int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
   bool    HAL::Analog_is_ready = false;
 
   void HAL::AdcChangePin(const pin_t old_pin, const pin_t new_pin) {}
 
-  void HAL::analogStart() {}
+  void HAL::analogStart() {
+    #if HEATER_COUNT > 0
+    LOOP_HEATER() {
+      if (WITHIN(heaters[h].sensor.pin, 0, 15)) {
+        sensorFilters[h].Init(0);
+      }
+    }
+  #endif
+  }
 #endif
 
 // Wait for synchronization of registers between the clock domains
@@ -351,10 +363,21 @@ void HAL::Tick() {
 
   // read analog values
   #if ANALOG_INPUTS > 0
-    LOOP_HEATER() AnalogInputValues[heaters[h].sensor.pin] = (analogRead(heaters[h].sensor.pin) * 16);
-    Analog_is_ready = true;
+    #if HEATER_COUNT > 0
+      for (uint8_t h = 0; h < HEATER_COUNT; h++) {
+        if (WITHIN(heaters[h].sensor.pin, 0, 15)) {
+          ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
+          currentFilter.ProcessReading(analogRead(heaters[h].sensor.pin) * 16);
+          if (currentFilter.IsValid()) {
+            AnalogInputValues[heaters[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            Analog_is_ready = true;
+          }
+        }
+      }
+    #endif
+
     // Update the raw values if they've been read. Else we could be updating them during reading.
-    thermalManager.set_current_temp_raw();
+    if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
   #endif
 
   endstops.Tick();

@@ -86,12 +86,12 @@
 #define ORIG_SOL7_PIN              NoPin
 
 //###ENDSTOP
-#define ORIG_X_MIN_PIN             NoPin
-#define ORIG_X_MAX_PIN              8
-#define ORIG_Y_MIN_PIN             NoPin
-#define ORIG_Y_MAX_PIN              9
-#define ORIG_Z_MIN_PIN             NoPin
-#define ORIG_Z_MAX_PIN              4
+#define ORIG_X_MIN_PIN             8
+#define ORIG_X_MAX_PIN             NoPin
+#define ORIG_Y_MIN_PIN             9
+#define ORIG_Y_MAX_PIN             NoPin
+#define ORIG_Z_MIN_PIN             4
+#define ORIG_Z_MAX_PIN             NoPin
 #define ORIG_Z2_MIN_PIN            NoPin
 #define ORIG_Z2_MAX_PIN            NoPin
 #define ORIG_Z3_MIN_PIN            NoPin
@@ -106,8 +106,8 @@
 #define Z_STOP_PIN                 NoPin
 
 //###HEATER
-#define ORIG_HEATER_0_PIN          11
-#define ORIG_HEATER_1_PIN          10
+#define ORIG_HEATER_0_PIN          10
+#define ORIG_HEATER_1_PIN          11
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
 #define ORIG_HEATER_BED_PIN         6
