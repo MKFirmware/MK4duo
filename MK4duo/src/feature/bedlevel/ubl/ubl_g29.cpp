@@ -22,7 +22,7 @@
 
 #include "../../../../MK4duo.h"
 
-#if ENABLED(AUTO_BED_LEVELING_UBL)
+#if HAS_UBL
 
   #include "ubl.h"
   #include <math.h>
@@ -1756,4 +1756,4 @@
 
   #endif // UBL_DEVEL_DEBUGGING
 
-#endif // AUTO_BED_LEVELING_UBL
+#endif // HAS_UBL

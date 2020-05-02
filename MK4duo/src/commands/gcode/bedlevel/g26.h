@@ -514,8 +514,8 @@ inline void gcode_G26() {
   #if HAS_BEDS
     if (parser.seenval('B')) {
       g26_bed_temp = parser.value_celsius();
-      if (g26_bed_temp && !WITHIN(g26_bed_temp, 40, beds[0]->data.temp.max - 10)) {
-        SERIAL_EMV("?Specified bed temperature not plausible (40-", int(beds[0]->data.temp.max - 15));
+      if (g26_bed_temp && !WITHIN(g26_bed_temp, 40, beds[0]->data.temp.max - HEATER_OVERSHOOT)) {
+        SERIAL_EMV("?Specified bed temperature not plausible (40-", int(beds[0]->data.temp.max - HEATER_OVERSHOOT));
         return;
       }
     }

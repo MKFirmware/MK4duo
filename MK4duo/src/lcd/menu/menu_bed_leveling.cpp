@@ -246,10 +246,12 @@
  *    Save Settings       (Req: EEPROM_SETTINGS)
  */
 void menu_bed_leveling() {
+
+  const bool  is_homed = mechanics.isHomedAll(),
+              is_valid = bedlevel.leveling_is_valid();
+
   START_MENU();
   BACK_ITEM(MSG_MOTION);
-
-  const bool is_homed = mechanics.isHomedAll();
 
   // Auto Home if not using manual probing
   #if DISABLED(PROBE_MANUALLY) && DISABLED(MESH_BED_LEVELING)
@@ -266,14 +268,13 @@ void menu_bed_leveling() {
   #endif
 
   #if ENABLED(MESH_EDIT_MENU)
-    if (bedlevel.leveling_is_valid())
-      SUBMENU(MSG_EDIT_MESH, menu_edit_mesh);
+    if (is_valid) SUBMENU(MSG_EDIT_MESH, menu_edit_mesh);
   #endif
 
   // Homed and leveling is valid? Then leveling can be toggled.
-  if (is_homed && bedlevel.leveling_is_valid()) {
-    bool new_level_state = bedlevel.flag.leveling_active;
-    EDIT_ITEM(bool, MSG_BED_LEVELING, &new_level_state, []{ bedlevel.set_bed_leveling_enabled(!bedlevel.flag.leveling_active); });
+  if (is_homed && is_valid) {
+    bool show_state = bedlevel.flag.leveling_active;
+    EDIT_ITEM(bool, MSG_BED_LEVELING, &show_state, []{ bedlevel.set_bed_leveling_enabled(!bedlevel.flag.leveling_active); });
   }
 
   // Z Fade Height
@@ -299,7 +300,7 @@ void menu_bed_leveling() {
     SUBMENU(MSG_LEVEL_CORNERS, lcd_level_bed_corners);
   #endif
 
-  #if ENABLED(EEPROM_SETTINGS)
+  #if HAS_EEPROM
     ACTION_ITEM(MSG_LOAD_EEPROM, []{ eeprom.load(); });
     ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
   #endif

@@ -46,7 +46,7 @@
 
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     #include "abl/abl.h"
-  #elif ENABLED(AUTO_BED_LEVELING_UBL)
+  #elif HAS_UBL
     #include "ubl/ubl.h"
   #elif ENABLED(MESH_BED_LEVELING)
     #include "mbl/mesh_bed_leveling.h"
@@ -66,7 +66,7 @@ struct mesh_index_pair {
   float distance;   // When populated, the distance from the search location
   void invalidate()                   { pos = -1; }
   bool valid()                  const { return pos.x >= 0 && pos.y >= 0; }
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
     xy_pos_t meshpos() {
       return { ubl.mesh_index_to_xpos(pos.x), ubl.mesh_index_to_ypos(pos.y) };
     }

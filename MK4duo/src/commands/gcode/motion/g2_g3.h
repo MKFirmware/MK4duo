@@ -63,7 +63,7 @@ void plan_arc(
   ab_float_t rvec = -offset;
 
   const float radius = HYPOT(rvec.a, rvec.b),
-              #if ENABLED(AUTO_BED_LEVELING_UBL)
+              #if HAS_UBL
                 start_L  = mechanics.position[l_axis],
               #endif
               center_P = mechanics.position[p_axis] - rvec.a,
@@ -182,7 +182,7 @@ void plan_arc(
     // Update raw location
     raw[p_axis] = center_P + rvec.a;
     raw[q_axis] = center_Q + rvec.b;
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
+    #if HAS_UBL
       raw[l_axis] = start_L;
       UNUSED(linear_per_segment);
     #else
@@ -206,7 +206,7 @@ void plan_arc(
 
   // Ensure last segment arrives at target location.
   raw = cart;
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
     raw[l_axis] = start_L;
   #endif
 
@@ -222,7 +222,7 @@ void plan_arc(
     #endif
   );
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
     raw[l_axis] = start_L;
   #endif
   mechanics.position = raw;

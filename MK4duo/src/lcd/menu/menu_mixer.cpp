@@ -154,7 +154,7 @@ void lcd_mixer_mix_edit() {
     START_MENU();
     BACK_ITEM(MSG_MIXER);
     LOOP_DRV_MIX() 
-      EDIT_ITEM_FAST_N(float52, d, MSG_MIX_COMPONENT, &mixer.collector[d], 0, 10);
+      EDIT_ITEM_FAST_N(float42_52, d, MSG_MIX_COMPONENT, &mixer.collector[d], 0, 10);
 
     ACTION_ITEM(MSG_CYCLE_MIX, _lcd_mixer_cycle_mix);
     ACTION_ITEM(MSG_COMMIT_VTOOL, _lcd_mixer_commit_vtool);

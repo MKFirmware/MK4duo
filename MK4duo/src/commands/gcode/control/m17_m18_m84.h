@@ -64,7 +64,7 @@ inline void gcode_M18_M84() {
     else
       planner.finish_and_disable();
 
-    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)
+    #if HAS_UBL && ENABLED(ULTIPANEL)
       if (ubl.lcd_map_control) {
         ubl.lcd_map_control = false;
         lcdui.defer_status_screen(false);

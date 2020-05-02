@@ -170,7 +170,7 @@ void menu_info_firmware() {
     STATIC_ITEM(MSG_LINEAR_LEVELING);     // Linear Leveling
   #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
     STATIC_ITEM(MSG_BILINEAR_LEVELING);   // Bi-linear Leveling
-  #elif ENABLED(AUTO_BED_LEVELING_UBL)
+  #elif HAS_UBL
     STATIC_ITEM(MSG_UBL_LEVELING);        // Unified Bed Leveling
   #elif ENABLED(MESH_BED_LEVELING)
     STATIC_ITEM(MSG_MESH_LEVELING);       // Mesh Leveling

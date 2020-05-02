@@ -23,7 +23,7 @@
 #pragma once
 
 /**
- * Description: Fast IO functions for Arduino Due and compatible (SAM3X8E)
+ * Description: Fast IO functions for Arduino Due and compatible (SAMD21J18)
  *
  * Contributors:
  *  Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
@@ -35,7 +35,7 @@
 //
 // Description: Fast IO functions for Arduino Due
 //
-// ARDUINO_ARCH_SAM
+// ARDUINO_ARCH_SAMD
 // **************************************************************************
 
 #include <Arduino.h>

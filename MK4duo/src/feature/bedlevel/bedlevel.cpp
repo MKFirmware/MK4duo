@@ -87,7 +87,7 @@ void Bedlevel::apply_leveling(xyz_pos_t &raw) {
             , fade_scaling_factor
           #endif
         )
-      #elif ENABLED(AUTO_BED_LEVELING_UBL)
+      #elif HAS_UBL
         fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw) : 0.0
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
@@ -124,7 +124,7 @@ void Bedlevel::unapply_leveling(xyz_pos_t &raw) {
             , fade_scaling_factor
           #endif
         )
-      #elif ENABLED(AUTO_BED_LEVELING_UBL)
+      #elif HAS_UBL
         fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw.x, raw.y) : 0.0
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
@@ -139,7 +139,7 @@ bool Bedlevel::leveling_is_valid() {
     return mbl.has_mesh();
   #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
     return !!abl.data.bilinear_grid_spacing.x;
-  #elif ENABLED(AUTO_BED_LEVELING_UBL)
+  #elif HAS_UBL
     return ubl.mesh_is_valid();
   #else // 3POINT, LINEAR
     return true;
@@ -222,7 +222,7 @@ void Bedlevel::reset() {
 
   if (printer.debugFeature()) DEBUG_EM("Reset Bed Level");
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
     ubl.reset();
   #else
     set_bed_leveling_enabled(false);

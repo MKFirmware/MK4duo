@@ -31,28 +31,26 @@
 //
 // Change Filament > Change/Unload/Load Filament
 //
-static PauseModeEnum _change_filament_temp_mode;  // =PAUSE_MODE_PAUSE_PRINT
-static int8_t _change_filament_temp_extruder;     // =0
+static PauseModeEnum _change_filament_mode; // =PAUSE_MODE_PAUSE_PRINT
+static int8_t _change_filament_extruder;    // =0
 
-static char cmd[11];
-
-inline PGM_P _change_filament_temp_command() {
-  switch (_change_filament_temp_mode) {
+inline PGM_P _change_filament_command() {
+  switch (_change_filament_mode) {
     case PAUSE_MODE_LOAD_FILAMENT:
       return PSTR("M701 T%d");
     case PAUSE_MODE_UNLOAD_FILAMENT:
-      return _change_filament_temp_extruder >= 0 ? PSTR("M702 T%d") : PSTR("M702 ;%d");
+      return _change_filament_extruder >= 0 ? PSTR("M702 T%d") : PSTR("M702 ;%d");
     case PAUSE_MODE_CHANGE_FILAMENT:
     case PAUSE_MODE_PAUSE_PRINT:
-    default:
-      return PSTR("M600 B0 T%d");
+    default: break;
   }
-  return GET_TEXT(MSG_FILAMENTCHANGE);
+  return PSTR("M600 B0 T%d");
 }
 
-static void _change_filament_temp(const uint16_t temperature) {
-  sprintf_P(cmd, _change_filament_temp_command(), _change_filament_temp_extruder);
-  hotends[_change_filament_temp_extruder]->set_target_temp(temperature);
+static void _change_filament(const uint16_t temperature) {
+  char cmd[11];
+  sprintf_P(cmd, _change_filament_command(), _change_filament_extruder);
+  hotends[_change_filament_extruder]->set_target_temp(temperature);
   commands.inject(cmd);
 }
 
@@ -68,16 +66,16 @@ static PGM_P change_filament_header(const PauseModeEnum mode) {
 }
 
 void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
-  _change_filament_temp_mode = mode;
-  _change_filament_temp_extruder = extruder;
+  _change_filament_mode = mode;
+  _change_filament_extruder = extruder;
   START_MENU();
   if (LCD_HEIGHT >= 4) STATIC_ITEM_P(change_filament_header(mode), SS_CENTER|SS_INVERT);
   BACK_ITEM(MSG_BACK);
-  ACTION_ITEM(MSG_PREHEAT_1, []{ _change_filament_temp(lcdui.preheat_hotend_temp[0]); });
-  ACTION_ITEM(MSG_PREHEAT_2, []{ _change_filament_temp(lcdui.preheat_hotend_temp[1]); });
-  ACTION_ITEM(MSG_PREHEAT_3, []{ _change_filament_temp(lcdui.preheat_hotend_temp[2]); });
-  EDIT_ITEM_FAST(int3, MSG_PREHEAT_CUSTOM, &hotends[_change_filament_temp_extruder]->target_temperature, hotends[extruder]->data.temp.min, hotends[extruder]->data.temp.max - 10, []{
-    _change_filament_temp(hotends[_change_filament_temp_extruder]->target_temperature);
+  ACTION_ITEM(MSG_PREHEAT_1, []{ _change_filament(lcdui.preheat_hotend_temp[0]); });
+  ACTION_ITEM(MSG_PREHEAT_2, []{ _change_filament(lcdui.preheat_hotend_temp[1]); });
+  ACTION_ITEM(MSG_PREHEAT_3, []{ _change_filament(lcdui.preheat_hotend_temp[2]); });
+  EDIT_ITEM_FAST(int3, MSG_PREHEAT_CUSTOM, &hotends[_change_filament_extruder]->target_temperature, hotends[extruder]->data.temp.min, hotends[extruder]->data.temp.max - HEATER_OVERSHOOT, []{
+    _change_filament(hotends[_change_filament_extruder]->target_temperature);
   });
   END_MENU();
 }
@@ -102,7 +100,8 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
       if (tempManager.targetTooColdToExtrude(e))
         SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PauseModeEnum(editable.int8), MenuItemBase::itemIndex); });
       else
-        SUBMENU_N_P(e, msg, []{
+        ACTION_ITEM_N_P(e, msg, []{
+          char cmd[13];
           sprintf_P(cmd, PSTR("M600 B0 T%i"), int(MenuItemBase::itemIndex));
           commands.inject(cmd);
         });
@@ -116,7 +115,8 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
         if (tempManager.targetTooColdToExtrude(e))
           SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
-          SUBMENU_N_P(e, msg, []{
+          ACTION_ITEM_N_P(e, msg, []{
+            char cmd[12];
             sprintf_P(cmd, PSTR("M701 T%i"), int(MenuItemBase::itemIndex));
             commands.inject(cmd);
           });
@@ -128,7 +128,8 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
         if (tempManager.targetTooColdToExtrude(e))
           SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
-          SUBMENU_N_P(e, msg, []{
+          ACTION_ITEM_N_P(e, msg, []{
+            char cmd[12];
             sprintf_P(cmd, PSTR("M702 T%i"), int(MenuItemBase::itemIndex));
             commands.inject(cmd);
           });

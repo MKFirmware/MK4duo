@@ -26,7 +26,7 @@
  * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(AUTO_BED_LEVELING_UBL)
+#if HAS_UBL
 
 #define CODE_M421
 

@@ -84,7 +84,7 @@ void Debug::log_machine_info() {
       DEBUG_MSG("BILINEAR");
     #elif ENABLED(AUTO_BED_LEVELING_3POINT)
       DEBUG_MSG("3POINT");
-    #elif ENABLED(AUTO_BED_LEVELING_UBL)
+    #elif HAS_UBL
       DEBUG_MSG("UBL");
     #endif
     if (bedlevel.flag.leveling_active) {
@@ -109,7 +109,7 @@ void Debug::log_machine_info() {
         if (diff.z > 0) DEBUG_CHR('+');
         DEBUG_VAL(diff.z);
       #else
-        #if ENABLED(AUTO_BED_LEVELING_UBL)
+        #if HAS_UBL
           DEBUG_MSG("UBL Adjustment Z");
           const float rz = ubl.get_z_correction(mechanics.position.x, mechanics.position.y);
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)

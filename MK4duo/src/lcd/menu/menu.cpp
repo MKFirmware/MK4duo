@@ -172,7 +172,7 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const
     screen_items = items;
     if (screen == status_screen) {
       defer_status_screen(false);
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
+      #if HAS_UBL
         ubl.lcd_map_control = false;
       #endif
       screen_history_depth = 0;
@@ -182,7 +182,7 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const
 
     // Re-initialize custom characters that may be re-used
     #if HAS_CHARACTER_LCD
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
+      #if HAS_UBL
         if (!ubl.lcd_map_control)
       #endif
           set_custom_characters(screen == status_screen ? CHARSET_INFO : CHARSET_MENU);

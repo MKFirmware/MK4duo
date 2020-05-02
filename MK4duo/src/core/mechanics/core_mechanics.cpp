@@ -62,7 +62,7 @@ void Core_Mechanics::factory_parameters() {
   data.min_segment_time_us        = DEFAULT_MIN_SEGMENT_TIME;
   data.min_travel_feedrate_mm_s   = DEFAULT_MIN_TRAVEL_FEEDRATE;
 
-  #if ENABLED(JUNCTION_DEVIATION)
+  #if HAS_JUNCTION_DEVIATION
     data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #else
     data.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
@@ -418,7 +418,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
 
   #if HAS_MESH
     if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination.z)) {
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
+      #if HAS_UBL
         ubl.line_to_destination_cartesian(scaled_fr_mm_s, toolManager.extruder.active);
         return true;
       #else
@@ -696,7 +696,7 @@ void Core_Mechanics::report_logical_position() {
     SERIAL_MV(" S", LINEAR_UNIT(data.min_feedrate_mm_s), 3);
     SERIAL_EMV(" V", LINEAR_UNIT(data.min_travel_feedrate_mm_s), 3);
 
-    #if ENABLED(JUNCTION_DEVIATION)
+    #if HAS_JUNCTION_DEVIATION
       SERIAL_LM(CFG, "Junction Deviation: J<JUNCTION_DEVIATION_MM>");
       SERIAL_LMV(CFG, "  M205 J", data.junction_deviation_mm, 2);
     #else

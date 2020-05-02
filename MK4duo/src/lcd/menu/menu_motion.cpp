@@ -283,7 +283,7 @@ void menu_move() {
   END_MENU();
 }
 
-#if ENABLED(AUTO_BED_LEVELING_UBL)
+#if HAS_UBL
   void _lcd_ubl_level_bed();
 #elif ENABLED(LCD_BED_LEVELING)
   void menu_bed_leveling();
@@ -329,7 +329,7 @@ void menu_motion() {
   //
   // Level Bed
   //
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
 
     SUBMENU(MSG_UBL_LEVEL_BED, _lcd_ubl_level_bed);
 
@@ -340,7 +340,7 @@ void menu_motion() {
     #endif
         SUBMENU(MSG_BED_LEVELING, menu_bed_leveling);
 
-  #elif HAS_LEVELING && DISABLED(SLIM_LCD_MENUS)
+  #elif HAS_LEVELING && HAS_FULL_LCD_MENU
 
     #if DISABLED(PROBE_MANUALLY)
       GCODES_ITEM(MSG_LEVEL_BED, PSTR("G28\nG29"));

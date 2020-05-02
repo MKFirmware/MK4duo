@@ -462,7 +462,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
         #if ENABLED(DISABLE_INACTIVE_E)
           stepper.disable_E();
         #endif
-        #if HAS_LCD_MENU && ENABLED(AUTO_BED_LEVELING_UBL)
+        #if HAS_LCD_MENU && HAS_UBL
           if (ubl.lcd_map_control) {
             ubl.lcd_map_control = false;
             lcdui.defer_status_screen(false);
@@ -796,7 +796,6 @@ void setup() {
   #endif
 
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    HAL::spiBegin();
     externaldac.begin();
   #elif TMC_HAS_SPI && DISABLED(TMC_USE_SW_SPI)
     SPI.begin();

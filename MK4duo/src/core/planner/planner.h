@@ -674,7 +674,7 @@ class Planner {
 
     static void recalculate();
 
-    #if ENABLED(JUNCTION_DEVIATION)
+    #if HAS_JUNCTION_DEVIATION
 
       FORCE_INLINE static void normalize_junction_vector(xyze_float_t &vector) {
         float magnitude_sq = 0;

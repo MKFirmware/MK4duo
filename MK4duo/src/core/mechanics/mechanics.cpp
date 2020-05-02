@@ -310,10 +310,11 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
 
   void Mechanics::recalculate_max_e_jerk() {
     LOOP_EXTRUDER() {
-      extruders[e]->data.max_jerk = SQRT(SQRT(0.5) *
+      extruders[e]->data.max_jerk = SQRT(
         data.junction_deviation_mm *
         extruders[e]->data.max_acceleration_mm_per_s2 *
-        RECIPROCAL(1.0 - SQRT(0.5))
+        (SQRT(0.5)) /
+        (1.0f - (SQRT(0.5)))
       );
     }
   }

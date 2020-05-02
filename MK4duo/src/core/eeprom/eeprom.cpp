@@ -179,7 +179,7 @@ typedef struct EepromDataStruct {
   //
   // Universal Bed Leveling
   //
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
     bool            ubl_leveling_active;
     int8_t          ubl_storage_slot;
   #endif
@@ -335,7 +335,7 @@ void EEPROM::post_process() {
     fwretract.refresh_autoretract();
   #endif
 
-  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+  #if HAS_LINEAR_E_JERK
     mechanics.recalculate_max_e_jerk();
   #endif
 
@@ -426,7 +426,7 @@ void EEPROM::post_process() {
     #endif
     EEPROM_SKIP(working_crc); // Skip the checksum slot
 
-    working_crc = 0; // clear before first "real data"
+    working_crc = 0;          // clear before first "real data"
 
     //
     // ToolManager data
@@ -569,7 +569,7 @@ void EEPROM::post_process() {
     //
     // Universal Bed Leveling
     //
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
+    #if HAS_UBL
       const bool bedlevel_leveling_active = bedlevel.flag.leveling_active;
       EEPROM_WRITE(bedlevel_leveling_active);
       EEPROM_WRITE(ubl.storage_slot);
@@ -755,7 +755,7 @@ void EEPROM::post_process() {
     //
     // UBL Mesh
     //
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
+    #if HAS_UBL
       if (ubl.storage_slot >= 0)
         store_mesh(ubl.storage_slot);
     #endif
@@ -975,7 +975,7 @@ void EEPROM::post_process() {
       //
       // Universal Bed Leveling
       //
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
+      #if HAS_UBL
         bool bedlevel_leveling_active;
         EEPROM_READ(bedlevel_leveling_active);
         EEPROM_READ(ubl.storage_slot);
@@ -1190,7 +1190,7 @@ void EEPROM::post_process() {
 
       if (!flag.validating && !flag.error) post_process();
 
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
+      #if HAS_UBL
 
         if (!flag.validating) {
 
@@ -1257,7 +1257,7 @@ void EEPROM::post_process() {
     return success;
   }
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
 
     #if ENABLED(EEPROM_CHITCHAT)
       void ubl_invalid_slot(const int s) {
@@ -1300,7 +1300,7 @@ void EEPROM::post_process() {
 
       const bool status = memorystore.write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
 
-      if (status) SERIAL_MSG("?Unable to save mesh data.\n");
+      if (status) SERIAL_EM("?Unable to save mesh data.");
       else        DEBUG_EMV("Mesh saved in slot ", slot);
 
     }
@@ -1604,7 +1604,7 @@ void EEPROM::reset() {
 
       #if ENABLED(MESH_BED_LEVELING)
         SERIAL_LM(CFG, "Mesh Bed Leveling");
-      #elif ENABLED(AUTO_BED_LEVELING_UBL)
+      #elif HAS_UBL
         SERIAL_LM(CFG, "Unified Bed Leveling");
       #elif HAS_ABL_OR_UBL
         SERIAL_LM(CFG, "Auto Bed Leveling");
@@ -1630,7 +1630,7 @@ void EEPROM::reset() {
           SERIAL_LMV(CFG, "  G29 S4 Z", LINEAR_UNIT(mbl.data.z_offset), 5);
         }
 
-      #elif ENABLED(AUTO_BED_LEVELING_UBL)
+      #elif HAS_UBL
 
         ubl.report_state();
         SERIAL_LMV(CFG, "  Active Mesh Slot: ", ubl.storage_slot);

@@ -150,7 +150,7 @@ class LcdUI {
 
     #endif
 
-    #if HAS_LCD_MENU && (ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION))
+    #if HAS_LCD_MENU && (HAS_UBL || ENABLED(G26_MESH_VALIDATION))
       static bool external_control;
     #else
       static constexpr bool external_control = false;
@@ -382,7 +382,7 @@ class LcdUI {
         static inline void chirp() { sound.playtone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ); }
       #endif
 
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
+      #if HAS_UBL
         static void ubl_plot(const uint8_t x_plot, const uint8_t y_plot);
       #endif
 
@@ -393,7 +393,7 @@ class LcdUI {
 
     #endif
 
-    #if HAS_LCD_MENU && (ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION))
+    #if HAS_LCD_MENU && (HAS_UBL || ENABLED(G26_MESH_VALIDATION))
       FORCE_INLINE static void capture() { external_control = true; }
       FORCE_INLINE static void release() { external_control = false; }
     #endif
@@ -408,7 +408,7 @@ class LcdUI {
       #endif
       static void update_buttons();
       static bool button_pressed();
-      #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+      #if HAS_UBL || ENABLED(G26_MESH_VALIDATION)
         static void wait_for_release();
       #endif
 

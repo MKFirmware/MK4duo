@@ -48,7 +48,7 @@ class EEPROM {
 
       static eeprom_flag_t flag;
  
-      #if ENABLED(AUTO_BED_LEVELING_UBL)  // Eventually make these available if any leveling system
+      #if HAS_UBL                         // Eventually make these available if any leveling system
                                           // That can store is enabled
         static const uint16_t meshes_end; // 128 is a placeholder for the size of the MAT; the MAT will always
                                           // live at the very end of the eeprom
@@ -63,7 +63,7 @@ class EEPROM {
       reset();
       #if HAS_EEPROM
         if ((success = store())) {
-          #if ENABLED(AUTO_BED_LEVELING_UBL)
+          #if HAS_UBL
             success = load(); // UBL uses load() to know the end of EEPROM
           #elif ENABLED(EEPROM_CHITCHAT)
             Print_Settings();
@@ -84,8 +84,8 @@ class EEPROM {
       static bool load();     // Return 'true' if data was loaded ok
       static bool validate(); // Return 'true' if EEPROM data is ok
 
-      #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
-                                         // That can store is enabled
+      #if HAS_UBL             // Eventually make these available if any leveling system
+                              // That can store is enabled
         static uint16_t meshes_start_index();
         FORCE_INLINE static uint16_t  meshes_end_index() { return meshes_end; }
         static uint16_t calc_num_meshes();

@@ -54,7 +54,7 @@ inline void gcode_M115() {
   #endif
 
   // EEPROM (M500, M501)
-  #if ENABLED(EEPROM_SETTINGS)
+  #if HAS_EEPROM
     SERIAL_CAP_ON("EEPROM");
   #else
     SERIAL_CAP_OFF("EEPROM");
