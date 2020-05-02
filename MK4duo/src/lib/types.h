@@ -334,14 +334,14 @@ struct XYZval {
   FORCE_INLINE XYZval<T>  operator* (const XYZEval<T> &rs)        { XYZval<T> ls = *this; ls.x *= rs.x; ls.y *= rs.y; ls.z *= rs.z; return ls; }
   FORCE_INLINE XYZval<T>  operator/ (const XYZEval<T> &rs)  const { XYZval<T> ls = *this; ls.x /= rs.x; ls.y /= rs.y; ls.z /= rs.z; return ls; }
   FORCE_INLINE XYZval<T>  operator/ (const XYZEval<T> &rs)        { XYZval<T> ls = *this; ls.x /= rs.x; ls.y /= rs.y; ls.z /= rs.z; return ls; }
-  FORCE_INLINE XYZval<T>  operator* (const float &v)        const { XYZval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= z;    return ls; }
-  FORCE_INLINE XYZval<T>  operator* (const float &v)              { XYZval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= z;    return ls; }
-  FORCE_INLINE XYZval<T>  operator* (const int &v)          const { XYZval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= z;    return ls; }
-  FORCE_INLINE XYZval<T>  operator* (const int &v)                { XYZval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= z;    return ls; }
-  FORCE_INLINE XYZval<T>  operator/ (const float &v)        const { XYZval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= z;    return ls; }
-  FORCE_INLINE XYZval<T>  operator/ (const float &v)              { XYZval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= z;    return ls; }
-  FORCE_INLINE XYZval<T>  operator/ (const int &v)          const { XYZval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= z;    return ls; }
-  FORCE_INLINE XYZval<T>  operator/ (const int &v)                { XYZval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= z;    return ls; }
+  FORCE_INLINE XYZval<T>  operator* (const float &v)        const { XYZval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= v;    return ls; }
+  FORCE_INLINE XYZval<T>  operator* (const float &v)              { XYZval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= v;    return ls; }
+  FORCE_INLINE XYZval<T>  operator* (const int &v)          const { XYZval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= v;    return ls; }
+  FORCE_INLINE XYZval<T>  operator* (const int &v)                { XYZval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= v;    return ls; }
+  FORCE_INLINE XYZval<T>  operator/ (const float &v)        const { XYZval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= v;    return ls; }
+  FORCE_INLINE XYZval<T>  operator/ (const float &v)              { XYZval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= v;    return ls; }
+  FORCE_INLINE XYZval<T>  operator/ (const int &v)          const { XYZval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= v;    return ls; }
+  FORCE_INLINE XYZval<T>  operator/ (const int &v)                { XYZval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= v;    return ls; }
   FORCE_INLINE XYZval<T>  operator>>(const int &v)          const { XYZval<T> ls = *this; _RS(ls.x); _RS(ls.y); _RS(ls.z); return ls; }
   FORCE_INLINE XYZval<T>  operator>>(const int &v)                { XYZval<T> ls = *this; _RS(ls.x); _RS(ls.y); _RS(ls.z); return ls; }
   FORCE_INLINE XYZval<T>  operator<<(const int &v)          const { XYZval<T> ls = *this; _LS(ls.x); _LS(ls.y); _LS(ls.z); return ls; }
