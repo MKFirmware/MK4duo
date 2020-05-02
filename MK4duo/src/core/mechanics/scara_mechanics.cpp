@@ -78,7 +78,7 @@ void Scara_Mechanics::factory_parameters() {
   data.min_segment_time_us        = DEFAULT_MIN_SEGMENT_TIME;
   data.min_travel_feedrate_mm_s   = DEFAULT_MIN_TRAVEL_FEEDRATE;
 
-  #if ENABLED(JUNCTION_DEVIATION)
+  #if HAS_JUNCTION_DEVIATION
     data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #endif
 
@@ -805,7 +805,7 @@ void Scara_Mechanics::report_detail_position() {
     SERIAL_MV(" S", LINEAR_UNIT(data.min_feedrate_mm_s), 3);
     SERIAL_EMV(" V", LINEAR_UNIT(data.min_travel_feedrate_mm_s), 3);
 
-    #if ENABLED(JUNCTION_DEVIATION)
+    #if HAS_JUNCTION_DEVIATION
       SERIAL_LM(CFG, "Junction Deviation: J<JUNCTION_DEVIATION_MM>");
       SERIAL_LMV(CFG, "  M205 J", data.junction_deviation_mm, 2);
     #endif

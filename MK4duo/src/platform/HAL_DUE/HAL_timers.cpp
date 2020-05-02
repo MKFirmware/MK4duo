@@ -149,7 +149,8 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency/*=100*/) 
 
   // enable interrupt on RC compare
   tc->TC_CHANNEL[channel].TC_IER = TC_IER_CPCS;
-  tc->TC_CHANNEL[channel].TC_IER = ~TC_IER_CPCS;
+
+  //tc->TC_CHANNEL[channel].TC_IER = ~TC_IER_CPCS;
 
   // Finally, enable IRQ
   NVIC_EnableIRQ(IRQn);

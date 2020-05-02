@@ -59,14 +59,14 @@ inline void gcode_M420() {
 
   const xyz_pos_t oldpos = mechanics.position;
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
 
     // L to load a mesh from the EEPROM
     if (parser.seen('L')) {
 
       bedlevel.set_bed_leveling_enabled(false);
 
-      #if ENABLED(EEPROM_SETTINGS)
+      #if HAS_EEPROM
 
         const int8_t storage_slot = parser.has_value() ? parser.value_int() : ubl.storage_slot;
         const int16_t a = eeprom.calc_num_meshes();
@@ -112,7 +112,7 @@ inline void gcode_M420() {
       // Subtract the given value or the mean from all mesh values
       if (parser.seen('C')) {
         const float cval = parser.value_float();
-        #if ENABLED(AUTO_BED_LEVELING_UBL)
+        #if HAS_UBL
 
           bedlevel.set_bed_leveling_enabled(false);
           ubl.adjust_mesh_to_mean(true, cval);

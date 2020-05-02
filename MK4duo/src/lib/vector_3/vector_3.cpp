@@ -41,7 +41,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
+#if ABL_PLANAR || HAS_UBL
 
 #include <math.h>
 
@@ -149,4 +149,4 @@ void matrix_3x3::debug(PGM_P const title) {
   }
 }
 
-#endif // ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
+#endif // ABL_PLANAR || HAS_UBL

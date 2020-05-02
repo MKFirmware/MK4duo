@@ -1053,7 +1053,7 @@ void LcdUI::draw_status_screen() {
 
   #endif // LCD_HAS_STATUS_INDICATORS
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
 
     #define HD44780_CHAR_WIDTH    5
     #define HD44780_CHAR_HEIGHT   8

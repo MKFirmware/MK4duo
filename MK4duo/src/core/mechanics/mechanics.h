@@ -83,8 +83,8 @@ struct generic_data_t {
 
   uint32_t      min_segment_time_us;
 
-  #if ENABLED(JUNCTION_DEVIATION)
-    float     junction_deviation_mm;
+  #if HAS_JUNCTION_DEVIATION
+    float       junction_deviation_mm;
   #endif
 
   #if HAS_CLASSIC_JERK
@@ -92,7 +92,7 @@ struct generic_data_t {
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    xyz_pos_t home_offset;
+    xyz_pos_t   home_offset;
   #endif
 
 };

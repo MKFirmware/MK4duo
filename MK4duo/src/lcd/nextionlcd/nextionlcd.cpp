@@ -89,7 +89,7 @@ char    LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH + 1];
     bool LcdUI::processing_manual_move = false;
   #endif
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+  #if HAS_UBL || ENABLED(G26_MESH_VALIDATION)
     bool LcdUI::external_control; // = false
   #endif
 
@@ -1295,7 +1295,7 @@ void LcdUI::update() {
 
   nexlcd.read_serial();
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
     if (lcdui.external_control)
       ubl.encoder_diff = lcdui.encoderPosition;
   #endif
@@ -1515,11 +1515,11 @@ void LcdUI::stop_print() {
   #endif
 }
 
-#if ENABLED(AUTO_BED_LEVELING_UBL)
+#if HAS_UBL
   void LcdUI::ubl_plot(const uint8_t x_plot, const uint8_t y_plot) {}
 #endif
 
-#if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+#if HAS_UBL || ENABLED(G26_MESH_VALIDATION)
   void LcdUI::wait_for_release() { HAL::delayMilliseconds(50); }
 #endif
 

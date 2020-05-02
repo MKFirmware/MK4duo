@@ -108,7 +108,7 @@ void menu_tune() {
   //
   #if HAS_HOTENDS
     LOOP_HOTEND()
-      EDIT_ITEM_FAST_N(int3, h, MSG_NOZZLE, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
+      EDIT_ITEM_FAST_N(int3, h, MSG_NOZZLE, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - HEATER_OVERSHOOT, watch_temp_callback_hotend);
   #endif
 
   //
@@ -116,7 +116,7 @@ void menu_tune() {
   //
   #if HAS_BEDS
     LOOP_BED()
-      EDIT_ITEM_FAST_N(int3, h, MSG_BED, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
+      EDIT_ITEM_FAST_N(int3, h, MSG_BED, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - HEATER_OVERSHOOT, watch_temp_callback_bed);
   #endif
 
   //
@@ -124,14 +124,14 @@ void menu_tune() {
   //
   #if HAS_CHAMBERS
     LOOP_CHAMBER()
-      EDIT_ITEM_FAST_N(int3, h, MSG_CHAMBER, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
+      EDIT_ITEM_FAST_N(int3, h, MSG_CHAMBER, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - HEATER_OVERSHOOT, watch_temp_callback_chamber);
   #endif
 
   //
   // Cooler:
   //
   #if HAS_COOLERS
-    EDIT_ITEM_FAST(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
+    EDIT_ITEM_FAST(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - HEATER_OVERSHOOT, watch_temp_callback_cooler);
   #endif
 
   //

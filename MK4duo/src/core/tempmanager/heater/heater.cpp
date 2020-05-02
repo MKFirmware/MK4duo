@@ -96,7 +96,7 @@ void Heater::set_target_temp(const int16_t celsius) {
     SwitchOff();
     print_low_high_temp(celsius, true);
   }
-  else if (celsius > data.temp.max - 10) {
+  else if (celsius > data.temp.max - HEATER_OVERSHOOT) {
     SwitchOff();
     print_low_high_temp(celsius, false);
   }
@@ -115,7 +115,7 @@ void Heater::set_target_temp(const int16_t celsius) {
 void Heater::set_idle_temp(const int16_t celsius) {
   if (celsius < data.temp.min)
     print_low_high_temp(celsius, true);
-  else if (celsius > data.temp.max - 10)
+  else if (celsius > data.temp.max - HEATER_OVERSHOOT)
     print_low_high_temp(celsius, false);
   else
     idle_temperature = celsius;

@@ -125,7 +125,7 @@ void menu_tool_change() {
       }
     #endif
 
-    #if ENABLED(EEPROM_SETTINGS)
+    #if HAS_EEPROM
       ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
     #endif
     END_MENU();
@@ -135,11 +135,12 @@ void menu_tool_change() {
 #if ENABLED(DUAL_X_CARRIAGE)
 
   void menu_DXC() {
+    const bool need_g28 = !(mechanics.home_flag.YHomed && mechanics.home_flag.ZHomed);
+
     START_MENU();
     BACK_ITEM(MSG_CONFIGURATION);
 
     GCODES_ITEM(MSG_DXC_MODE_AUTOPARK, PSTR("M605 S1\nG28 X\nG1 X100"));
-    const bool need_g28 = !(mechanics.home_flag.YHomed && mechanics.home_flag.ZHomed);
     GCODES_ITEM(MSG_DXC_MODE_DUPLICATE, need_g28
       ? PSTR("M605 S1\nT0\nG28\nM605 S2 X200\nG28 X\nG1 X100")                // If Y or Z is not homed, do a full G28 first
       : PSTR("M605 S1\nT0\nM605 S2 X200\nG28 X\nG1 X100")
@@ -291,7 +292,7 @@ void menu_tool_change() {
 
 #endif // LASER
 
-#if DISABLED(SLIM_LCD_MENUS)
+#if HAS_FULL_LCD_MENU
 
   void _menu_configuration_preheat_settings(const uint8_t material) {
     START_MENU();
@@ -308,7 +309,7 @@ void menu_tool_change() {
     #if HAS_CHAMBERS
       EDIT_ITEM(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], tempManager.chamber_mintemp_all(), tempManager.chamber_maxtemp_all());
     #endif
-    #if ENABLED(EEPROM_SETTINGS)
+    #if HAS_EEPROM
       ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
     #endif
     END_MENU();
@@ -321,6 +322,9 @@ void menu_tool_change() {
 #endif
 
 void menu_configuration() {
+
+  const bool busy = printer.isPrinting();
+
   START_MENU();
   BACK_ITEM(MSG_MAIN);
 
@@ -339,7 +343,6 @@ void menu_configuration() {
     EDIT_ITEM(LCD_Z_OFFSET_TYPE, MSG_ZPROBE_ZOFFSET, &probe.data.offset.z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
   #endif
 
-  const bool busy = printer.isPrinting();
   if (!busy) {
 
     #if MECH(DELTA)
@@ -389,7 +392,7 @@ void menu_configuration() {
       SUBMENU(MSG_RETRACT, menu_config_retract);
     #endif
 
-    #if DISABLED(SLIM_LCD_MENUS)
+    #if HAS_FULL_LCD_MENU
       // Preheat configurations
       SUBMENU(MSG_PREHEAT_1_SETTINGS, menu_preheat_material1_settings);
       SUBMENU(MSG_PREHEAT_2_SETTINGS, menu_preheat_material2_settings);
@@ -401,7 +404,7 @@ void menu_configuration() {
     EDIT_ITEM(bool, MSG_RESTART, &restart.enabled, restart.changed);
   #endif
 
-  #if DISABLED(SLIM_LCD_MENUS)
+  #if HAS_FULL_LCD_MENU
 
     switch (sound.data.mode) {
       case SOUND_MODE_ON:
@@ -423,14 +426,16 @@ void menu_configuration() {
     SUBMENU(MSG_LANGUAGE, menu_language);
   #endif
 
-  #if ENABLED(EEPROM_SETTINGS)
+  #if HAS_EEPROM
     ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
-    if (!busy)
-      ACTION_ITEM(MSG_LOAD_EEPROM, []{ eeprom.load(); });
   #endif
 
-  if (!busy)
+  if (!busy) {
+    #if HAS_EEPROM
+      ACTION_ITEM(MSG_LOAD_EEPROM, []{ eeprom.load(); });
+    #endif
     ACTION_ITEM(MSG_RESTORE_FAILSAFE, []{ eeprom.reset(); });
+  }
 
   END_MENU();
 }

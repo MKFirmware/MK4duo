@@ -124,7 +124,7 @@ millis_l LcdUI::next_button_update_ms = 0;
     return click;
   }
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+  #if HAS_UBL || ENABLED(G26_MESH_VALIDATION)
 
     bool LcdUI::external_control; // = false
 
@@ -1048,7 +1048,7 @@ void LcdUI::update() {
           case encrot3: ENCODER_SPIN(encrot2, encrot0); break;
         }
         if (external_control) {
-          #if ENABLED(AUTO_BED_LEVELING_UBL)
+          #if HAS_UBL
             ubl.encoder_diff = encoderDiff;   // Make encoder rotation available to UBL G29 mesh editing.
           #endif
           encoderDiff = 0;                    // Hide the encoder event from the current screen handler.

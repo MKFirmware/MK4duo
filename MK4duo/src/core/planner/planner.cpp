@@ -1358,7 +1358,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
   #if ENABLED(SLOWDOWN) || HAS_SPI_LCD || ENABLED(XY_FREQUENCY_LIMIT)
     // Segment time im micro seconds
-    uint32_t segment_time_us = LROUND(1000000.0f / inverse_secs);
+    int32_t segment_time_us = LROUND(1000000.0f / inverse_secs);
   #endif
 
   #if ENABLED(SLOWDOWN)
@@ -1577,7 +1577,19 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   float vmax_junction_sqr; // Initial limit on the segment entry velocity (mm/s)^2
 
-  #if ENABLED(JUNCTION_DEVIATION)
+  #if HAS_JUNCTION_DEVIATION
+
+    static constexpr int16_t  jd_lut_count = 15;
+    static constexpr uint16_t jd_lut_tll   = 1 << jd_lut_count;
+    static constexpr int16_t  jd_lut_tll0  = __builtin_clz(jd_lut_tll) + 1;
+    static constexpr float jd_lut_k[jd_lut_count] PROGMEM = {
+      -1.03155351f, -1.30754733f, -1.75197887f, -2.41694975f, -3.37753963f,
+      -4.74867725f,  -6.6961956f, -9.45619202f, -13.3634491f, -18.8919716f,
+      -26.7124786f, -37.7737808f, -53.4177551f, -75.5424652f,         0.0f };
+    static constexpr float jd_lut_b[jd_lut_count] PROGMEM = {
+      1.57079637f, 1.70879328f, 2.04211712f, 2.62396669f, 3.52451944f,
+      4.85280895f, 6.76989746f, 9.50833321f, 13.4003258f,  18.918045f,
+      26.7309265f, 37.7868271f, 53.4269714f, 75.5489807f,        0.0f };
 
     // Unit vector of previous path line segment
     static xyze_float_t previous_unit_vec;
@@ -1590,7 +1602,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
     unit_vec *= inverse_millimeters;
 
-    #if IS_CORE && ENABLED(JUNCTION_DEVIATION)
+    #if IS_CORE
       /**
        * On CoreXY the length of the vector [A,B] is SQRT(2) times the length of the head movement vector [X,Y].
        * So taking Z and E into account, we cannot scale to a unit vector with "inverse_millimeters".
@@ -1622,22 +1634,17 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),
                     sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
 
-        vmax_junction_sqr = (junction_acceleration * mechanics.data.junction_deviation_mm * sin_theta_d2) / (1.0f - sin_theta_d2);
+        vmax_junction_sqr = (mechanics.data.junction_deviation_mm * junction_acceleration * sin_theta_d2) / (1.0f - sin_theta_d2);
 
         if (block->millimeters < 1) {
-          // Fast acos approximation (max. error +-0.033 rads)
-          // Based on MinMax polynomial published by W. Randolph Franklin, see
-          // https://wrf.ecse.rpi.edu/Research/Short_Notes/arcsin/onlyelem.html
-          // (acos(x) = pi / 2 - asin(x))
-          const float neg   = junction_cos_theta < 0 ? -1 : 1,
-                      t     = neg * junction_cos_theta,
-                      asinx =         0.032843707f
-                              + t * (-1.451838349f
-                              + t * ( 29.66153956f
-                              + t * (-131.1123477f
-                              + t * ( 262.8130562f
-                              + t * (-242.7199627f + t * 84.31466202f) )))),
-                      junction_theta = RADIANS(90) - neg * asinx;
+          // Fast acos approximation (max. error +-0.01 rads)
+          // Based on LUT table and linear interpolation
+          const float t = ABS(junction_cos_theta);
+          const int16_t idx = (t == 0.0f) ? 0 : __builtin_clz(int16_t((1.0f - t) * jd_lut_tll)) - jd_lut_tll0;
+
+          float junction_theta = pgm_read_float(&jd_lut_k[idx]) * t + pgm_read_float(&jd_lut_b[idx]);
+          if (junction_cos_theta < 0)
+            junction_theta = RADIANS(180) - junction_theta;
 
           // If angle is greater than 135 degrees (octagon), find speed for approximate arc
           if (junction_theta > RADIANS(135)) {
@@ -1656,7 +1663,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
     previous_unit_vec = unit_vec;
 
-  #endif // ENABLED(JUNCTION_DEVIATION)
+  #endif // HAS_JUNCTION_DEVIATION
 
   #if HAS_CLASSIC_JERK
 
@@ -1746,7 +1753,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
     previous_safe_speed = safe_speed;
 
-    #if ENABLED(JUNCTION_DEVIATION)
+    #if HAS_JUNCTION_DEVIATION
       vmax_junction_sqr = MIN(vmax_junction_sqr, sq(vmax_junction));
     #else
       vmax_junction_sqr = sq(vmax_junction);
@@ -1939,7 +1946,7 @@ bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, con
 
   #if IS_KINEMATIC
 
-    #if ENABLED(JUNCTION_DEVIATION)
+    #if HAS_JUNCTION_DEVIATION
       const xyze_pos_t cart_dist_mm = {
         rx - position_cart.x, ry - position_cart.y,
         rz - position_cart.z, e  - position_cart.e
@@ -1964,7 +1971,7 @@ bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, con
     #endif
 
     if (buffer_segment(mechanics.delta.a, mechanics.delta.b, mechanics.delta.c, raw.e
-      #if ENABLED(JUNCTION_DEVIATION)
+      #if HAS_JUNCTION_DEVIATION
         , cart_dist_mm
       #endif
       , feedrate, extruder, mm

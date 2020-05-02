@@ -26,7 +26,7 @@
 
 #include "../../../MK4duo.h"
 
-#if HAS_LCD_MENU && ENABLED(AUTO_BED_LEVELING_UBL)
+#if HAS_LCD_MENU && HAS_UBL
 
 static int16_t  ubl_storage_slot = 0,
                 custom_hotend_temp = 190,

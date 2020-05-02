@@ -56,7 +56,7 @@ inline void gcode_M205() {
   if (parser.seen('S')) mechanics.data.min_feedrate_mm_s = parser.value_linear_units();
   if (parser.seen('V')) mechanics.data.min_travel_feedrate_mm_s = parser.value_linear_units();
 
-  #if ENABLED(JUNCTION_DEVIATION)
+  #if HAS_JUNCTION_DEVIATION
     if (parser.seen('J')) {
       const float junc_dev = parser.value_linear_units();
       if (WITHIN(junc_dev, 0.01f, 0.3f)) {

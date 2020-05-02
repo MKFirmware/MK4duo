@@ -56,6 +56,8 @@
 
 #if HAS_EEPROM_FLASH
 
+//#define EE_EMU_DEBUG
+
 #define EEPROMSize     4096
 #define PagesPerGroup   128
 #define GroupCount        2
@@ -131,8 +133,8 @@ static uint8_t  buffer[256] = { 0 },  // The RAM buffer to accumulate writes
                 curPage = 0,          // Current FLASH page inside the group
                 curGroup = 0xFF;      // Current FLASH group
 
-//#define EE_EMU_DEBUG
 #if ENABLED(EE_EMU_DEBUG)
+
   static void ee_Dump(int page, const void* data) {
 
     const uint8_t* c = (const uint8_t*) data;
@@ -154,6 +156,7 @@ static uint8_t  buffer[256] = { 0 },  // The RAM buffer to accumulate writes
       }
     }
   }
+
 #endif
 
 /* Flash Writing Protection Key */

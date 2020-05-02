@@ -21,10 +21,12 @@
  */
 #pragma once
 
+#if HAS_EEPROM
+
 #if ENABLED(E2END)
   #define EEPROM_SIZE E2END
 #else
-  #define EEPROM_SIZE 4096
+  #define EEPROM_SIZE 0xFFF
 #endif
 
 class MemoryStore {
@@ -65,3 +67,5 @@ class MemoryStore {
 };
 
 extern MemoryStore memorystore;
+
+#endif // HAS_EEPROM

@@ -450,7 +450,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
   #endif // SDSUPPORT
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if HAS_UBL
 
     /**
      * UBL LCD "radar" map data

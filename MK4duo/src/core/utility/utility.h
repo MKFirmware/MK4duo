@@ -57,7 +57,7 @@ struct FlagBits {
   inline bool marked(const xy_int8_t &xy)       { return marked(xy.y, xy.x); }
 };
 
-#if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+#if HAS_UBL || ENABLED(G26_MESH_VALIDATION)
   typedef FlagBits<GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y> MeshFlags;
 #endif
 

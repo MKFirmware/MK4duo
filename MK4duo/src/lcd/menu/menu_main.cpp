@@ -99,15 +99,17 @@ void menu_led();
 #endif
 
 void menu_main() {
-  START_MENU();
-  BACK_ITEM(MSG_INFO_SCREEN);
 
-  const bool busy = printer.isPrinting();
+  const bool  busy      = printer.isPrinting(),
+              mode_fff  = printer.mode == PRINTER_MODE_FFF;
 
   #if HAS_SD_SUPPORT
     const bool  card_mounted  = card.isMounted(),
                 card_open     = card_mounted && card.isFileOpen();
   #endif
+
+  START_MENU();
+  BACK_ITEM(MSG_INFO_SCREEN);
 
   if (busy) {
     ACTION_ITEM(MSG_PAUSE_PRINT, lcdui.pause_print);
@@ -120,12 +122,13 @@ void menu_main() {
     SUBMENU(MSG_TUNE, menu_tune);
   }
   else {
+
     #if !HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
       //
       // Autostart
       //
       #if ENABLED(MENU_ADDAUTOSTART)
-        if (!busy) ACTION_ITEM(MSG_AUTOSTART, card.beginautostart);
+        ACTION_ITEM(MSG_AUTOSTART, card.beginautostart);
       #endif
 
       if (card_mounted) {
@@ -155,7 +158,7 @@ void menu_main() {
     SUBMENU(MSG_MOTION, menu_motion);
   }
 
-  if (printer.mode == PRINTER_MODE_FFF) {
+  if (mode_fff) {
     SUBMENU(MSG_TEMPERATURE, menu_temperature);
     #if ENABLED(COLOR_MIXING_EXTRUDER) && DISABLED(NEXTION)
       SUBMENU(MSG_MIXER, menu_mixer);
@@ -171,7 +174,7 @@ void menu_main() {
     SUBMENU(MSG_USER_MENU, menu_user);
   #endif
 
-  if (printer.mode == PRINTER_MODE_FFF) {
+  if (mode_fff) {
     #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(FILAMENT_LOAD_UNLOAD_GCODES)
       GCODES_ITEM(MSG_FILAMENTCHANGE, PSTR("M600 B0"));
     #elif ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
@@ -198,31 +201,36 @@ void menu_main() {
   #endif
 
   #if HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
-    //
-    // Autostart
-    //
-    #if ENABLED(MENU_ADDAUTOSTART)
-      if (!busy) ACTION_ITEM(MSG_AUTOSTART, card.beginautostart);
-    #endif
 
-    if (card_mounted) {
-      if (!card_open) {
+    if (!busy) {
+
+      //
+      // Autostart
+      //
+      #if ENABLED(MENU_ADDAUTOSTART)
+        ACTION_ITEM(MSG_AUTOSTART, card.beginautostart);
+      #endif
+
+      if (card_mounted) {
+        if (!card_open) {
+          #if PIN_EXISTS(SD_DETECT)
+            GCODES_ITEM(MSG_CHANGE_SDCARD, M21_CMD);
+          #else
+            GCODES_ITEM(MSG_RELEASE_SDCARD, M22_CMD);
+          #endif
+          SUBMENU(MSG_CARD_MENU, menu_sdcard);
+        }
+      }
+      else {
         #if PIN_EXISTS(SD_DETECT)
-          GCODES_ITEM(MSG_CHANGE_SDCARD, M21_CMD);
+          STATIC_ITEM(MSG_NO_CARD);
         #else
-          GCODES_ITEM(MSG_RELEASE_SDCARD, M22_CMD);
+          GCODES_ITEM(MSG_INIT_SDCARD, M21_CMD);
+          STATIC_ITEM(MSG_SD_RELEASED);
         #endif
-        SUBMENU(MSG_CARD_MENU, menu_sdcard);
       }
     }
-    else {
-      #if PIN_EXISTS(SD_DETECT)
-        STATIC_ITEM(MSG_NO_CARD);
-      #else
-        GCODES_ITEM(MSG_INIT_SDCARD, M21_CMD);
-        STATIC_ITEM(MSG_SD_RELEASED);
-      #endif
-    }
+
   #endif // HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 
   #if HAS_SERVICE_TIMES
