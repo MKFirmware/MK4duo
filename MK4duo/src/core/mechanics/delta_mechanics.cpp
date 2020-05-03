@@ -948,7 +948,7 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
 
   #if HAS_TRINAMIC
     tmcManager.go_to_homing_phase(axis, get_homing_bump_feedrate(axis));
-  #endif // HAS_TRINAMIC
+  #endif
 
   // Delta has already moved all three towers up in G28
   // so here it re-homes each tower in turn.

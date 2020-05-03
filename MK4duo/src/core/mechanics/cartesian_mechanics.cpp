@@ -1089,6 +1089,10 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
   #endif
 
+  #if HAS_TRINAMIC
+    tmcManager.go_to_homing_phase(axis, get_homing_bump_feedrate(axis));
+  #endif
+
   // For cartesian machines,
   // set the axis to its home position
   set_axis_is_at_home(axis);
