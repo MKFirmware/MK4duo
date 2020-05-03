@@ -1693,6 +1693,11 @@
 
 // (mm) Distance from real junction edge
 #define JUNCTION_DEVIATION_MM 0.02
+
+// Disable this option to save 120 bytes of PROGMEM,
+// but incur increased computation and a reduction
+// in accuracy.
+#define JUNCTION_DEVIATION_USE_TABLE
 /**************************************************************************/
 
 

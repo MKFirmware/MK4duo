@@ -1579,18 +1579,6 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   #if HAS_JUNCTION_DEVIATION
 
-    static constexpr int16_t  jd_lut_count = 15;
-    static constexpr uint16_t jd_lut_tll   = 1 << jd_lut_count;
-    static constexpr int16_t  jd_lut_tll0  = __builtin_clz(jd_lut_tll) + 1;
-    static constexpr float jd_lut_k[jd_lut_count] PROGMEM = {
-      -1.03155351f, -1.30754733f, -1.75197887f, -2.41694975f, -3.37753963f,
-      -4.74867725f,  -6.6961956f, -9.45619202f, -13.3634491f, -18.8919716f,
-      -26.7124786f, -37.7737808f, -53.4177551f, -75.5424652f,         0.0f };
-    static constexpr float jd_lut_b[jd_lut_count] PROGMEM = {
-      1.57079637f, 1.70879328f, 2.04211712f, 2.62396669f, 3.52451944f,
-      4.85280895f, 6.76989746f, 9.50833321f, 13.4003258f,  18.918045f,
-      26.7309265f, 37.7868271f, 53.4269714f, 75.5489807f,        0.0f };
-
     // Unit vector of previous path line segment
     static xyze_float_t previous_unit_vec;
 
@@ -1637,17 +1625,55 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         vmax_junction_sqr = (mechanics.data.junction_deviation_mm * junction_acceleration * sin_theta_d2) / (1.0f - sin_theta_d2);
 
         if (block->millimeters < 1) {
-          // Fast acos approximation (max. error +-0.01 rads)
-          // Based on LUT table and linear interpolation
-          const float t = ABS(junction_cos_theta);
-          const int16_t idx = (t == 0.0f) ? 0 : __builtin_clz(int16_t((1.0f - t) * jd_lut_tll)) - jd_lut_tll0;
 
-          float junction_theta = pgm_read_float(&jd_lut_k[idx]) * t + pgm_read_float(&jd_lut_b[idx]);
-          if (junction_cos_theta < 0)
-            junction_theta = RADIANS(180) - junction_theta;
+          const float neg = junction_cos_theta < 0 ? -1 : 1,
+                      t   = neg * junction_cos_theta;
 
           // If angle is greater than 135 degrees (octagon), find speed for approximate arc
-          if (junction_theta > RADIANS(135)) {
+          if (t < -0.7071067812f) {
+
+            #if ENABLED(JUNCTION_DEVIATION_USE_TABLE)
+
+              // Fast acos approximation (max. error +-0.01 rads)
+              // Based on LUT table and linear interpolation
+              static constexpr int16_t  jd_lut_count = 15;
+              static constexpr uint16_t jd_lut_tll   = 1 << jd_lut_count;
+              static constexpr int16_t  jd_lut_tll0  = __builtin_clz(jd_lut_tll) + 1;
+              static constexpr float    jd_lut_k[jd_lut_count] PROGMEM = {
+                -1.03155351f, -1.30754733f, -1.75197887f, -2.41694975f, -3.37753963f,
+                -4.74867725f,  -6.6961956f, -9.45619202f, -13.3634491f, -18.8919716f,
+                -26.7124786f, -37.7737808f, -53.4177551f, -75.5424652f,         0.0f
+              };
+              static constexpr float    jd_lut_b[jd_lut_count] PROGMEM = {
+                1.57079637f, 1.70879328f, 2.04211712f, 2.62396669f, 3.52451944f,
+                4.85280895f, 6.76989746f, 9.50833321f, 13.4003258f,  18.918045f,
+                26.7309265f, 37.7868271f, 53.4269714f, 75.5489807f,        0.0f
+              };
+
+              const int16_t idx = (t == 0.0f) ? 0 : __builtin_clz(int16_t((1.0f - t) * jd_lut_tll)) - jd_lut_tll0;
+
+              float junction_theta = t * pgm_read_float(&jd_lut_k[idx]) + pgm_read_float(&jd_lut_b[idx]);
+              if (neg > 0) junction_theta = RADIANS(180) - junction_theta;
+
+            #else
+
+              // Fast acos(-t) approximation (max. error +-0.033rad = 1.89°)
+              // Based on MinMax polynomial published by W. Randolph Franklin, see
+              // https://wrf.ecse.rpi.edu/Research/Short_Notes/arcsin/onlyelem.html
+              //  acos( t) = pi / 2 - asin(x)
+              //  acos(-t) = pi - acos(t) ... pi / 2 + asin(x)
+
+              const float asinx =       0.032843707f
+                                + t * (-1.451838349f
+                                + t * ( 29.66153956f
+                                + t * (-131.1123477f
+                                + t * ( 262.8130562f
+                                + t * (-242.7199627f
+                                + t * ( 84.31466202f ) ))))),
+                          junction_theta = RADIANS(90) + neg * asinx; // acos(-t)
+
+            #endif
+
             // NOTE: MinMax acos approximation and thereby also junction_theta top out at pi-0.033, which avoids division by 0
             const float limit_sqr = block->millimeters / (RADIANS(180) - junction_theta) * junction_acceleration;
             NOMORE(vmax_junction_sqr, limit_sqr);
