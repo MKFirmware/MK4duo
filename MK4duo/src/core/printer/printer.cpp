@@ -941,10 +941,6 @@ void setup() {
     }
   #endif
 
-  #if HAS_SD_RESTART
-    SERIAL_RUN(restart.check());
-  #endif
-
   // Reset Watchdog
   SERIAL_RUN(watchdog.reset());
 
