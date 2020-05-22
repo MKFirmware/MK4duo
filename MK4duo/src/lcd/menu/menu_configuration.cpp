@@ -270,7 +270,7 @@ void menu_tool_change() {
     ACTION_ITEM_P(PSTR("5mm"),          []{ laser_set_focus(5); });
     ACTION_ITEM_P(PSTR("6mm - 1/4in"),  []{ laser_set_focus(6); });
     ACTION_ITEM_P(PSTR("7mm"),          []{ laser_set_focus(7); });
-    EDIT_ITEM_P(float52, PSTR("Custom"), &focalLength, 0, LASER_FOCAL_HEIGHT, []{ laser_set_focus(focalLength); });
+    EDIT_ITEM_P(float42_52, PSTR("Custom"), &focalLength, 0, LASER_FOCAL_HEIGHT, []{ laser_set_focus(focalLength); });
     END_MENU();
   }
 

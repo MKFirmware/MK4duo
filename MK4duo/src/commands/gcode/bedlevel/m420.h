@@ -50,14 +50,14 @@
  */
 inline void gcode_M420() {
 
-  const bool  seen_S = parser.seen('S'),
+  const bool  seen_S    = parser.seen('S'),
               to_enable = seen_S ? parser.value_bool() : bedlevel.flag.leveling_active;
+
+  const xyz_pos_t oldpos = mechanics.position;
 
   // If disabling leveling do it right away
   // (Don't disable for just M420 or M420 V)
   if (seen_S && !to_enable) bedlevel.set_bed_leveling_enabled(false);
-
-  const xyz_pos_t oldpos = mechanics.position;
 
   #if HAS_UBL
 
