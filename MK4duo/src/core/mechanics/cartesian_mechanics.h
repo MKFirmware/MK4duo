@@ -168,9 +168,9 @@ class Cartesian_Mechanics : public Mechanics {
      * Report position to host
      */
     static void report_real_position();
+    static void report_position();
     static void report_detail_position();
-    static void report_logical_position();
-    static inline void report_position() { report_some_position(position.asLogical()); }
+    static void report_logical_position(const xyze_pos_t &pos);
 
     /**
      * Prepare a linear move in a dual X axis setup

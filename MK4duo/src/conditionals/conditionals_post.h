@@ -39,6 +39,40 @@
 #endif
 
 /**
+ * Serial
+ */
+#if ENABLED(SERIAL_XON_XOFF)
+  #define HAS_XON_XOFF          true
+#else
+  #define HAS_XON_XOFF          false
+#endif
+#if ENABLED(EMERGENCY_PARSER)
+  #define HAS_EMERGENCY_PARSER  true
+#else
+  #define HAS_EMERGENCY_PARSER  false
+#endif
+#if ENABLED(SERIAL_STATS_DROPPED_RX)
+  #define HAS_STATS_DROPPED_RX  true
+#else
+  #define HAS_STATS_DROPPED_RX  false
+#endif
+#if ENABLED(SERIAL_STATS_RX_BUFFER_OVERRUNS)
+  #define HAS_STATS_RX_BUFFER_OVERRUNS  true
+#else
+  #define HAS_STATS_RX_BUFFER_OVERRUNS  false
+#endif
+#if ENABLED(SERIAL_STATS_RX_FRAMING_ERRORS)
+  #define HAS_STATS_RX_FRAMING_ERRORS   true
+#else
+  #define HAS_STATS_RX_FRAMING_ERRORS   false
+#endif
+#if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+  #define HAS_STATS_MAX_RX_QUEUED       true
+#else
+  #define HAS_STATS_MAX_RX_QUEUED       false
+#endif
+
+/**
  * Stored Position
  */
 #if DISABLED(NUM_POSITON_SLOTS)
@@ -248,6 +282,15 @@
 #endif
 
 /**
+ * Volumetric Extrusion
+ */
+#if ENABLED(VOLUMETRIC_EXTRUSION)
+  #define HAS_VOLUMETRIC_EXTRUSION  true
+#else
+  #define HAS_VOLUMETRIC_EXTRUSION  false
+#endif
+
+/**
  * Extruder Encoder
  */
 #if ENABLED(EXTRUDER_ENCODER_CONTROL) && FILAMENT_RUNOUT_DISTANCE_MM == 0
@@ -382,7 +425,11 @@
 #if DISABLED(DELAY_AFTER_POWER_ON)
   #define DELAY_AFTER_POWER_ON 5
 #endif
-#define HAS_POWER_SWITCH (POWER_SUPPLY > 0 && PIN_EXISTS(PS_ON))
+#if (POWER_SUPPLY > 0 && PIN_EXISTS(PS_ON))
+  #define HAS_POWER_SWITCH true
+#else
+  #define HAS_POWER_SWITCH  false
+#endif
 
 /**
  * Temp Sensor defines
@@ -500,6 +547,9 @@
 #define HAS_Z3_MAX          (PIN_EXISTS(Z3_MAX))
 #define HAS_Z_PROBE_PIN     (PIN_EXISTS(Z_PROBE))
 
+// Host stepping
+#define HAS_HOST_STEPPING   (ENABLED(HOST_STEPPING))
+
 // Multi endstop
 #define HAS_MULTI_ENDSTOP   (ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS))
 
@@ -551,6 +601,9 @@
 #define HAS_HEATER_CHAMBER3 (TEMP_SENSOR_CHAMBER3 != 0 && PIN_EXISTS(HEATER_CHAMBER3))
 #define HAS_HEATER_COOLER   (TEMP_SENSOR_COOLER != 0 && PIN_EXISTS(HEATER_COOLER))
 
+// Thermal protection
+#define HAS_THERMAL_PROTECTION  (THERMAL_PROTECTION_HOTENDS || THERMAL_PROTECTION_BED || THERMAL_PROTECTION_CHAMBER || THERMAL_PROTECTION_COOLER)
+
 // Fans
 #define HAS_FAN0            (PIN_EXISTS(FAN0))
 #define HAS_FAN1            (PIN_EXISTS(FAN1))
@@ -590,8 +643,16 @@
 #define HAS_CHDK            (ENABLED(PHOTO_GCODE) && PIN_EXISTS(CHDK))
 #define HAS_PHOTOGRAPH      (ENABLED(PHOTO_GCODE) && PIN_EXISTS(PHOTOGRAPH))
 #define HAS_BUZZER          (PIN_EXISTS(BEEPER) || ENABLED(LCD_USE_I2C_BUZZER))
-#define HAS_CASE_LIGHT      (ENABLED(CASE_LIGHT) && (PIN_EXISTS(CASE_LIGHT) || ENABLED(CASE_LIGHT_USE_NEOPIXEL)))
 #define HAS_RESUME_CONTINUE (HAS_LCD || ENABLED(EMERGENCY_PARSER))
+
+/**
+ * Case light
+ */
+#if (ENABLED(CASE_LIGHT) && (PIN_EXISTS(CASE_LIGHT) || ENABLED(CASE_LIGHT_USE_NEOPIXEL)))
+  #define HAS_CASE_LIGHT    true
+#else
+  #define HAS_CASE_LIGHT    false
+#endif
 
 // Digital control
 #define HAS_MICROSTEPS      (HAS_X_MICROSTEPS     \
@@ -657,7 +718,11 @@
   #undef EEPROM_I2C
   #undef EEPROM_FLASH
 #endif
-#define HAS_EEPROM          (ENABLED(EEPROM_SETTINGS))
+#if ENABLED(EEPROM_SETTINGS)
+  #define HAS_EEPROM        true
+#else
+  #define HAS_EEPROM        false
+#endif
 #define HAS_EEPROM_I2C      (HAS_EEPROM && ENABLED(EEPROM_I2C))
 #define HAS_EEPROM_SPI      (HAS_EEPROM && ENABLED(EEPROM_SPI))
 #define HAS_EEPROM_FLASH    (HAS_EEPROM && ENABLED(EEPROM_FLASH))
@@ -669,7 +734,11 @@
 #define HAS_GAME_MENU       (1 < ENABLED(GAME_BRICKOUT) + ENABLED(GAME_INVADERS) + ENABLED(GAME_SNAKE) + ENABLED(GAME_MAZE))
 
 // SD support
-#define HAS_SD_SUPPORT      (ENABLED(SDSUPPORT) || ENABLED(USB_FLASH_DRIVE_SUPPORT))
+#if (ENABLED(SDSUPPORT) || ENABLED(USB_FLASH_DRIVE_SUPPORT))
+  #define HAS_SD_SUPPORT    true
+#else
+  #define HAS_SD_SUPPORT    false
+#endif
 #if HAS_SD_SUPPORT
   #if ENABLED(__AVR__)
     #define MAX_VFAT_ENTRIES (2)
@@ -862,12 +931,25 @@
 #define HAS_UBL                 (ENABLED(AUTO_BED_LEVELING_UBL))
 #define HAS_MBL                 (ENABLED(MESH_BED_LEVELING))
 #define HAS_ABL_OR_UBL          (OLD_ABL || ENABLED(AUTO_BED_LEVELING_UBL))
-#define HAS_LEVELING            (HAS_ABL_OR_UBL || ENABLED(MESH_BED_LEVELING))
-#define HAS_AUTOLEVEL           (HAS_ABL_OR_UBL && DISABLED(PROBE_MANUALLY))
 #define HAS_MESH                (ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(MESH_BED_LEVELING))
-#define PLANNER_LEVELING        (HAS_LEVELING && DISABLED(AUTO_BED_LEVELING_UBL))
 #define HAS_PROBING_PROCEDURE   (HAS_ABL_OR_UBL || ENABLED(PROBE_REPEATABILITY_TEST))
 #define HAS_POSITION_MODIFIERS  (ENABLED(FWRETRACT) || HAS_LEVELING)
+
+#if (HAS_ABL_OR_UBL || ENABLED(MESH_BED_LEVELING))
+  #define HAS_LEVELING          true
+#else
+  #define HAS_LEVELING          false
+#endif
+#if (HAS_LEVELING && DISABLED(AUTO_BED_LEVELING_UBL))
+  #define HAS_PLANNER_LEVELING  true
+#else
+  #define HAS_PLANNER_LEVELING  false
+#endif
+#if (HAS_ABL_OR_UBL && DISABLED(PROBE_MANUALLY))
+  #define HAS_AUTOLEVEL         true
+#else
+  #define HAS_AUTOLEVEL         false
+#endif
 
 #if HAS_UBL
   #undef LCD_BED_LEVELING
@@ -877,6 +959,15 @@
  * Position Float
  */
 #define HAS_POSITION_FLOAT      (ENABLED(LIN_ADVANCE) || ENABLED(SCARA_FEEDRATE_SCALING) || HAS_GRADIENT_MIX)
+
+/**
+ * Babystepping
+ */
+#if ENABLED(BABYSTEPPING)
+  #define HAS_BABYSTEPPING      true
+#else
+  #define HAS_BABYSTEPPING      false
+#endif
 
 /**
  * Bed Probing rectangular bounds
@@ -957,6 +1048,7 @@
 
 #define HEATER_COUNT  (HOTENDS+BEDS+CHAMBERS+COOLERS)
 #define HAS_HEATER    (HEATER_COUNT > 0)
+
 
 /**
  * FANS
@@ -1159,7 +1251,11 @@
 /**
  * Set flags for enabled probes
  */
-#define HAS_BED_PROBE         (HAS_PROBE_FIX || HAS_SLED || ENABLED(PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE || ENABLED(PROBE_SENSORLESS))
+#if (HAS_PROBE_FIX || HAS_SLED || ENABLED(PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE || ENABLED(PROBE_SENSORLESS))
+  #define HAS_BED_PROBE       true
+#else
+  #define HAS_BED_PROBE       false
+#endif
 #define PROBE_SELECTED        (HAS_BED_PROBE || HAS_PROBE_MANUALLY)
 #define PROBE_PIN_CONFIGURED  (HAS_Z_PROBE_PIN || HAS_Z_MIN)
 

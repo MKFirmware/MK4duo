@@ -968,40 +968,43 @@ static void ee_Init() {
   }
 }
 
-uint8_t eeprom_read_byte(uint8_t* addr) {
-  ee_Init();
-  return ee_Read((uint32_t)addr);
+/* MemoryStore -----------------------------------------------------------------------------*/
+
+size_t  MemoryStore::capacity()     { return EEPROM_SIZE + 1; }
+bool    MemoryStore::access_start() { ee_Init();  return false; }
+bool    MemoryStore::access_write() { ee_Flush(); return false; }
+
+bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
+  while (size--) {
+    uint8_t * const p = (uint8_t * const)pos;
+    uint8_t v = *value;
+    // EEPROM has only ~100,000 write cycles,
+    // so only write bytes that have changed!
+    if (v != ee_Read(uint32_t(p))) {
+      ee_Write(uint32_t(p), v);
+      delay(2);
+      if (ee_Read(uint32_t(p)) != v) {
+        SERIAL_LM(ECHO, STR_ERR_EEPROM_WRITE);
+        return true;
+      }
+    }
+    crc16(crc, &v, 1);
+    pos++;
+    value++;
+  };
+  return false;
 }
 
-void eeprom_write_byte(uint8_t* addr, uint8_t value) {
-  ee_Init();
-  ee_Write((uint32_t)addr, value);
-}
-
-void eeprom_update_block(const void* pos, void* eeprom_address, size_t n) {
-  uint8_t* dst = (uint8_t*)pos;
-  uint8_t* src = (uint8_t*)eeprom_address;
-  while (n--) {
-    eeprom_write_byte(dst, *src);
-    ++dst;
-    ++src;
-  }
-}
-
-void eeprom_read_block(void* pos, const void* eeprom_address, size_t n) {
-  uint8_t* dst = (uint8_t*)pos;
-  uint8_t* src = (uint8_t*)eeprom_address;
-  while (n--) {
-    *dst = eeprom_read_byte(src);
-    ++dst;
-    ++src;
-  }
-}
-
-void eeprom_flush() {
-  ee_Flush();
+bool MemoryStore::read_data(int &pos, uint8_t* value, size_t size, uint16_t *crc, const bool writing/*=true*/) {
+  while (size--) {
+    uint8_t c = ee_Read(uint32_t(pos));
+    if (writing) *value = c;
+    crc16(crc, &c, 1);
+    pos++;
+    value++;
+  };
+  return false;
 }
 
 #endif // HAS_EEPROM_FLASH
-
 #endif // ARDUINO_ARCH_SAM

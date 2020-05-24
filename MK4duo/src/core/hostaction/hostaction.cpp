@@ -104,9 +104,9 @@ void Host_Action::action_notify(const char * const message) {
   SERIAL_EOL();
 }
 
-void Host_Action::action_notify_P(PGM_P const pstr) {
+void Host_Action::action_notify_P(PGM_P const message) {
   print_action(PSTR("notification "), false);
-  SERIAL_STR(pstr);
+  SERIAL_STR(message);
   SERIAL_EOL();
 }
 
@@ -115,17 +115,17 @@ void Host_Action::filrunout(const uint8_t t) {
   SERIAL_EV(int(t));
 }
 
-void Host_Action::prompt_begin(const HostPromptEnum reason, const char * const pstr, const char extra_char/*='\0'*/) {
+void Host_Action::prompt_begin(const HostPromptEnum reason, PGM_P const pstr, const char extra_char/*='\0'*/) {
   prompt_end();
   prompt_reason = reason;
   print_prompt_plus(PSTR("begin"), pstr, extra_char);
 }
 
-void Host_Action::prompt_button(const char * const pstr) {
+void Host_Action::prompt_button(PGM_P const pstr) {
   print_prompt_plus(PSTR("button"), pstr);
 }
 
-void Host_Action::prompt_do(const HostPromptEnum reason, const char * const pstr, const char * const btn1/*=nullptr*/, const char * const btn2/*=nullptr*/) {
+void Host_Action::prompt_do(const HostPromptEnum reason, PGM_P const pstr, PGM_P const btn1/*=nullptr*/, PGM_P const btn2/*=nullptr*/) {
   prompt_begin(reason, pstr);
   if (btn1) prompt_button(btn1);
   if (btn2) prompt_button(btn1);
@@ -133,19 +133,19 @@ void Host_Action::prompt_do(const HostPromptEnum reason, const char * const pstr
 }
 
 /** Private Function */
-void Host_Action::print_action(const char * const pstr, const bool eol/*=true*/) {
+void Host_Action::print_action(PGM_P const pstr, const bool eol/*=true*/) {
   SERIAL_MSG("//action:");
   SERIAL_STR(pstr);
   if (eol) SERIAL_EOL();
 }
 
-void Host_Action::print_prompt(const char * const ptype, const bool eol/*=true*/) {
+void Host_Action::print_prompt(PGM_P const ptype, const bool eol/*=true*/) {
   print_action(PSTR("prompt_"), false);
   SERIAL_STR(ptype);
   if (eol) SERIAL_EOL();
 }
 
-void Host_Action::print_prompt_plus(const char * const ptype, const char * const pstr, const char extra_char/*='\0'*/) {
+void Host_Action::print_prompt_plus(PGM_P const ptype, PGM_P const pstr, const char extra_char/*='\0'*/) {
   print_prompt(ptype, false);
   SERIAL_CHR(' ');
   SERIAL_STR(pstr);

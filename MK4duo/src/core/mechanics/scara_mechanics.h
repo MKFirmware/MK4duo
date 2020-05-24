@@ -144,9 +144,12 @@ class Scara_Mechanics : public Mechanics {
     static void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
 
     /**
-     * Report current position to host
+     * Report position to host
      */
+    static void report_real_position();
+    static void report_position();
     static void report_detail_position();
+    static void report_logical_position(const xyze_pos_t &pos);
 
     /**
      * Print mechanics parameters in memory

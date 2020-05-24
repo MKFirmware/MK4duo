@@ -288,6 +288,8 @@ namespace language_en {
   FSTRINGVALUE(MSG_AMAX_E                           , _UxGT("Amax ") LCD_STR_E);
   FSTRINGVALUE(MSG_A_RETRACT                        , _UxGT("A-Retract E"));
   FSTRINGVALUE(MSG_A_TRAVEL                         , _UxGT("A-Travel"));
+  FSTRINGVALUE(MSG_XY_FREQUENCY_LIMIT               , _UxGT("Frequency max"));
+  FSTRINGVALUE(MSG_XY_FREQUENCY_FEEDRATE            , _UxGT("Feed min"));
   FSTRINGVALUE(MSG_STEPS_PER_MM                     , _UxGT("Steps/mm"));
   FSTRINGVALUE(MSG_A_STEPS                          , _UxGT("steps/mm ") LCD_STR_A);
   FSTRINGVALUE(MSG_B_STEPS                          , _UxGT("steps/mm ") LCD_STR_B);

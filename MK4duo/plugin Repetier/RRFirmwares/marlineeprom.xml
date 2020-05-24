@@ -615,6 +615,16 @@
     <set>M201 T5 E@</set>
     <detect>M201.*T5 E(-?\d*\.?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="[Hz]">XY Frequency Limit</description>
+    <set>M201 F@</set>
+    <detect>M201.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[%]">Minimum FR percentage</description>
+    <set>M201 G@</set>
+    <detect>M201.*G(-?\d*)</detect>
+  </entry>
 
   <!-- M203: Maximum axis feedrate -->
   <entry type="float" min="0">

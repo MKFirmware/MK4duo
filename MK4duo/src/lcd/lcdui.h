@@ -189,7 +189,7 @@ class LcdUI {
       static short_timer_t next_lcd_update_timer;
 
       #if HAS_LCD_MENU
-        #if LCD_TIMEOUT_TO_STATUS
+        #if LCD_TIMEOUT_TO_STATUS > 0
           static bool defer_return_to_status;
         #else
           static constexpr bool defer_return_to_status = false;
@@ -303,7 +303,7 @@ class LcdUI {
       static bool get_blink(uint8_t moltiplicator=1);
       static void kill_screen(PGM_P const lcd_msg);
       static void draw_kill_screen();
-      static void set_status(const char* const message, const bool persist=false);
+      static void set_status(const char * const message, const bool persist=false);
       static void set_status_P(PGM_P const message, int8_t level=0);
       static void status_printf_P(const uint8_t level, PGM_P const message, ...);
       static void reset_status();
@@ -315,7 +315,7 @@ class LcdUI {
     #else // NO LCD
 
       // Send status to host as a notification
-      static void set_status(const char* message, const bool=false);
+      static void set_status(const char * message, const bool=false);
       static void set_status_P(PGM_P message, const int8_t=0);
       static void status_printf_P(const uint8_t, PGM_P const message, ...);
 
@@ -362,7 +362,7 @@ class LcdUI {
       static void draw_select_screen_prompt(PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr);
 
       static inline void defer_status_screen(const bool defer=true) {
-        #if LCD_TIMEOUT_TO_STATUS
+        #if LCD_TIMEOUT_TO_STATUS > 0
           defer_return_to_status = defer;
         #else
           UNUSED(defer);

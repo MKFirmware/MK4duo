@@ -36,7 +36,6 @@ uint32_t  HAL_min_pulse_cycle     = 0,
 // ------------------------
 // Private Variables
 // ------------------------
-bool timer_enabled = { false };
 
 // ------------------------
 // Hardware Timer
@@ -89,34 +88,28 @@ void HAL_calc_pulse_cycle() {
 void HAL_timer_start() {
   if (!HAL_timer_initialized()) {
     MK_step_timer = new HardwareTimer(STEP_TIMER);
-    MK_step_timer->setMode(1, TIMER_OUTPUT_COMPARE);
-    MK_step_timer->setInterruptPriority(NvicPriorityStepper, 0);
+    MK_step_timer->setMode(1, TIMER_OUTPUT_COMPARE, NC);
     MK_step_timer->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
     MK_step_timer->setOverflow(200, TICK_FORMAT);
     MK_step_timer->attachInterrupt(Step_Handler);
+    MK_step_timer->setPreloadEnable(false);
     MK_step_timer->resume();
+    MK_step_timer->setInterruptPriority(NvicPriorityStepper, 0);
   }
 }
 
 void HAL_timer_enable_interrupt() {
-  //if (HAL_timer_initialized() && !MK_step_timer->hasInterrupt()) {
-  if (HAL_timer_initialized() && !timer_enabled) {
+  if (HAL_timer_initialized() && !MK_step_timer->hasInterrupt())
     MK_step_timer->attachInterrupt(Step_Handler);
-    timer_enabled = true;
-  }
 }
 
 void HAL_timer_disable_interrupt() {
-  //if (HAL_timer_initialized() && MK_step_timer->hasInterrupt()) {
-  if (HAL_timer_initialized() && timer_enabled) {
+  if (HAL_timer_initialized() && MK_step_timer->hasInterrupt())
     MK_step_timer->detachInterrupt();
-    timer_enabled = false;
-  }
 }
 
 bool HAL_timer_interrupt_is_enabled() {
-  //return HAL_timer_initialized() && MK_step_timer->hasInterrupt();
-  return HAL_timer_initialized() && timer_enabled;
+  return HAL_timer_initialized() && MK_step_timer->hasInterrupt();
 }
 
 uint32_t HAL_timer_get_Clk_Freq() {

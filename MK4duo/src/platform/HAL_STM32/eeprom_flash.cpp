@@ -20,52 +20,24 @@
  *
  */
 
-#ifdef ARDUINO_ARCH_SAM
+#ifdef ARDUINO_ARCH_STM32
 
 #include "../../../MK4duo.h"
 
-#if HAS_EEPROM
+#if HAS_EEPROM_FLASH
 
-MemoryStore memorystore;
-
-extern void eeprom_flush(void);
-
-/** Public Parameters */
-#if HAS_EEPROM_SD
-  char MemoryStore::eeprom_data[EEPROM_SIZE];
-#endif
+#include <EEPROM.h>
 
 /** Public Function */
-bool MemoryStore::access_start() { return false; }
-
-bool MemoryStore::access_write() {
-  #if HAS_EEPROM_FLASH
-    eeprom_flush();
-  #elif HAS_EEPROM_SD
-    card.write_eeprom();
-  #endif
-  return false;
-}
+size_t  MemoryStore::capacity()     { return E2END + 1; }
+bool    MemoryStore::access_start() { eeprom_buffer_fill();   return false; }
+bool    MemoryStore::access_write() { eeprom_buffer_flush();  return false; }
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
 
   while (size--) {
     uint8_t v = *value;
-    #if HAS_EEPROM_SD
-      eeprom_data[pos] = v;
-    #else
-      uint8_t * const p = (uint8_t * const)pos;
-      // EEPROM has only ~100,000 write cycles,
-      // so only write bytes that have changed!
-      if (v != eeprom_read_byte(p)) {
-        eeprom_write_byte(p, v);
-        delay(2);
-        if (eeprom_read_byte(p) != v) {
-          SERIAL_LM(ECHO, STR_ERR_EEPROM_WRITE);
-          return true;
-        }
-      }
-    #endif
+    eeprom_buffered_write_byte(pos, v);
     crc16(crc, &v, 1);
     pos++;
     value++;
@@ -77,11 +49,7 @@ bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16
 bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc, const bool writing/*=true*/) {
 
   while (size--) {
-    #if HAS_EEPROM_SD
-      uint8_t c = eeprom_data[pos];
-    #else
-      uint8_t c = eeprom_read_byte((uint8_t*)pos);
-    #endif
+    const uint8_t c = eeprom_buffered_read_byte(pos);
     if (writing) *value = c;
     crc16(crc, &c, 1);
     pos++;
@@ -91,8 +59,5 @@ bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc
   return false;
 }
 
-size_t MemoryStore::capacity() { return EEPROM_SIZE + 1; }
-
-#endif // HAS_EEPROM
-
-#endif // ARDUINO_ARCH_SAM
+#endif // HAS_EEPROM_FLASH
+#endif // ARDUINO_ARCH_STM32

@@ -146,11 +146,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
 
   show_continue_prompt(is_reload);
 
-  #if HAS_BUZZER
-    filament_change_beep(max_beep_count, true);
-  #else
-    UNUSED(max_beep_count);
-  #endif
+  first_impatient_beep(max_beep_count);
 
   // Start the heater idle timers
   constexpr millis_l  nozzle_timeout  = SECOND_TO_MILLIS(PAUSE_PARK_NOZZLE_TIMEOUT),
@@ -175,9 +171,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   printer.setWaitForUser(true); // LCD click or M108 will clear this
 
   while (printer.isWaitForUser()) {
-    #if HAS_BUZZER
-      filament_change_beep(max_beep_count);
-    #endif
+    impatient_beep(max_beep_count);
 
     // If the nozzle has timed out, wait for the user to press the button to re-heat the nozzle, then
     // re-heat the nozzle, re-show the insert screen, restart the idle timers, and start over
@@ -238,9 +232,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
       nozzle_timed_out = false;
       bed_timed_out = false;
 
-      #if HAS_BUZZER
-        filament_change_beep(max_beep_count, true);
-      #endif
+      first_impatient_beep(max_beep_count);
     }
 
     printer.idle_no_sleep();
@@ -272,7 +264,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
  * - Send host action for resume, if configured
  * - Resume the current SD print job, if any
  */
-void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=PAUSE_PARK_PURGE_LENGTH*/, const int8_t max_beep_count/*=0*/ DXC_ARGS) {
+void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=PAUSE_PARK_PURGE_LENGTH*/, const int8_t max_beep_count/*=0*/, int16_t targetTemp/*=0*/ DXC_ARGS) {
 
   if (!did_pause_print) return;
 
@@ -291,6 +283,9 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
     nozzle_timed_out |= hotends[h]->isIdle();
     hotends[h]->reset_idle_timer();
   }
+
+  if (targetTemp > hotends[toolManager.active_hotend()]->target_temperature)
+    hotends[toolManager.active_hotend()]->set_target_temp(targetTemp);
 
   if (nozzle_timed_out || tempManager.hotEnoughToExtrude(toolManager.extruder.target)) {
     // Load the new filament
@@ -393,11 +388,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     #endif
     SERIAL_LM(ECHO, STR_FILAMENT_CHANGE_INSERT);
 
-    #if HAS_BUZZER
-      filament_change_beep(max_beep_count, true);
-    #else
-      UNUSED(max_beep_count);
-    #endif
+    first_impatient_beep(max_beep_count);
 
     PRINTER_KEEPALIVE(PausedforUser);
     printer.setWaitForUser(true);
@@ -409,9 +400,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     host_action.prompt_show();
 
     while (printer.isWaitForUser()) {
-      #if HAS_BUZZER
-        filament_change_beep(max_beep_count);
-      #endif
+      impatient_beep(max_beep_count);
       printer.idle_no_sleep();
     }
   }
@@ -573,16 +562,18 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
 
 #if HAS_BUZZER
 
-  void AdvancedPause::filament_change_beep(const int8_t max_beep_count, const bool init/*=false*/) {
+  void AdvancedPause::impatient_beep(const int8_t max_beep_count, const bool restart/*=false*/) {
     static millis_l next_buzz_ms  = 0;
     static int8_t   runout_beep   = 0;
 
-    if (init) next_buzz_ms = runout_beep = 0;
+    if (restart) next_buzz_ms = runout_beep = 0;
 
+    const bool always = max_beep_count < 0;
     const millis_l now = millis();
+
     if (ELAPSED(now, next_buzz_ms)) {
-      if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
-        next_buzz_ms = now + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 1000UL : 500UL);
+      if (always || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
+        next_buzz_ms = now + ((always || runout_beep < max_beep_count) ? 1000UL : 500UL);
         sound.playtone(50, NOTE_A5 - (runout_beep & 1) * NOTE_A3);
         runout_beep++;
       }

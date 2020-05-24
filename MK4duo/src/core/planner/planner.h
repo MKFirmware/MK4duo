@@ -211,15 +211,6 @@ class Planner {
       static uint8_t g_uc_extruder_last_move[MAX_EXTRUDER];
     #endif // DISABLE_INACTIVE_EXTRUDER
 
-    #if ENABLED(XY_FREQUENCY_LIMIT)
-      // Used for the frequency limit
-      #define MAX_FREQ_TIME_US (uint32_t)(1000000.0 / XY_FREQUENCY_LIMIT)
-      // Old direction bits. Used for speed calculations
-      static uint8_t old_direction_bits;
-      // Segment times (in µs). Used for speed calculations
-      static xy_ulong_t axis_segment_time_us[3];
-    #endif
-
     #if HAS_SPI_LCD
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
     #endif
@@ -249,27 +240,8 @@ class Planner {
 
     #if HAS_POSITION_MODIFIERS
 
-      static void apply_modifiers(xyze_float_t &pos
-        #if HAS_LEVELING
-          , bool leveling =
-          #if PLANNER_LEVELING
-            true
-          #else
-            false
-          #endif
-        #endif
-      );
-
-      static void unapply_modifiers(xyze_float_t &pos
-        #if HAS_LEVELING
-          , bool leveling =
-          #if PLANNER_LEVELING
-            true
-          #else
-            false
-          #endif
-        #endif
-      );
+      static void apply_modifiers(xyze_float_t &pos, const bool leveling=HAS_PLANNER_LEVELING);
+      static void unapply_modifiers(xyze_float_t &pos, const bool leveling=HAS_PLANNER_LEVELING);
 
     #endif // HAS_POSITION_MODIFIERS
 
@@ -685,11 +657,10 @@ class Planner {
       FORCE_INLINE static float limit_value_by_axis_maximum(const float &max_value, xyze_float_t &unit_vec) {
         float limit_value = max_value;
         LOOP_XYZE(axis) {
+          const uint32_t max_acceleration_mm_per_s2 = (axis == E_AXIS) ? extruders[toolManager.extruder.active]->data.max_acceleration_mm_per_s2 : mechanics.data.max_acceleration_mm_per_s2[axis];
           if (unit_vec[axis]) {  // Avoid divide by zero
-            if (axis == E_AXIS)
-              NOMORE(limit_value, ABS(extruders[toolManager.extruder.active]->data.max_acceleration_mm_per_s2 / unit_vec[axis]));
-            else
-              NOMORE(limit_value, ABS(mechanics.data.max_acceleration_mm_per_s2[axis] / unit_vec[axis]));
+            if (limit_value * ABS(unit_vec[axis]) > max_acceleration_mm_per_s2)
+              limit_value = ABS(max_acceleration_mm_per_s2 / unit_vec[axis]);
           }
         }
         return limit_value;

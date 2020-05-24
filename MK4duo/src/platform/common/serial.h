@@ -43,49 +43,17 @@
 template<bool b, typename T, typename F> struct TypeSelector { typedef T type;} ;
 template<typename T, typename F> struct TypeSelector<false, T, F> { typedef F type; };
 
-constexpr bool
-  bSERIAL_XON_XOFF = (false
-    #if ENABLED(SERIAL_XON_XOFF)
-      || true
-    #endif
-  ),
-  bEMERGENCY_PARSER = (false
-    #if ENABLED(EMERGENCY_PARSER)
-      || true
-    #endif
-  ),
-  bSERIAL_STATS_DROPPED_RX = (false
-    #if ENABLED(SERIAL_STATS_DROPPED_RX)
-      || true
-    #endif
-  ),
-  bSERIAL_STATS_RX_BUFFER_OVERRUNS = (false
-    #if ENABLED(SERIAL_STATS_RX_BUFFER_OVERRUNS)
-      || true
-    #endif
-  ),
-  bSERIAL_STATS_RX_FRAMING_ERRORS = (false
-    #if ENABLED(SERIAL_STATS_RX_FRAMING_ERRORS)
-      || true
-    #endif
-  ),
-  bSERIAL_STATS_MAX_RX_QUEUED = (false
-    #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
-      || true
-    #endif
-  );
-
 template <uint8_t serial>
 struct MK4duoSerialHostCfg {
   static constexpr int PORT               = serial;
   static constexpr unsigned int RX_SIZE   = RX_BUFFER_SIZE;
   static constexpr unsigned int TX_SIZE   = TX_BUFFER_SIZE;
-  static constexpr bool XONOFF            = bSERIAL_XON_XOFF;
-  static constexpr bool EMERGENCYPARSER   = bEMERGENCY_PARSER;
-  static constexpr bool DROPPED_RX        = bSERIAL_STATS_DROPPED_RX;
-  static constexpr bool RX_OVERRUNS       = bSERIAL_STATS_RX_BUFFER_OVERRUNS;
-  static constexpr bool RX_FRAMING_ERRORS = bSERIAL_STATS_RX_FRAMING_ERRORS;
-  static constexpr bool MAX_RX_QUEUED     = bSERIAL_STATS_MAX_RX_QUEUED;
+  static constexpr bool XONOFF            = HAS_XON_XOFF;
+  static constexpr bool EMERGENCYPARSER   = HAS_EMERGENCY_PARSER;
+  static constexpr bool DROPPED_RX        = HAS_STATS_DROPPED_RX;
+  static constexpr bool RX_OVERRUNS       = HAS_STATS_RX_BUFFER_OVERRUNS;
+  static constexpr bool RX_FRAMING_ERRORS = HAS_STATS_RX_FRAMING_ERRORS;
+  static constexpr bool MAX_RX_QUEUED     = HAS_STATS_MAX_RX_QUEUED;
 };
 
 template <uint8_t serial>

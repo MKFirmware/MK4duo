@@ -1664,7 +1664,7 @@
 
       #if HAS_KILL
         SERIAL_MV("Kill pin on :", KILL_PIN);
-        SERIAL_EMV("  state:", READ(KILL_PIN));
+        SERIAL_EMV("  state:", int(printer.kill_state()));
       #endif
       SERIAL_EOL();
       SERIAL_DLY(50);

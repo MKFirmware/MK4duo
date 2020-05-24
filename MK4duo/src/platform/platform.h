@@ -36,6 +36,7 @@
 #include "common/debug/debug.h"
 #include "common/servo/servo.h"
 #include "common/serial.h"
+#include "common/eeprom_all.h"
 #include "common/memory_store.h"
 
 #if ENABLED(__AVR__)
@@ -53,6 +54,9 @@
   #include "HAL_SAMD/spi_pins.h"
   #include "HAL_SAMD/HAL.h"
 #elif ENABLED(ARDUINO_ARCH_STM32)
+  #if !defined(STM32_CORE_VERSION) || (STM32_CORE_VERSION  < 0x01090000)
+    #error "DEPENDENCY ERROR: Please download last version of STM32_CORE"
+  #endif
   #define CPU_32_BIT
   #define MK_MAIN_LOOP false
   #include "HAL_STM32/spi_pins.h"

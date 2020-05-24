@@ -97,6 +97,12 @@ void Scara_Mechanics::factory_parameters() {
     ZERO(data.home_offset);
   #endif
 
+  #if HAS_XY_FREQUENCY_LIMIT
+    data.xy_freq_limit_hz         = XY_FREQUENCY_LIMIT;
+    data.xy_freq_min_speed_factor = (XY_FREQUENCY_MIN_PERCENT) * 0.01f;
+    refresh_frequency_limit();
+  #endif
+
 }
 
 /**
@@ -655,19 +661,37 @@ void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_
   position = destination;
 }
 
-// Report detail current position to host
+// Report the real current position according to the steppers
+void Scara_Mechanics::report_real_position() {
+
+  get_cartesian_from_steppers();
+  xyze_pos_t npos = cartesian_position;
+  npos.e = planner.get_axis_position_mm(E_AXIS);
+
+  #if HAS_POSITION_MODIFIERS
+    planner.unapply_modifiers(npos, true);
+  #endif
+
+  report_logical_position(npos);
+  stepper.report_positions();
+
+}
+
+// Report the logical current position according to the most recent G-code command
+void Scara_Mechanics::report_position() {
+  report_logical_position(position);
+  stepper.report_positions();
+}
+
+// Report detail position to host
 void Scara_Mechanics::report_detail_position() {
 
+  // Position as sent by G-code
   SERIAL_MSG("\nLogical:");
-  const float logical[XYZ] = {
-    LOGICAL_X_POSITION(position.x),
-    LOGICAL_Y_POSITION(position.y),
-    LOGICAL_Z_POSITION(position.z)
-  };
-  report_xyz(logical);
+  report_xyz(position.asLogical());
 
   SERIAL_MSG("Raw:    ");
-  report_xyze(position.x);
+  report_xyze(position);
 
   float leveled[XYZ] = { position.x, position.y, position.z };
 
@@ -716,9 +740,15 @@ void Scara_Mechanics::report_detail_position() {
     from_steppers[E_AXIS] - position.e
   };
 
-  SERIAL_MSG("Differ: ");
+  SERIAL_MSG("Diff:   ");
   report_xyze(diff);
 
+}
+
+// Report the logical position for a given machine position
+void Scara_Mechanics::report_logical_position(const xyze_pos_t &pos) {
+  const xyze_pos_t lpos = pos.asLogical();
+  report_xyze(lpos);
 }
 
 #if DISABLED(DISABLE_M503)
@@ -764,6 +794,11 @@ void Scara_Mechanics::report_detail_position() {
         SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS + e]));
       }
     #endif // EXTRUDERS > 1
+    #if HAS_XY_FREQUENCY_LIMIT
+      SERIAL_LM(CFG, "XY Frequency Limit: F<freq> G<min%>");
+      SERIAL_SMV(CFG, "  M201 F", data.xy_freq_limit_hz);
+      SERIAL_EMV(" G", int(data.xy_freq_min_speed_factor * 100));
+    #endif
   }
 
   void Scara_Mechanics::print_M203() {

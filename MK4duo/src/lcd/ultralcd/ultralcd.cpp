@@ -65,7 +65,7 @@ millis_l LcdUI::next_button_update_ms = 0;
 #endif
 
 /** Private Parameters */
-#if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
+#if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
   bool LcdUI::defer_return_to_status;
 #endif
 
@@ -634,7 +634,7 @@ void LcdUI::update() {
 
   #if HAS_LCD_MENU
 
-    #if LCD_TIMEOUT_TO_STATUS
+    #if LCD_TIMEOUT_TO_STATUS > 0
       static short_timer_t return_to_status_timer;
     #endif
 
@@ -685,7 +685,7 @@ void LcdUI::update() {
       #if ENABLED(REPRAPWORLD_KEYPAD)
 
         if (handle_keypad()) {
-          #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
+          #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
             return_to_status_timer.start();
           #endif
         }
@@ -733,7 +733,7 @@ void LcdUI::update() {
           encoderPosition += (encoderDiff * encoderMultiplier) / (ENCODER_PULSES_PER_STEP);
           encoderDiff = 0;
         }
-        #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
+        #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
           return_to_status_timer.start();
         #endif
         refresh(LCDVIEW_REDRAW_NOW);
@@ -763,7 +763,7 @@ void LcdUI::update() {
           status_update_delay = 12;
         }
         refresh(LCDVIEW_REDRAW_NOW);
-        #if LCD_TIMEOUT_TO_STATUS
+        #if LCD_TIMEOUT_TO_STATUS > 0
           return_to_status_timer.start();
         #endif
       }
@@ -825,7 +825,7 @@ void LcdUI::update() {
       NOLESS(max_display_update_time, millis() - ms);
     }
 
-    #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
+    #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
       // Return to Status Screen after a timeout
       if (on_status_screen() || defer_return_to_status)
         return_to_status_timer.start();
@@ -1128,8 +1128,10 @@ void LcdUI::finish_status(const bool persist) {
 
 bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 
-void LcdUI::set_status(const char* const message, const bool persist/*=false*/) {
+void LcdUI::set_status(const char * const message, const bool persist/*=false*/) {
   if (alert_level) return;
+
+  host_action.action_notify(message);
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure
@@ -1170,9 +1172,10 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   if (level < alert_level) return;
   alert_level = level;
 
-  // Here we have a problem. The message is encoded in UTF8, so
-  // arbitrarily cutting it will be a problem. We MUST be sure
-  // that there is no cutting in the middle of a multibyte character!
+  host_action.action_notify_P(message);
+
+  // Since the message is encoded in UTF8 it must
+  // only be cut on a character boundary.
 
   // Get a pointer to the null terminator
   PGM_P pend = message + strlen_P(message);

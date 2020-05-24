@@ -60,7 +60,7 @@ class AdvancedPause {
     static void wait_for_confirmation(const bool is_reload=false, const int8_t max_beep_count=0 DXC_PARAMS);
 
     static void resume_print( const float &slow_load_length=0, const float &fast_load_length=0,
-                              const float &purge_length=PAUSE_PARK_PURGE_LENGTH, const int8_t max_beep_count=0 DXC_PARAMS);
+                              const float &purge_length=PAUSE_PARK_PURGE_LENGTH, const int8_t max_beep_count=0, int16_t targetTemp=0 DXC_PARAMS);
 
     static bool load_filament(const float &slow_load_length=0, const float &fast_load_length=0,
                               const float &purge_length=0, const int8_t max_beep_count=0, const bool show_lcd=false,
@@ -74,7 +74,11 @@ class AdvancedPause {
     static bool ensure_safe_temperature(const PauseModeEnum tmode=PAUSE_MODE_SAME);
 
     #if HAS_BUZZER
-      static void filament_change_beep(const int8_t max_beep_count, const bool init=false);
+      static void impatient_beep(const int8_t max_beep_count, const bool restart=false);
+      inline static void first_impatient_beep(const int8_t max_beep_count) { impatient_beep(max_beep_count, true); }
+    #else
+      inline static void impatient_beep(const int8_t, const bool=false) {}
+      inline static void first_impatient_beep(const int8_t) {}
     #endif
 
 };

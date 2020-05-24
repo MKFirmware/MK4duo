@@ -37,7 +37,7 @@ static HardwareTimer TimerServo(SERVO_TIMER);
 static volatile int8_t timerChannel[_Nbr_16timers] = {-1};  // counter for the servo being pulsed for each timer (or -1 if refresh interval)
 volatile uint32_t CumulativeCountSinceRefresh = 0;
 
-static void Servo_PeriodElapsedCallback(HardwareTimer*) {
+static void Servo_PeriodElapsedCallback() {
   // Only 1 timer used
   timer16_Sequence_t timer_id = _timer1;
 
@@ -67,11 +67,11 @@ static void Servo_PeriodElapsedCallback(HardwareTimer*) {
 static void TimerServoInit() {
   // prescaler is computed so that timer tick correspond to 1 microsecond
   uint32_t prescaler = TimerServo.getTimerClkFreq() / 1000000;
-  TimerServo.setMode(1, TIMER_OUTPUT_COMPARE);
-  TimerServo.setInterruptPriority(1, 0);
+  TimerServo.setMode(1, TIMER_OUTPUT_COMPARE, NC);
   TimerServo.setPrescaleFactor(prescaler);
   TimerServo.setOverflow(REFRESH_INTERVAL);
   TimerServo.attachInterrupt(Servo_PeriodElapsedCallback);
+  TimerServo.setPreloadEnable(false);
   TimerServo.resume();
 }
 

@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 02-05-2020
+* Revision 24-05-2020
 *
 * Version EEPROM MKV80
 *
@@ -25,13 +25,21 @@
 *   DISPLAY Graphics            Function
 *   Neopixel                    Not function
 *
+* Add XY_FREQUENCY_LIMIT
+*   Reduce resonance by limiting the frequency of small zigzag infill moves.
+*   See http://hydraraptor.blogspot.com/2010/12/frequency-limit.html
+*
+* M201: Add set XY frequency limit and minimum FR percentage
+*   F[Hz]   XY Frequency Limit
+*   G[%]    Minimum FR percentage
+*
 * M353: Set total number Extruder, Hotend, Bed, Chamber, Fan
-*    D[int] Set number driver extruder
-*    E[int] Set number extruder
-*    H[int] Set number hotend
-*    B[int] Set number bed
-*    C[int] Set number chamber
-*    F[int] Set number fan
+*   D[int]  Set number driver extruder
+*   E[int]  Set number extruder
+*   H[int]  Set number hotend
+*   B[int]  Set number bed
+*   C[int]  Set number chamber
+*   F[int]  Set number fan
 *
 * M563: Set Tools heater assignment
 *   T[int]  Set Tool

@@ -42,6 +42,7 @@
    *  S[temp]     - New temperature for new filament
    *  B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
    *  T[toolhead] - Select extruder for filament change
+   *  R[temp]     - Resume temperature (in current units)
    *
    *  Default values are used for omitted arguments.
    *
@@ -137,7 +138,9 @@
         advancedpause.resume_print(slow_load_length, fast_load_length, 0, beep_count DXC_PASS);
       #else
         advancedpause.wait_for_confirmation(true, beep_count DXC_PASS);
-        advancedpause.resume_print(slow_load_length, fast_load_length, PAUSE_PARK_PURGE_LENGTH, beep_count DXC_PASS);
+        advancedpause.resume_print( slow_load_length, fast_load_length, PAUSE_PARK_PURGE_LENGTH,
+                                    beep_count, (parser.seenval('R') ? parser.value_celsius() : 0) DXC_PASS
+                                  );
       #endif
     }
 

@@ -143,7 +143,7 @@
       bez_target.e = interp(position.e, target.e, t);
       endstops.apply_motion_limits(bez_target);
 
-      #if HAS_LEVELING && !PLANNER_LEVELING
+      #if HAS_LEVELING && !HAS_PLANNER_LEVELING
         xyze_pos_t pos = { bez_target.x, bez_target.y, bez_target.z, bez_target.e };
         planner.apply_leveling(pos);
       #else

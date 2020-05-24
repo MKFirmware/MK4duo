@@ -177,8 +177,7 @@ class Endstops {
 
     // Flag bit 1 setGlobally
     FORCE_INLINE static void setGlobally(const bool onoff) {
-      flag.Globally = onoff;
-      setEnabled(onoff);
+      flag.Globally = flag.Enabled = onoff;
       resync();
     }
     FORCE_INLINE static bool isGlobally() { return flag.Globally; }
