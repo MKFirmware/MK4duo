@@ -292,10 +292,10 @@ void Printer::minikill(const bool steppers_off/*=false*/) {
   #if HAS_KILL
 
     // Wait for kill to be released
-    while (!READ(KILL_PIN)) watchdog.reset();
+    while (kill_state()) watchdog.reset();
 
     // Wait for kill to be pressed
-    while (READ(KILL_PIN)) watchdog.reset();
+    while (!kill_state()) watchdog.reset();
 
     void(*resetFunc)(void) = 0; // Declare resetFunc() at address 0
     resetFunc();                // Jump to address 0
@@ -495,7 +495,7 @@ void Printer::idle(const bool no_stepper_sleep/*=false*/) {
     // -------------------------------------------------------------------------------
     static int killCount = 0;   // make the inactivity button a bit less responsive
     const int KILL_DELAY = 750;
-    if (!READ(KILL_PIN))
+    if (kill_state())
        killCount++;
     else if (killCount > 0)
        killCount--;

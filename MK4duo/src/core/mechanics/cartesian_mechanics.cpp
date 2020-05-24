@@ -84,6 +84,12 @@ void Cartesian_Mechanics::factory_parameters() {
     ZERO(data.home_offset);
   #endif
 
+  #if HAS_XY_FREQUENCY_LIMIT
+    data.xy_freq_limit_hz         = XY_FREQUENCY_LIMIT;
+    data.xy_freq_min_speed_factor = (XY_FREQUENCY_MIN_PERCENT) * 0.01f;
+    refresh_frequency_limit();
+  #endif
+
 }
 
 /**
@@ -649,22 +655,22 @@ bool Cartesian_Mechanics::position_is_reachable_by_probe(const float &rx, const 
 void Cartesian_Mechanics::report_real_position() {
 
   get_cartesian_from_steppers();
+  xyze_pos_t npos = cartesian_position;
+  npos.e = planner.get_axis_position_mm(E_AXIS);
 
   #if HAS_POSITION_MODIFIERS
-    xyze_pos_t npos = cartesian_position;
-    planner.unapply_modifiers(npos
-      #if HAS_LEVELING
-        , true
-      #endif
-    );
-  #else
-    const xyze_pos_t &npos = cartesian_position;
+    planner.unapply_modifiers(npos, true);
   #endif
 
-  xyze_pos_t lpos = npos.asLogical();
-  lpos.e = planner.get_axis_position_mm(E_AXIS);
-  report_some_position(lpos);
+  report_logical_position(npos);
+  stepper.report_positions();
 
+}
+
+// Report the logical current position according to the most recent G-code command
+void Cartesian_Mechanics::report_position() {
+  report_logical_position(position);
+  stepper.report_positions();
 }
 
 // Report detail current position to host
@@ -708,27 +714,15 @@ void Cartesian_Mechanics::report_detail_position() {
   report_xyze(from_steppers);
 
   const xyze_float_t diff = from_steppers - leveled;
-  SERIAL_MSG("Differ: ");
+  SERIAL_MSG("Diff:   ");
   report_xyze(diff);
 
 }
 
-// Report the logical current position according to the most recent G-code command.
-void Cartesian_Mechanics::report_logical_position() {
-
-  xyze_pos_t rpos = position;
-
-  #if HAS_POSITION_MODIFIERS
-    planner.apply_modifiers(rpos);
-  #endif
-
-  abc_float_t aspmm;
-  aspmm.set(mechanics.steps_to_mm);
-  const abc_long_t spos = (rpos * aspmm).asLong().ROUNDL();
-
-  report_some_position(position.asLogical());
-  stepper.report_positions(spos);
-
+// Report the logical position for a given machine position
+void Cartesian_Mechanics::report_logical_position(const xyze_pos_t &pos) {
+  const xyze_pos_t lpos = pos.asLogical();
+  report_xyze(lpos);
 }
 
 #if ENABLED(DUAL_X_CARRIAGE)
@@ -837,6 +831,11 @@ void Cartesian_Mechanics::report_logical_position() {
       SERIAL_SMV(CFG, "  M201 T", (int)e);
       SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.max_acceleration_mm_per_s2));
     }
+    #if HAS_XY_FREQUENCY_LIMIT
+      SERIAL_LM(CFG, "XY Frequency Limit: F<freq> G<min%>");
+      SERIAL_SMV(CFG, "  M201 F", data.xy_freq_limit_hz);
+      SERIAL_EMV(" G", int(data.xy_freq_min_speed_factor * 100));
+    #endif
   }
 
   void Cartesian_Mechanics::print_M203() {

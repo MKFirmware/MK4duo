@@ -41,7 +41,7 @@ class Host_Action {
 
     static void response_handler(const uint8_t response);
     static void action_notify(const char * const message);
-    static void action_notify_P(PGM_P const pstr);
+    static void action_notify_P(PGM_P const message);
 
     static void pause(const bool eol=true)  { print_action(PSTR("pause"), eol); }
     static void paused(const bool eol=true) { print_action(PSTR("paused"), eol); }
@@ -52,23 +52,23 @@ class Host_Action {
 
     static void filrunout(const uint8_t t);
 
-    static void prompt_begin(const HostPromptEnum reason, const char * const pstr, const char extra_char='\0');
-    static void prompt_button(const char * const pstr);
+    static void prompt_begin(const HostPromptEnum reason, PGM_P const pstr, const char extra_char='\0');
+    static void prompt_button(PGM_P const pstr);
 
     static void prompt_show() { print_prompt(PSTR("show")); }
     static void prompt_end()  { print_prompt(PSTR("end")); }
 
-    static void prompt_do(const HostPromptEnum reason, const char * const pstr, const char * const btn1=nullptr, const char * const btn2=nullptr);
+    static void prompt_do(const HostPromptEnum reason, PGM_P const pstr, PGM_P const btn1=nullptr, PGM_P const btn2=nullptr);
 
-    static inline void prompt_open(const HostPromptEnum reason, const char * const pstr, const char * const btn1=nullptr, const char * const btn2=nullptr) {
+    static inline void prompt_open(const HostPromptEnum reason, PGM_P const pstr, PGM_P const btn1=nullptr, PGM_P const btn2=nullptr) {
       if (prompt_reason == PROMPT_NOT_DEFINED) prompt_do(reason, pstr, btn1, btn2);
     }
 
   private: /** Private Function */
 
-    static void print_action(const char * const pstr, const bool eol=true);
-    static void print_prompt(const char * const ptype, const bool eol=true);
-    static void print_prompt_plus(const char * const ptype, const char * const pstr, const char extra_char='\0');
+    static void print_action(PGM_P const pstr, const bool eol=true);
+    static void print_prompt(PGM_P const ptype, const bool eol=true);
+    static void print_prompt_plus(PGM_P const ptype, PGM_P const pstr, const char extra_char='\0');
 
     static void filament_load_prompt();
 

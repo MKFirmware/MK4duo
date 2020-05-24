@@ -81,7 +81,7 @@ char    LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH + 1];
 
   bool LcdUI::lcd_clicked = false;
 
-  #if LCD_TIMEOUT_TO_STATUS
+  #if LCD_TIMEOUT_TO_STATUS > 0
     bool LcdUI::defer_return_to_status;
   #endif
 
@@ -105,7 +105,7 @@ uint8_t NextionLCD::PageID              = 0;
 
 #if HAS_LCD_MENU
   bool  NextionLCD::line_encoder_touch  = false;
-  #if LCD_TIMEOUT_TO_STATUS
+  #if LCD_TIMEOUT_TO_STATUS > 0
     short_timer_t NextionLCD::return_to_status_timer(millis());
   #endif
 #endif
@@ -264,19 +264,20 @@ void NextionLCD::init() {
     // Attempt 1 second
     HAL::delayMilliseconds(SECOND_TO_MILLIS(1));
 
-    if (getConnect(baudrate_array[i], cmd)) {
+    NextionON = getConnect(baudrate_array[i], cmd);
+    if (NextionON) {
+
       #if ENABLED(NEXTION_CONNECT_DEBUG)
         SERIAL_SMV(ECHO, "NEXTION connected at ", baudrate_array[i]);
-        SERIAL_EMV(" baud, new baudrate:", NEXTION_BAUDRATE);
+        SERIAL_EM(" baud.");
       #endif
 
-      // Set Page 0 and NEXTION_BAUDRATE
-      sendCommandPGM(PSTR("page pg0"));
-      sendCommandPGM(PSTR("baud=" STRINGIFY(NEXTION_BAUDRATE)));
-      HAL::delayMilliseconds(50);
+      if (baudrate_array[i] == NEXTION_BAUDRATE) break;
 
-      // Clear buffer RX
-      clear_rx();
+      // Set NEXTION_BAUDRATE
+      sendCommandPGM(PSTR("baud=" STRINGIFY(NEXTION_BAUDRATE)));
+      const uint16_t delay = uint16_t(1000000 / (NEXTION_BAUDRATE)) + 30UL;
+      HAL::delayMilliseconds(delay);
 
       // Try at NEXTION_BAUDRATE
       NextionON = getConnect(NEXTION_BAUDRATE, cmd);
@@ -296,6 +297,13 @@ void NextionLCD::init() {
     return;
   }
   else {
+
+    // Set Page 0
+    sendCommandPGM(PSTR("page pg0"));
+
+    // Clear buffer RX
+    clear_rx();
+
     // Read Version Firmware Nextion
     sendCommandPGM(PSTR("get version.val"));
     const uint16_t nextion_version = recvRetNumber();
@@ -353,7 +361,7 @@ void NextionLCD::init() {
 
     set_status_page();
 
-    #if LCD_TIMEOUT_TO_STATUS
+    #if LCD_TIMEOUT_TO_STATUS > 0
       return_to_status_timer.start();
     #endif
 
@@ -983,7 +991,7 @@ void NextionLCD::PopCallback(NexObject *nexobject) {
       }
     }
 
-    #if LCD_TIMEOUT_TO_STATUS
+    #if LCD_TIMEOUT_TO_STATUS > 0
       return_to_status_timer.start();
     #endif
 
@@ -1312,7 +1320,7 @@ void LcdUI::update() {
 
     if (nexlcd.PageID == 11) {
 
-      #if LCD_TIMEOUT_TO_STATUS
+      #if LCD_TIMEOUT_TO_STATUS > 0
         if (defer_return_to_status)
           nexlcd.return_to_status_timer.start();
         else if (nexlcd.return_to_status_timer.expired(LCD_TIMEOUT_TO_STATUS))
@@ -1346,7 +1354,7 @@ void LcdUI::update() {
 
     }
     else {
-      #if LCD_TIMEOUT_TO_STATUS
+      #if LCD_TIMEOUT_TO_STATUS > 0
         nexlcd.return_to_status_timer = millis();
       #endif
     }
@@ -1373,8 +1381,9 @@ void LcdUI::set_alert_status_P(PGM_P const message) {
   #endif
 }
 
-void LcdUI::set_status(const char* const message, const bool) {
+void LcdUI::set_status(const char * const message, const bool) {
   if (alert_level || !nexlcd.NextionON) return;
+  host_action.action_notify(message);
   strncpy(status_message, message, NEXTION_MAX_MESSAGE_LENGTH);
   nexlcd.setText(LcdStatus, status_message);
 }
@@ -1383,6 +1392,8 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   if (level < 0) level = alert_level = 0;
   if (level < alert_level || !nexlcd.NextionON) return;
   alert_level = level;
+
+  host_action.action_notify_P(message);
 
   // Get a pointer to the null terminator
   PGM_P pend = message + strlen_P(message);

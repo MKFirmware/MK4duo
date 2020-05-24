@@ -46,6 +46,7 @@
  * - Axis steps per unit
  * - Axis feedrate
  * - Axis acceleration
+ * - XY Frequency limit
  * - Axis jerk
  * - Homing feedrate
  * - Hotend offset
@@ -572,6 +573,22 @@
 #define DEFAULT_ACCELERATION          3000
 //  X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 #define DEFAULT_TRAVEL_ACCELERATION   3000
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ******************************* XY Frequency limit **************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Reduce resonance by limiting the frequency of small zigzag infill moves.              *
+ * See http://hydraraptor.blogspot.com/2010/12/frequency-limit.html                      *
+ * Use M201 F<freq> G<min%> to change limits at runtime.                                 *
+ *                                                                                       *
+ *****************************************************************************************/
+// (Hz) Maximum frequency of small zigzag infill moves. Set with M201 F<hertz>.
+//#define XY_FREQUENCY_LIMIT       10
+// (percent) Minimum FR percentage to apply. Set with M201 G<min%>.
+#define XY_FREQUENCY_MIN_PERCENT  5
 /*****************************************************************************************/
 
 

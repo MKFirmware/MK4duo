@@ -28,41 +28,49 @@
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-  #define CODE_M421
+#define CODE_M421
 
-  /**
-   * M421: Set a single Mesh Bed Leveling Z coordinate
-   *
-   * Usage:
-   *   M421 I<xindex> J<yindex> Z<linear>
-   *   M421 I<xindex> J<yindex> Q<offset>
-   */
-  inline void gcode_M421() {
-    int8_t ix = parser.intval('I', -1), iy = parser.intval('J', -1);
-    const bool  hasI = ix >= 0,
-                hasJ = iy >= 0,
-                hasZ = parser.seen('Z'),
-                hasQ = !hasZ && parser.seen('Q');
+/**
+ * M421: Set one or more Mesh Bed Leveling Z coordinates
+ *
+ * Usage:
+ *   M421 I<xindex> J<yindex> Z<linear>
+ *   M421 I<xindex> J<yindex> Q<offset>
+ *
+ *  - If I is omitted, set the entire row
+ *  - If J is omitted, set the entire column
+ *  - If both I and J are omitted, set all
+ */
+inline void gcode_M421() {
 
-    if (!hasI || !hasJ || !(hasZ || hasQ)) {
-      SERIAL_LM(ER, STR_ERR_M421_PARAMETERS);
-    }
-      else if (!WITHIN(ix, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1)) {
-      SERIAL_LM(ER, STR_ERR_MESH_XY);
-    }
+  int8_t  ix = parser.intval('I', -1),
+          iy = parser.intval('J', -1);
 
-    if (hasI && hasJ && !(hasZ || hasQ)) {
-      SERIAL_MV("Level value in ix", ix);
-      SERIAL_MV(" iy", iy);
-      SERIAL_EMV(" Z", abl.data.z_values[ix][iy]);
-      return;
-    }
-    else {
-      abl.data.z_values[ix][iy] = parser.value_linear_units() + (hasQ ? abl.data.z_values[ix][iy] : 0);
+  const bool  hasZ = parser.seen('Z'),
+              hasQ = !hasZ && parser.seen('Q');
+
+  if (hasZ || hasQ) {
+    if (WITHIN(ix, -1, GRID_MAX_POINTS_X - 1) && WITHIN(iy, -1, GRID_MAX_POINTS_Y - 1)) {
+      const float zval = parser.value_linear_units();
+      uint8_t sx = ix >= 0 ? ix : 0, ex = ix >= 0 ? ix : GRID_MAX_POINTS_X - 1,
+              sy = iy >= 0 ? iy : 0, ey = iy >= 0 ? iy : GRID_MAX_POINTS_Y - 1;
+      LOOP_S_LE_N(x, sx, ex) {
+        LOOP_S_LE_N(y, sy, ey) {
+          abl.data.z_values[x][y] = zval + (hasQ ? abl.data.z_values[x][y] : 0);
+        }
+      }
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
         abl.virt_interpolate();
       #endif
     }
+    else {
+      SERIAL_LM(ER, STR_ERR_MESH_XY);
+    }
   }
+  else {
+    SERIAL_LM(ER, STR_ERR_M421_PARAMETERS);
+  }
+
+}
 
 #endif // ENABLED(AUTO_BED_LEVELING_BILINEAR)

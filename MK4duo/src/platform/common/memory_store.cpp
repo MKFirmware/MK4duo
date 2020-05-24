@@ -20,36 +20,10 @@
  *
  */
 
-/**
- * mcode
- *
- * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
- */
+#include "../../../MK4duo.h"
 
-#define CODE_M114
+#if HAS_EEPROM
 
-/**
- * M114: Report the current position to host.
- *       Since steppers are moving, the count positions are
- *       projected by using planner calculations.
- *  D - Report more detail. This syncs the planner.
- *  R - Report the realtime position instead of projected.
- */
-inline void gcode_M114() {
+  MemoryStore memorystore;
 
-  if (parser.seen('D')) {
-    planner.synchronize();
-    mechanics.report_position();
-    mechanics.report_detail_position();
-    return;
-  }
-
-  if (parser.seen('R')) {
-    mechanics.report_real_position();
-    return;
-  }
-
-  planner.synchronize();
-  mechanics.report_logical_position(mechanics.position);
-
-}
+#endif

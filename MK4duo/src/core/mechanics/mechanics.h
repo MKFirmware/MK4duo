@@ -95,6 +95,11 @@ struct generic_data_t {
     xyz_pos_t   home_offset;
   #endif
 
+  #if HAS_XY_FREQUENCY_LIMIT
+    int8_t      xy_freq_limit_hz;
+    float       xy_freq_min_speed_factor;
+  #endif
+
 };
 
 class Mechanics {
@@ -199,6 +204,10 @@ class Mechanics {
       static WorkspacePlaneEnum workspace_plane;
     #endif
 
+    #if HAS_XY_FREQUENCY_LIMIT
+      static int32_t xy_freq_min_interval_us;
+    #endif
+
   private: /** Private Parameters */
 
     static feedrate_t saved_feedrate_mm_s;
@@ -292,13 +301,6 @@ class Mechanics {
 
     static void unscaled_e_move(const float &length, const feedrate_t &fr_mm_s);
 
-    /**
-     * Report position to host
-     */
-    static void report_some_position(const xyze_pos_t &pos);
-    FORCE_INLINE static void report_xyz(const xyz_pos_t &pos) { xyze_pos_t abce = pos; report_xyze(abce, 3); }
-    FORCE_INLINE static void report_xyz(const xyze_pos_t &pos) { report_xyze(pos, 3); }
-
     static uint8_t axis_need_homing(uint8_t axis_bits=0x07);
     static bool axis_unhomed_error(uint8_t axis_bits=0x07);
 
@@ -335,6 +337,20 @@ class Mechanics {
       static void recalculate_max_e_jerk();
     #endif
 
+    #if HAS_XY_FREQUENCY_LIMIT
+      static inline void refresh_frequency_limit() {
+        if (data.xy_freq_limit_hz)
+          xy_freq_min_interval_us = LROUND(1000000.0f / data.xy_freq_limit_hz);
+      }
+      static inline void set_min_speed_factor_u8(const uint8_t v255) {
+        data.xy_freq_min_speed_factor = float(ui8topercent(v255)) / 100;
+      }
+      static inline void set_frequency_limit(const uint8_t hz) {
+        data.xy_freq_limit_hz = constrain(hz, 0, 100);
+        refresh_frequency_limit();
+      }
+    #endif
+
   protected: /** Protected Function */
 
     /**
@@ -345,7 +361,12 @@ class Mechanics {
       static void stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_flag_t enable_stealth);
     #endif
 
-    static void report_xyze(const xyze_pos_t &pos, const uint8_t n=4);
+    /**
+     * Report position to host
+     */
+    static void report_xyze(const xyze_pos_t &pos, const uint8_t n=XYZE);
+    static void report_xyz(const xyz_pos_t &pos);
+    FORCE_INLINE static void report_xyz(const xyze_pos_t &pos) { report_xyze(pos, XYZ); }
 
     /**
      * Homing bump feedrate (mm/s)

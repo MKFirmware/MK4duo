@@ -19,37 +19,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
+
+#if DISABLED(__AVR__) && HAS_EEPROM
 
 /**
- * mcode
- *
- * Copyright (c) 2020 Alberto Cotronei @MagoKimbra
+ * EEPROM for all system
  */
+void eeprom_init();
+void eeprom_write_byte(uint8_t* pos, uint8_t value);
+uint8_t eeprom_read_byte(uint8_t* pos);
 
-#define CODE_M114
-
-/**
- * M114: Report the current position to host.
- *       Since steppers are moving, the count positions are
- *       projected by using planner calculations.
- *  D - Report more detail. This syncs the planner.
- *  R - Report the realtime position instead of projected.
- */
-inline void gcode_M114() {
-
-  if (parser.seen('D')) {
-    planner.synchronize();
-    mechanics.report_position();
-    mechanics.report_detail_position();
-    return;
-  }
-
-  if (parser.seen('R')) {
-    mechanics.report_real_position();
-    return;
-  }
-
-  planner.synchronize();
-  mechanics.report_logical_position(mechanics.position);
-
-}
+#endif // DISABLED(__AVR__) && HAS_EEPROM

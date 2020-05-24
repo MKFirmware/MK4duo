@@ -752,6 +752,8 @@ void EEPROM::post_process() {
       flag.error |= size_error(eeprom_size);
     }
 
+    flag.error |= memorystore.access_write();
+
     //
     // UBL Mesh
     //
@@ -759,8 +761,6 @@ void EEPROM::post_process() {
       if (ubl.storage_slot >= 0)
         store_mesh(ubl.storage_slot);
     #endif
-
-    flag.error |= memorystore.access_write();
 
     sound.feedback(!flag.error);
 
@@ -1298,7 +1298,9 @@ void EEPROM::post_process() {
       uint16_t crc = 0;
       int pos = mesh_slot_offset(slot);
 
+      memorystore.access_start();
       const bool status = memorystore.write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
+      memorystore.access_write();
 
       if (status) SERIAL_EM("?Unable to save mesh data.");
       else        DEBUG_EMV("Mesh saved in slot ", slot);
@@ -1318,7 +1320,9 @@ void EEPROM::post_process() {
       uint16_t crc = 0;
       uint8_t * const dest = into ? (uint8_t*)into : (uint8_t*)&ubl.z_values;
 
+      memorystore.access_start();
       const bool status = memorystore.read_data(pos, dest, sizeof(ubl.z_values), &crc);
+      memorystore.access_write();
 
       if (status) SERIAL_MSG("?Unable to load mesh data.\n");
       else        DEBUG_EMV("Mesh loaded from slot ", slot);

@@ -44,9 +44,10 @@ inline void gcode_M922() {
 
   #if ENABLED(TMC_DEBUG)
     #if ENABLED(MONITOR_DRIVER_STATUS)
-      const bool sflag = parser.seen('S'), s0 = sflag && !parser.value_bool();
-      if (sflag) tmcManager.set_report_interval(s0 ? 0 : MONITOR_DRIVER_STATUS_INTERVAL_MS);
-      if (!s0 && parser.seenval('P')) tmcManager.set_report_interval(MIN(parser.value_ushort(), MONITOR_DRIVER_STATUS_INTERVAL_MS));
+      uint16_t interval = MONITOR_DRIVER_STATUS_INTERVAL_MS;
+      if (parser.seen('S') && !parser.value_bool()) interval = 0;
+      if (parser.seenval('P')) NOMORE(interval, parser.value_ushort());
+      tmcManager.set_report_interval(interval);
     #endif
 
     if (parser.seen('V'))

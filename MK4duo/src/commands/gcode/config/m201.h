@@ -45,6 +45,11 @@ inline void gcode_M201() {
     }
   #endif
 
+  #if HAS_XY_FREQUENCY_LIMIT
+    if (parser.seenval('F')) mechanics.set_frequency_limit(parser.value_byte());
+    if (parser.seenval('G')) mechanics.data.xy_freq_min_speed_factor = constrain(parser.value_float(), 1, 100) / 100;
+  #endif
+
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
       #if MECH(DELTA)

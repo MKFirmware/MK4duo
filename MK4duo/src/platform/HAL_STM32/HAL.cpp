@@ -291,7 +291,7 @@ pin_t HAL::analog_value_pin() {
 // This intercepts the 1ms system tick.
 extern "C" void HAL_SYSTICK_Callback(void) { HAL::Tick(); }
 
-void Step_Handler(HardwareTimer*) { stepper.Step(); }
+void Step_Handler() { stepper.Step(); }
 
 
 #endif // ARDUINO_ARCH_STM32

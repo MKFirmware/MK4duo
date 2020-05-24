@@ -74,6 +74,10 @@ uint8_t Mechanics::axis_relative_modes = (
   WorkspacePlaneEnum Mechanics::workspace_plane = PLANE_XY;
 #endif
 
+#if HAS_XY_FREQUENCY_LIMIT
+  int32_t Mechanics::xy_freq_min_interval_us = LROUND(1000000.0f / (XY_FREQUENCY_LIMIT));
+#endif
+
 /** Private Parameters */
 feedrate_t  Mechanics::saved_feedrate_mm_s        = 0.0f;
 int16_t     Mechanics::saved_feedrate_percentage  = 0;
@@ -111,11 +115,7 @@ void Mechanics::set_position_from_steppers_for_axis(const AxisEnum axis) {
   pos.e = planner.get_axis_position_mm(E_AXIS);
 
   #if HAS_POSITION_MODIFIERS
-    planner.unapply_modifiers(pos
-      #if HAS_LEVELING
-        , true
-      #endif
-    );
+    planner.unapply_modifiers(pos, true);
   #endif
 
   if (axis == ALL_AXES)
@@ -223,17 +223,25 @@ void Mechanics::unscaled_e_move(const float &length, const feedrate_t &fr_mm_s) 
 /**
  * Report position to host
  */
-void Mechanics::report_some_position(const xyze_pos_t &pos) {
-  report_xyze(pos);
-  stepper.report_positions();
+void Mechanics::report_xyze(const xyze_pos_t &pos, const uint8_t n/*=XYZE*/) {
+  char str[12];
+  for (uint8_t a = 0; a < n; a++) {
+    SERIAL_CHR(' ');
+    SERIAL_CHR(axis_codes[a]);
+    SERIAL_CHR(':');
+    if (pos[a] >= 0) SERIAL_CHR(' ');
+    SERIAL_TXT(dtostrf(pos[a], 1, 3, str));
+  }
+  SERIAL_EOL();
 }
 
-void Mechanics::report_xyze(const xyze_pos_t &pos, const uint8_t n/*=4*/) {
-  for (uint8_t i = 0; i < n; i++) {
+void Mechanics::report_xyz(const xyz_pos_t &pos) {
+  char str[12];
+  LOOP_XYZ(a) {
     SERIAL_CHR(' ');
-    SERIAL_CHR(axis_codes[i]);
+    SERIAL_CHR(axis_codes[a]);
     SERIAL_CHR(':');
-    SERIAL_VAL(pos[i], 3);
+    SERIAL_TXT(dtostrf(pos[a], 1, 3, str));
   }
   SERIAL_EOL();
 }

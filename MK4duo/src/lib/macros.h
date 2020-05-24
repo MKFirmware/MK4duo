@@ -72,7 +72,11 @@
 
 // Remove compiler warning on an unused variable
 #ifndef UNUSED
-  #define UNUSED(x)     ((void)(x))
+  #if defined(ARDUINO_ARCH_STM32) && !defined(STM32GENERIC)
+    #define UNUSED(X)   (void)X
+  #else
+    #define UNUSED(x)   ((void)(x))
+  #endif
 #endif
 
 /**
@@ -227,7 +231,7 @@
 #define NEAR(x,y)                 NEAR_ZERO((x)-(y))
 
 #define RECIPROCAL(x)             (NEAR_ZERO(x) ? 0 : (1.0f / float(x)))
-#define FIXFLOAT(f)               (f + (f < 0 ? -0.00005f : 0.00005f))
+#define FIXFLOAT(f)               ({__typeof__(f) _f = (f); _f + (_f < 0 ? -0.00005f : 0.00005f);})
 
 // LOOP MACROS
 #define LOOP_S_LE_N(VAR, S, N)    for (uint8_t VAR=(S); VAR<=(N); VAR++)
@@ -260,6 +264,7 @@
 #undef M_PI
 #define M_PI              3.14159265358979323846f
 
+#define cu(x)             ({__typeof__(x) _x = (x); (_x)*(_x)*(_x);})
 #define RADIANS(d)        ((d)*float(M_PI)/180.0f)
 #define DEGREES(r)        ((r)*180.0f/float(M_PI))
 #define HYPOT2(x,y)       (sq(x)+sq(y))
@@ -271,7 +276,7 @@
 #define CIRCLE_AREA(R)    (float(M_PI) * sq(float(R)))
 #define CIRCLE_CIRC(R)    (2 * float(M_PI) * float(R))
 
-#define SIGN(a)           ((a>0)-(a<0))
+#define SIGN(a)           ({__typeof__(a) _a = (a); (_a>0)-(_a<0);})
 #define IS_POWER_OF_2(x)  ((x) && !((x) & ((x) - 1)))
 
 #undef MIN

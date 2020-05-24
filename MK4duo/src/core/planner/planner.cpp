@@ -109,13 +109,6 @@ uint32_t Planner::cutoff_long = 0;
   uint8_t Planner::g_uc_extruder_last_move[MAX_EXTRUDER] = { 0 };
 #endif
 
-#if ENABLED(XY_FREQUENCY_LIMIT)
-  // Old direction bits. Used for speed calculations
-  uint8_t Planner::old_direction_bits = 0;
-  // Segment times (in µs). Used for speed calculations
-  xy_ulong_t Planner::axis_segment_time_us[3] = { { MAX_FREQ_TIME_US + 1, 0, 0 }, { MAX_FREQ_TIME_US + 1, 0, 0 } };
-#endif
-
 #if HAS_SPI_LCD
   volatile uint32_t Planner::block_buffer_runtime_us = 0;
 #endif
@@ -779,31 +772,25 @@ void Planner::check_axes_activity() {
 
 #if HAS_POSITION_MODIFIERS
 
-  void Planner::apply_modifiers(xyze_pos_t &pos
+  void Planner::apply_modifiers(xyze_pos_t &pos, const bool leveling/*=HAS_PLANNER_LEVELING*/) {
     #if HAS_LEVELING
-      , bool leveling
-    #endif
-  ) {
-    #if HAS_LEVELING
-      if (leveling)
-        bedlevel.apply_leveling(pos);
+      if (leveling) bedlevel.apply_leveling(pos);
+    #else
+      UNUSED(leveling);
     #endif
     #if ENABLED(FWRETRACT)
       apply_retract(pos);
     #endif
   }
 
-  void Planner::unapply_modifiers(xyze_pos_t &pos
-    #if HAS_LEVELING
-      , bool leveling
-    #endif
-  ) {
+  void Planner::unapply_modifiers(xyze_pos_t &pos, const bool leveling/*=HAS_PLANNER_LEVELING*/) {
     #if ENABLED(FWRETRACT)
       unapply_retract(pos);
     #endif
     #if HAS_LEVELING
-      if (leveling)
-        bedlevel.unapply_leveling(pos);
+      if (leveling) bedlevel.unapply_leveling(pos);
+    #else
+      UNUSED(leveling);
     #endif
   }
 
@@ -1434,42 +1421,36 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   }
 
   // Max segment time in µs.
-  #if ENABLED(XY_FREQUENCY_LIMIT)
+  #if HAS_XY_FREQUENCY_LIMIT
 
-    // Check and limit the xy direction change frequency
-    const uint8_t direction_change_bits = block->direction_bits ^ old_direction_bits;
-    old_direction_bits = block->direction_bits;
-    segment_time_us = LROUND((float)segment_time_us / speed_factor);
+    static uint8_t old_direction_bits; // = 0
 
-    uint32_t  xs0 = axis_segment_time_us[0].x,
-              xs1 = axis_segment_time_us[1].x,
-              xs2 = axis_segment_time_us[2].x,
-              ys0 = axis_segment_time_us[0].y,
-              ys1 = axis_segment_time_us[1].y,
-              ys2 = axis_segment_time_us[2].y;
+    if (mechanics.data.xy_freq_limit_hz) {
+      // Check and limit the xy direction change frequency
+      const uint8_t direction_change_bits = block->direction_bits ^ old_direction_bits;
+      old_direction_bits = block->direction_bits;
+      segment_time_us = LROUND((float)segment_time_us / speed_factor);
 
-    if (TEST(direction_change_bits, X_AXIS)) {
-      xs2 = axis_segment_time_us[2].x = xs1;
-      xs1 = axis_segment_time_us[1].x = xs0;
-      xs0 = 0;
+      static int32_t xs0, xs1, xs2, ys0, ys1, ys2;
+      if (segment_time_us > mechanics.xy_freq_min_interval_us)
+        xs2 = xs1 = ys2 = ys1 = mechanics.xy_freq_min_interval_us;
+      else {
+        xs2 = xs1; xs1 = xs0;
+        ys2 = ys1; ys1 = ys0;
+      }
+      xs0 = TEST(direction_change_bits, X_AXIS) ? segment_time_us : mechanics.xy_freq_min_interval_us;
+      ys0 = TEST(direction_change_bits, Y_AXIS) ? segment_time_us : mechanics.xy_freq_min_interval_us;
+
+      if (segment_time_us < mechanics.xy_freq_min_interval_us) {
+        const int32_t least_xy_segment_time = MIN(MAX(xs0, xs1, xs2), MAX(ys0, ys1, ys2));
+        if (least_xy_segment_time < mechanics.xy_freq_min_interval_us) {
+          float freq_xy_feedrate = (speed_factor * least_xy_segment_time) / mechanics.xy_freq_min_interval_us;
+          NOLESS(freq_xy_feedrate, mechanics.data.xy_freq_min_speed_factor);
+          NOMORE(speed_factor, freq_xy_feedrate);
+        }
+      }
     }
-    xs0 = axis_segment_time_us[0].x = xs0 + segment_time_us;
-
-    if (TEST(direction_change_bits, Y_AXIS)) {
-      ys2 = axis_segment_time_us[2].y = axis_segment_time_us[1].y;
-      ys1 = axis_segment_time_us[1].y = axis_segment_time_us[0].y;
-      ys0 = 0;
-    }
-    ys0 = axis_segment_time_us.y[0] = ys0 + segment_time_us;
-
-    const uint32_t  max_x_segment_time = MAX(xs0, xs1, xs2),
-                    max_y_segment_time = MAX(ys0, ys1, ys2),
-                    min_xy_segment_time = MIN(max_x_segment_time, max_y_segment_time);
-    if (min_xy_segment_time < MAX_FREQ_TIME_US) {
-      const float low_sf = speed_factor * min_xy_segment_time / (MAX_FREQ_TIME_US);
-      NOMORE(speed_factor, low_sf);
-    }
-  #endif // XY_FREQUENCY_LIMIT
+  #endif // HAS_XY_FREQUENCY_LIMIT
 
   // Correct the speed
   if (speed_factor < 1.0f) {
@@ -1588,8 +1569,6 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       xyze_float_t unit_vec = { steps_dist_mm.x, steps_dist_mm.y, steps_dist_mm.z, steps_dist_mm.e };
     #endif
 
-    unit_vec *= inverse_millimeters;
-
     #if IS_CORE
       /**
        * On CoreXY the length of the vector [A,B] is SQRT(2) times the length of the head movement vector [X,Y].
@@ -1597,6 +1576,11 @@ bool Planner::fill_block(block_t * const block, bool split_move,
        * => normalize the complete junction vector
        */
       normalize_junction_vector(unit_vec);
+    #else
+      if (esteps > 0)
+        normalize_junction_vector(unit_vec);  // Normalize with XYZE components
+      else
+        unit_vec *= inverse_millimeters;      // Use pre-calculated (1 / SQRT(x^2 + y^2 + z^2))
     #endif
 
     // Skip first block or when previous_nominal_speed is used as a flag for homing and offset cycles.
@@ -1777,9 +1761,9 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     previous_safe_speed = safe_speed;
 
     #if HAS_JUNCTION_DEVIATION
-      vmax_junction_sqr = MIN(vmax_junction_sqr, sq(vmax_junction));
+      NOMORE(vmax_junction_sqr, sq(vmax_junction)); // Throttle down to max speed
     #else
-      vmax_junction_sqr = sq(vmax_junction);
+      vmax_junction_sqr = sq(vmax_junction);        // Go up or down to the new speed
     #endif
 
   #endif // Classic Jerk Limiting
@@ -2045,11 +2029,7 @@ void Planner::set_position_mm(const float &rx, const float &ry, const float &rz,
   xyze_pos_t raw = { rx, ry, rz, e };
 
   #if HAS_POSITION_MODIFIERS
-    apply_modifiers(raw
-      #if HAS_LEVELING
-        , true
-      #endif
-    );
+    apply_modifiers(raw, true);
   #endif
 
   #if IS_KINEMATIC

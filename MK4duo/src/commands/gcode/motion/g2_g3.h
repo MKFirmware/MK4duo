@@ -192,7 +192,7 @@ void plan_arc(
 
     endstops.apply_motion_limits(raw);
 
-    #if HAS_LEVELING && !PLANNER_LEVELING
+    #if HAS_LEVELING && !HAS_PLANNER_LEVELING
       bedlevel.apply_leveling(raw);
     #endif
 
@@ -212,7 +212,7 @@ void plan_arc(
 
   endstops.apply_motion_limits(raw);
 
-  #if HAS_LEVELING && !PLANNER_LEVELING
+  #if HAS_LEVELING && !HAS_PLANNER_LEVELING
     bedlevel.apply_leveling(raw);
   #endif
 

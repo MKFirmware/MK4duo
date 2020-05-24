@@ -629,7 +629,12 @@ bool Commands::process_injected() {
   }
 
   // Copy the next command into place
-  strcpy(injected_cmd, &injected_cmd[i + (c != '\0')]);
+  for (
+    uint8_t dst = 0, src = i + !!c;           // dst, src
+    (injected_cmd[dst] = injected_cmd[src]);  // copy, exit if 0
+    dst++, src++                              // next dst, src
+  );
+
   return true;
 }
 
