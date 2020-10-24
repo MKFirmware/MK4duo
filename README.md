@@ -10,7 +10,7 @@
 
 ## Version 4.4.0
 
-Please donate to support this project https://www.paypal.me/MagoKimbra
+NOW IS DIE...
 
 ## Hardware Abstraction Layer (HAL)
 
